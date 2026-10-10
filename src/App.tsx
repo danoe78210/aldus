@@ -11,7 +11,7 @@ import { findTrimPreset } from "./data/trimSizes";
 import { INHERIT_FONT, numberFr } from "./data/fonts";
 import { DEFAULT_SPECIAL_ROLE, specialRoleLabel } from "./data/specialPages";
 import { openPathExternal } from "./utils/shell";
-import { invokeCommand, isInvokeAvailable } from "./utils/tauri";
+import { invokeCommand, isInvokeAvailable, listenEvent } from "./utils/tauri";
 import {
   importFileIntoFolder,
   isFsAvailable,
@@ -30,6 +30,13 @@ import {
 } from "./utils/projectFile";
 import { isImageFile, splitSourceFiles } from "./utils/sources";
 import { finalizeExit, onCloseRequested } from "./utils/shutdown";
+import { EXPORT_FORMS, PRESS_STAGES, PRESS_TOTAL_MS, type ExportFormId } from "./utils/exportEngine";
+
+/** Charge utile de l'événement `export-progress` émis par le moteur Rust. */
+interface ExportProgressPayload {
+  step: string;
+  progress: number;
+}
 
 /** Délai (ms) du voile d'encre avant la bascule d'état du sas d'accueil. */
 const ATELIER_TRANSITION_MS = 450;
@@ -175,6 +182,16 @@ const App: React.FC = () => {
   const [isAtelierOpen, setIsAtelierOpen] = useState(false);
   const [isTransitioning, setIsTransitioning] = useState(false);
   const enteringRef = useRef(false);
+  const pressingRef = useRef(false);
+  // Presse & export : formes retenues, dossier de fabrication, cinématique.
+  const [exportForms, setExportForms] = useState<Record<ExportFormId, boolean>>({
+    "pdf-x": true,
+    epub32: true,
+    "cover-300": true,
+  });
+  const [exportDirectory, setExportDirectory] = useState<string | null>(null);
+  const [pressStage, setPressStage] = useState(-1);
+  const [isPressing, setIsPressing] = useState(false);
   const [logs, setLogs] = useState<LogEntry[]>(() => [
     createLog('info', 'Studio initialisé. Prêt à écrire.'),
     createLog('success', 'Projet « Les Schattenjägers » chargé.'),
@@ -779,8 +796,114 @@ const App: React.FC = () => {
     }, ATELIER_TRANSITION_MS);
   }, []);
 
+  /**
+   * **Presse d'atelier** (Feuillet X) : cinématique cadencée en trois étapes
+   * (~3,5 s), puis tirage séquentiel des formes d'édition retenues.
+   */
+  const handlePress = useCallback(async () => {
+    if (pressingRef.current) {
+      return;
+    }
+    pressingRef.current = true;
+    setIsPressing(true);
+    addLog('info', "Presse actionnée : encrage des formes au noir d'os.");
+
+    PRESS_STAGES.forEach((_stage, index) => {
+      window.setTimeout(
+        () => setPressStage(index),
+        index === 0 ? 0 : PRESS_STAGES[index - 1].untilMs,
+      );
+    });
+
+    const selected = EXPORT_FORMS.filter((form) => exportForms[form.id]);
+    await new Promise((resolve) => window.setTimeout(resolve, PRESS_TOTAL_MS));
+
+    for (const form of selected) {
+      addLog('info', `Tirage de la forme « ${form.label} » (${form.engine}).`);
+      await runExport(form.handler);
+      await new Promise((resolve) => window.setTimeout(resolve, 400));
+    }
+
+    setPressStage(-1);
+    setIsPressing(false);
+    pressingRef.current = false;
+    addLog(
+      'success',
+      selected.length > 0
+        ? `Tirage achevé avec succès dans les archives (${selected.length} forme${selected.length > 1 ? 's' : ''} tirée${selected.length > 1 ? 's' : ''}).`
+        : "Tirage clos : aucune forme d'édition cochée.",
+    );
+  }, [addLog, exportForms, runExport]);
+
+  /** Dossier de fabrication (destination des livrables). */
+  const handlePickExportDirectory = useCallback(async () => {
+    const path = await pickDirectory();
+    if (!path) {
+      return;
+    }
+    setExportDirectory(path);
+    addLog('success', `Dossier de fabrication retenu : ${path}`);
+  }, [addLog]);
+
+  /** Ouvre le dossier des épreuves dans le gestionnaire de fichiers du système. */
+  const handleOpenExportDirectory = useCallback(async () => {
+    if (!exportDirectory) {
+      addLog('warning', "Aucun dossier de fabrication n'est encore retenu.");
+      return;
+    }
+    const opened = await openPathExternal(exportDirectory);
+    addLog(
+      opened ? 'success' : 'warning',
+      opened
+        ? `Cabinet des épreuves ouvert : ${exportDirectory}`
+        : "Ouverture du dossier impossible hors application de bureau.",
+    );
+  }, [addLog, exportDirectory]);
+
+  /**
+   * **Bus d'événements Tauri** : la progression réelle du moteur Rust
+   * (`export-progress`) alimente la jauge du pupitre supérieur, quel que soit
+   * l'écran affiché (Feuillets IX & X comme Export direct).
+   */
+  useEffect(() => {
+    let unlisten: (() => void) | null = null;
+    let disposed = false;
+    void listenEvent<ExportProgressPayload>("export-progress", (payload) => {
+      setProgress(Math.min(100, Math.max(0, Math.round(payload.progress))));
+      if (payload.step) {
+        setProgressLabel(payload.step);
+      }
+    }).then((off) => {
+      if (disposed) {
+        off?.();
+      } else {
+        unlisten = off;
+      }
+    });
+    return () => {
+      disposed = true;
+      unlisten?.();
+      unlisten = null;
+    };
+  }, []);
+
   // État applicatif exposé aux pages du livre virtuel (via `StudioContext`).
   const studioValue: StudioContextValue = {
+    exportForms,
+    onToggleExportForm: (id) =>
+      setExportForms((current) => ({ ...current, [id]: !current[id] })),
+    exportDirectory,
+    onPickExportDirectory: () => {
+      void handlePickExportDirectory();
+    },
+    pressStage,
+    isPressing,
+    onPress: () => {
+      void handlePress();
+    },
+    onOpenExportDirectory: () => {
+      void handleOpenExportDirectory();
+    },
     isAtelierOpen,
     isTransitioning,
     onEnterAtelier: enterAtelier,

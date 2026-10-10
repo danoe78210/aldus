@@ -12,6 +12,7 @@ import type {
   StructureItem,
 } from "../types";
 import type { FsDirectoryHandle } from "../utils/directory";
+import type { ExportFormId } from "../utils/exportEngine";
 
 /**
  * État applicatif exposé aux **pages du livre virtuel** (vue de droite).
@@ -96,6 +97,24 @@ export interface StudioContextValue {
   // --- Journal d'atelier (StatusBar) ---
   /** Consigne un message horodaté dans le journal d'opérations. */
   onNotify: (level: LogLevel, message: string) => void;
+
+  // --- Presse & export (Feuillets IX & X) ---
+  /** Formes d'édition retenues pour le tirage. */
+  exportForms: Record<ExportFormId, boolean>;
+  /** Active ou désactive une forme d'édition. */
+  onToggleExportForm: (id: ExportFormId) => void;
+  /** Dossier de fabrication (destination des livrables), ou `null`. */
+  exportDirectory: string | null;
+  /** Choisit le dossier de destination (sélecteur natif). */
+  onPickExportDirectory: () => void;
+  /** Étape courante du pressage (indice), `-1` hors tirage. */
+  pressStage: number;
+  /** `true` pendant la cinématique de tirage. */
+  isPressing: boolean;
+  /** Actionne la presse : cinématique cadencée puis export des formes retenues. */
+  onPress: () => void;
+  /** Ouvre le dossier des épreuves dans le gestionnaire de fichiers. */
+  onOpenExportDirectory: () => void;
 }
 
 const StudioContext = createContext<StudioContextValue | null>(null);

@@ -12,6 +12,7 @@ import aldusEmblem from "../assets/aldus-emblem.png";
 import { InfoIdentityPanel } from "./InfoView";
 import { OrganizationView } from "./OrganizationView";
 import { CoverPlate } from "./cover/CoverPlate";
+import { PressInspection } from "./PressInspection";
 import { ProofExaminer } from "./ProofExaminer";
 import { useStudio } from "./StudioContext";
 import type { ActiveMenu } from "../types";
@@ -202,6 +203,9 @@ export const LeftPage: React.FC<LeftPageProps> = ({
       ) : activeMenu === "correcteur" ? (
         /* Feuillet VII — l'Examen Aldin (le banc d'épreuve est à droite). */
         <ProofExaminer />
+      ) : activeMenu === "export" ? (
+        /* Feuillet IX — inspection pré-presse (le tirage est à droite). */
+        <PressInspection />
       ) : (
         <Frontispice leaving={isTransitioning} />
       )}

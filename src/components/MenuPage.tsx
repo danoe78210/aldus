@@ -6,7 +6,7 @@ import { InfoEditionPanel } from "./InfoView";
 import { ImpositionPanel } from "./ImpositionPanel";
 import { CoverCalibration } from "./CoverCalibration";
 import { ProofWorkbench } from "./ProofWorkbench";
-import { ExportView } from "./ExportView";
+import { PressWorkshop } from "./PressWorkshop";
 
 /**
  * Page du livre virtuel : rend la **vue correspondant au menu** en lisant l'état
@@ -49,12 +49,8 @@ export const MenuPage: React.FC<{ menu: ActiveMenu }> = ({ menu }) => {
     case "correcteur":
       return <ProofWorkbench />;
     case "export":
-      return (
-        <ExportView
-          onExport={studio.onExport}
-          onPreview={studio.onPreview}
-          isExporting={studio.isExporting}
-        />
-      );
+      /* Feuillet X (droite) : marbre de pressage — l'inspection pré-presse est
+         composée sur la page de gauche (Feuillet IX). */
+      return <PressWorkshop />;
   }
 };
