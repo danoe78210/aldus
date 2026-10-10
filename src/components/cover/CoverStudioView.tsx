@@ -7,22 +7,19 @@ import {
   exportKdpCoverPdf,
   extractSpineColor,
   inspectCoverImages,
-  pickCoverImage,
   pickCoverOutputPath,
   type CoverGeometry,
-  type CoverPaperType,
   type ImageInspectionReport,
   type SpineColorSuggestion,
 } from "../../utils/coverApi";
-import { CoverSettingsPanel } from "./CoverSettingsPanel";
 import { CoverCanvas2D } from "./CoverCanvas2D";
 import { Cover3DPreview } from "./Cover3DPreview";
 import { CoverPreExportModal, type PreExportCheck } from "./CoverPreExportModal";
 
+/** Bascule d'épreuve du marbre de montage (Feuillet VI). */
 const SUB_TABS = [
-  { id: "settings", label: "1. Réglages & Sources" },
-  { id: "canvas2d", label: "2. Planche technique 2D" },
-  { id: "preview3d", label: "3. Volume 3D" },
+  { id: "canvas2d", label: "Planche Dépliée 2D" },
+  { id: "preview3d", label: "Volume Relié 3D" },
 ] as const;
 
 type SubTab = (typeof SUB_TABS)[number]["id"];
@@ -37,7 +34,7 @@ export const CoverStudioView: React.FC = () => {
     useStudio();
   const trimSize = manuscriptConfig.trimSize;
 
-  const [activeSubTab, setActiveSubTab] = useState<SubTab>("settings");
+  const [activeSubTab, setActiveSubTab] = useState<SubTab>("canvas2d");
   const [geometry, setGeometry] = useState<CoverGeometry | null>(null);
   const [inspection, setInspection] = useState<ImageInspectionReport | null>(null);
   const [suggestion, setSuggestion] = useState<SpineColorSuggestion | null>(null);
@@ -116,17 +113,6 @@ export const CoverStudioView: React.FC = () => {
   const drift =
     cover.pageCount !== cover.pageCountSnapshot ||
     structureSignature !== cover.structureSignature;
-
-  const handlePick = async (target: "front" | "back") => {
-    try {
-      setMessage(null);
-      const path = await pickCoverImage();
-      if (!path) return;
-      onCoverChange(target === "front" ? { frontPath: path } : { backPath: path });
-    } catch (error) {
-      setMessage(String(error));
-    }
-  };
 
   const handleRecalcSpine = () => {
     onCoverChange({ pageCountSnapshot: pageCount, structureSignature });
@@ -216,9 +202,15 @@ export const CoverStudioView: React.FC = () => {
   const canExport = Boolean(frontPath && backPath && geometry) && !busy;
 
   return (
-    <div className="flex h-full min-h-0 flex-col gap-3">
-      {/* Sous-navigation registre / laiton */}
-      <div className="grid shrink-0 grid-cols-3 gap-2 border-b-2 border-brass/40 pb-3">
+    /* **Feuillet VI — Le Marbre de Montage** : ardoise veinée, filet en fer
+       patiné ; aucun carton gris ni bordure blanche parasite. */
+    <div className="flex h-full min-h-0 flex-col gap-3 border border-[#2a2c33] bg-[#121316] p-4">
+      <h2 className="shrink-0 text-center font-serif text-lg tracking-[0.25em] text-[#d4af37] uppercase">
+        VI. Le Marbre de Montage
+      </h2>
+
+      {/* Bascule d'épreuve — commutateur laiton discret */}
+      <div className="grid shrink-0 grid-cols-2 gap-2 border-b border-[#382f22] pb-3">
         {SUB_TABS.map((tab) => {
           const active = activeSubTab === tab.id;
           return (
@@ -227,10 +219,10 @@ export const CoverStudioView: React.FC = () => {
               type="button"
               onClick={() => setActiveSubTab(tab.id)}
               aria-current={active ? "page" : undefined}
-              className={`whitespace-nowrap rounded-sm border px-2 py-2 text-center font-mono text-[10px] uppercase tracking-tight transition-colors ${
+              className={`rounded-xs border px-2 py-2 text-center font-serif text-[10px] tracking-widest uppercase transition-colors ${
                 active
-                  ? "border-brass/60 bg-copper text-amber-50 shadow-[inset_0_1px_0_rgba(255,255,255,0.3),0_2px_4px_rgba(0,0,0,0.5)]"
-                  : "border-stone-400/30 bg-stone-500/5 text-stone-600 hover:bg-stone-500/10"
+                  ? "border-[#d4af37] bg-[#1c1814] text-[#ffd700]"
+                  : "border-[#2a2c33] bg-[#0f0e0d] text-[#9e9587] hover:border-[#8f6e2b] hover:text-[#c5a059]"
               }`}
             >
               [ {tab.label} ]
@@ -257,26 +249,6 @@ export const CoverStudioView: React.FC = () => {
       )}
 
       <div className="min-h-0 flex-1">
-        {activeSubTab === "settings" && (
-          <CoverSettingsPanel
-            trimSize={trimSize}
-            pageCount={pageCount}
-            onPageCountChange={(value) => onCoverChange({ pageCount: value })}
-            paperType={paperType}
-            onPaperTypeChange={(value: CoverPaperType) => onCoverChange({ paperType: value })}
-            frontPath={frontPath}
-            backPath={backPath}
-            inspection={inspection}
-            onPick={handlePick}
-            spineText={spineText}
-            onSpineTextChange={(value) => onCoverChange({ spineText: value })}
-            geometry={geometry}
-            suggestion={suggestion}
-            useGradient={gradient}
-            onUseGradientChange={(value) => onCoverChange({ gradient: value })}
-          />
-        )}
-
         {activeSubTab === "canvas2d" && (
           <CoverCanvas2D
             geometry={geometry}
@@ -287,7 +259,7 @@ export const CoverStudioView: React.FC = () => {
             message={message}
             canExport={canExport}
             onExport={handleExportRequest}
-            onBack={() => setActiveSubTab("settings")}
+            onBack={() => setActiveSubTab("preview3d")}
             frontPath={frontPath}
             backPath={backPath}
           />
@@ -306,7 +278,7 @@ export const CoverStudioView: React.FC = () => {
             frontPath={frontPath}
             backPath={backPath}
             onBack={() => setActiveSubTab("canvas2d")}
-            onBackToSettings={() => setActiveSubTab("settings")}
+            onBackToSettings={() => setActiveSubTab("canvas2d")}
             onExport={handleExportRequest}
             canExport={canExport}
             busy={busy}

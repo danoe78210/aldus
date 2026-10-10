@@ -94,8 +94,8 @@ Six onglets de répertoire, **ordre imposé** :
 | **Réglages** | Format de coupe KDP, corps de texte, polices, interligne, alignement, lettrines, dossiers de sources, journal d'erreurs, correcteur linguistique (région, mode pointilleux, règles). |
 | **Informations** | Métadonnées du roman — **dédoublé sur les deux feuillets** (§4). |
 | **Organisation** | Registre de composition sur **deux feuillets** : *Feuillet III* (table des matières, rangs romains, réorganisation) et *Feuillet IV* (imposition & calibrage KDP) — voir §4.3. |
-| **Correcteur** | Relecture LanguageTool : suggestions, contexte, localiser, ignorer, journal des corrections de la session. |
-| **Couverture** | *Cover Studio* : gabarit KDP dos carré, extraction de couleurs, inspection, génération Typst, aperçu 2D/3D. |
+| **Correcteur** | Relecture sur **deux feuillets** : *Feuillet VII* (examen typographique aldin) et *Feuillet VIII* (épreuves annotées par le correcteur linguistique) — voir §4.4. |
+| **Couverture** | *Atelier de reliure & marbre de montage* : *Feuillet V* (matière, finitions, métriques, plat IV) et *Feuillet VI* (épreuve 2D / volume 3D) — voir §4.4. |
 | **Export** | Lancement Word / PDF / EPUB, aperçu paginé, progression, journal. |
 
 ---
@@ -137,6 +137,13 @@ fichier de projet (journalisation de l'opération).
 > uniforme de la pagination déclarée sur les chapitres ; le recto KDP (belle
 > page) est la page **impaire**. La pagination per-chapitre exacte sera
 > disponible lorsque le moteur Rust exposera les comptes de mots au frontend.
+
+### 4.4 Feuillets V à VIII — Couverture & Correcteur
+
+| Onglet | Feuillet (gauche) | Feuillet (droite) |
+|---|---|---|
+| **Couverture** | **V. Calibrage de la Reliure** — pagination déclarée, papier (crème 0,0635 / blanc 0,0572 / couleur 0,0596 mm), **pelliculage** (mat velouté / brillant éclatant), visuels des plats + inspection DPI, texte de tranche et dégradé, **métriques temps réel** (dos = pages × coefficient, largeur dépliée = 2 × plat + dos + 2 × fond perdu, hauteur = plat + 2 × fond perdu), **plat IV** : prière d'insérer + contrôle d'absence de texte dans la **zone code-barres** (50,8 × 30,5 mm, marge 6,4 mm). | **VI. Le Marbre de Montage** — ardoise veinée `#121316`, filet fer patiné `#2a2c33`, **bascule d'épreuve** `[ Planche Dépliée 2D ]` / `[ Volume Relié 3D ]` (repères de coupe, bleed, réserve code-barres, ombre de reliure), plus la bannière de dérive et le dialogue de conformité pré-export. |
+| **Correcteur** | **VII. Examen Typographique Aldin** — vérifications automatiques : insécables avant `: ; ! ?` et dans les guillemets `« »`, cadratins des incises, doubles espaces et blancs de tête, césures orphelines, lignes veuves. Annotations en marge : **rouge carmin** (fautes critiques) / **bistre** (conseils de style). | **VIII. Épreuves & Annotations Marginales** — éditeur décoré in-situ par le correcteur linguistique (soulignements colorés par catégorie), suggestions, localisation, journal de session, et **`[ Justifier selon l'Usage Aldin › ]`** : application en un clic des règles typographiques au chapitre courant, relance de l'analyse et sauvegarde.
 ---
 
 ## 5. Instruments du registre

@@ -179,6 +179,9 @@ export interface StructureItem {
 /** Type de papier KDP de la couverture (détermine l'épaisseur de tranche). */
 export type CoverPaperType = 'white' | 'cream' | 'color';
 
+/** Pelliculage de couverture (mat velouté / brillant éclatant). */
+export type CoverFinish = 'mat' | 'glossy';
+
 /**
  * État persistant du **module Couverture** (Cover Studio).
  *
@@ -210,6 +213,13 @@ export interface CoverStudioState {
   pageCountSnapshot: number;
   /** Signature de structure au moment de la validation de la tranche. */
   structureSignature: string;
+  /**
+   * Plat IV — prière d'insérer (résumé accroche de la 4e de couverture).
+   * Absent des fichiers de projet antérieurs à la v1.1.
+   */
+  blurb?: string;
+  /** Pelliculage retenu (`mat` par défaut) — absent des anciens fichiers. */
+  finish?: CoverFinish;
 }
 
 /** Nœud hiérarchique d'un élément de structure (forme sérialisée). */

@@ -224,7 +224,7 @@ et pilotés par `App.tsx` :
 
 ---
 
-## 8. Imposition & instruments du registre
+## 8. Modules techniques du registre
 
 ### 8.1 `src/data/imposition.ts` — miroir frontend du backend
 
@@ -247,6 +247,39 @@ de l'onglet Organisation) et par `OrganizationView` (rangs romains des lignes).
 |---|---|
 | `ProgressBar.tsx` (pupitre) | `bg-[#141210] border-b border-[#382f22] text-[#e2dbce]` ; statut `text-[#9e9587]` + accent or `#d4af37` ; réglette `bg-[#1c1814] border-[#2e261b] h-3 rounded-xs` ; curseur `bg-linear-to-r from-[#8f6e2b] via-[#c5a059] to-[#8f6e2b]` ; tirets millimétriques tous les 10 % en filigrane. |
 | `LogPanel.tsx` (journal) | `bg-[#12100e] border-t border-[#382f22]` ; horodatage `text-[#786c59] font-mono text-[11px]` ; logs `text-[#bda888] font-serif text-xs` ; succès `text-[#c5a059]` ; avertissement `#c8a06a` ; erreur `text-[#a83232]` (aucun vert néon) ; témoin d'enregistrement = **sceau de laiton poli** `bg-[#d4af37] shadow-[0_0_6px_rgba(212,175,55,0.4)]`. |
+
+### 8.3 Module Couverture (Feuillets V & VI)
+
+- `src/data/coverMetrics.ts` — miroir frontend des métriques de reliure
+  (`src-tauri/src/cover/geometry.rs`) : `BLEED_MM = 3.2` (norme KDP 3,175 mm /
+  0,125 po), `BARCODE_WIDTH_MM = 50.8`, `BARCODE_HEIGHT_MM = 30.5`,
+  `BARCODE_SAFETY_MARGIN_MM = 6.4`; fonctions `coverMetrics`, `trimToMm`,
+  `blurbFit` (contrôle d'empiètement de la prière d'insérer sur la zone de
+  code-barres).
+- `src/components/CoverBindingPanel.tsx` (Feuillet V) : pagination, papier,
+  **pelliculage** (`cover.finish`, `CoverFinish = 'mat' | 'glossy'`), visuels des
+  plats (`pick_cover_image`) + inspection DPI (`inspect_cover_images`), texte de
+  tranche, dégradé, métriques temps réel, `SpineGauge`, **plat IV** (`cover.blurb`).
+- `src/components/cover/CoverStudioView.tsx` (Feuillet VI) : marbre
+  `bg-[#121316] border-[#2a2c33]`, bascule 2D/3D (`SUB_TABS`), bannière de dérive,
+  audit pré-export, export Typst (`export_kdp_cover_pdf`).
+- `cover.finish` et `cover.blurb` sont **optionnels** dans `CoverStudioState`
+  (compatibilité des fichiers `.danoe` antérieurs) ; `CoverSettingsPanel` a été
+  remplacé par `CoverBindingPanel`.
+
+### 8.4 Module Correcteur (Feuillets VII & VIII)
+
+- `src/data/typography.ts` — moteur **Usage Aldin** pur et testé
+  (`src/data/__tests__/typography.test.ts`) : `analyzeTypography` (6 règles :
+  insécables des ponctuations hautes et des guillemets, cadratins des incises,
+  doubles espaces et blancs de tête, césures orphelines, lignes veuves) et
+  `applyAldineUsage` (corrections automatiques idempotentes ; ne touche jamais aux
+  césures ni aux veuves). Constantes `NBSP` (U+00A0) et `NNBSP` (U+202F).
+- `src/components/TypographicPanel.tsx` (Feuillet VII) : sélection du chapitre
+  (`read_chapter_file`), rapport et annotations marginales (carmin / bistre).
+- `src/components/CorrectorView.tsx` (Feuillet VIII) : épreuves in-situ
+  (`ChapterEditor` + `CorrectorSidebar`) et bouton
+  **`[ Justifier selon l'Usage Aldin › ]`** (application + sauvegarde atomique).
 
 ---
 

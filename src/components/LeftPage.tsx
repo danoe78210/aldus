@@ -11,6 +11,8 @@ import {
 import aldusEmblem from "../assets/aldus-emblem.png";
 import { InfoIdentityPanel } from "./InfoView";
 import { OrganizationView } from "./OrganizationView";
+import { CoverBindingPanel } from "./CoverBindingPanel";
+import { TypographicPanel } from "./TypographicPanel";
 import { useStudio } from "./StudioContext";
 import type { ActiveMenu } from "../types";
 
@@ -193,6 +195,12 @@ export const LeftPage: React.FC<LeftPageProps> = ({
             onImportSpecialSource={onImportIntoFolder}
           />
         </div>
+      ) : activeMenu === "couverture" ? (
+        /* Feuillet V — calibrage de la reliure (l'épreuve 2D/3D est à droite). */
+        <CoverBindingPanel />
+      ) : activeMenu === "correcteur" ? (
+        /* Feuillet VII — examen typographique (les épreuves sont à droite). */
+        <TypographicPanel />
       ) : (
         <Frontispice leaving={isTransitioning} />
       )}

@@ -1,9 +1,10 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
-import { Check, Eraser, Loader2, PanelRight, SpellCheck } from "lucide-react";
+import { Check, Eraser, Feather, Loader2, PanelRight, SpellCheck } from "lucide-react";
 import { useStudio } from "./StudioContext";
 import { CorrectorSidebar } from "./CorrectorSidebar";
 import { ChapterEditor, type ChapterEditorHandle } from "./ChapterEditor";
 import { readChapterFile, writeChapterFile } from "../utils/projectApi";
+import { applyAldineUsage } from "../data/typography";
 import type { CorrectionMatch } from "../utils/correctorApi";
 import type { AppliedCorrection } from "../types";
 
@@ -147,12 +148,27 @@ export const CorrectorView: React.FC = () => {
     editorRef.current?.locate(index);
   }, []);
 
+  /**
+   * **Justifier selon l'Usage Aldin** : applique d'un clic les règles
+   * typographiques (insécables, cadratins, doubles espaces) au texte courant,
+   * relance l'analyse linguistique et sauvegarde le chapitre.
+   */
+  const handleAldineUsage = useCallback(() => {
+    const { text: next, applied } = applyAldineUsage(text);
+    if (applied === 0) {
+      return;
+    }
+    setText(next);
+    setRevision((value) => value + 1);
+    void persist(next);
+  }, [persist, text]);
+
   return (
     <div className="flex h-full min-h-0 flex-col gap-3">
-      <header className="flex items-center gap-3 border-b border-stone-400/40 pb-3">
-        <SpellCheck size={20} strokeWidth={1.75} className="text-copper" />
-        <h2 className="flex-1 font-serif text-2xl uppercase tracking-[0.25em] text-stone-700">
-          Correcteur
+      <header className="flex items-center gap-3 border-b border-[#382f22] pb-3">
+        <SpellCheck size={20} strokeWidth={1.75} className="text-[#c5a059]" />
+        <h2 className="flex-1 font-serif text-lg tracking-[0.25em] text-[#d4af37] uppercase">
+          VIII. Épreuves &amp; Annotations Marginales
         </h2>
         <button
           type="button"
@@ -187,16 +203,26 @@ export const CorrectorView: React.FC = () => {
         </select>
         <button
           type="button"
+          onClick={handleAldineUsage}
+          disabled={!text || loadingChapter}
+          title="Poser les insécables, les cadratins et supprimer les doubles espaces (Usage Aldin)"
+          className="flex items-center gap-1.5 rounded-xs border border-[#997728]/50 bg-linear-to-b from-[#2e1d0f] to-[#170f07] px-3 py-1.5 font-serif text-[10px] tracking-widest text-[#eedcb8] uppercase transition-colors hover:border-[#ffd700] hover:text-[#ffd700] disabled:opacity-50"
+        >
+          <Feather size={13} strokeWidth={1.75} />
+          [ Justifier selon l&rsquo;Usage Aldin &rsaquo; ]
+        </button>
+        <button
+          type="button"
           onClick={() => setText("")}
           disabled={!text || loadingChapter}
-          className="flex items-center gap-1.5 rounded-sm border border-stone-400/40 px-2.5 py-1 text-[10px] font-medium uppercase tracking-widest text-stone-600 transition-colors hover:bg-stone-500/15 disabled:opacity-50"
+          className="flex items-center gap-1.5 rounded-xs border border-[#3a3022] px-2.5 py-1.5 font-mono text-[10px] tracking-widest text-[#9e9587] uppercase transition-colors hover:text-[#a83232] disabled:opacity-50"
         >
           <Eraser size={13} strokeWidth={1.75} /> Vider
         </button>
         {saved && (
           <span
             aria-live="polite"
-            className="flex items-center gap-1 text-[10px] font-medium uppercase tracking-widest text-verdigris"
+            className="flex items-center gap-1 font-mono text-[10px] tracking-widest text-[#c5a059] uppercase"
           >
             <Check size={13} strokeWidth={2.25} /> Sauvegardé
           </span>
