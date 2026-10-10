@@ -66,15 +66,15 @@ const FINISHES: { id: CoverFinish; title: string; note: string }[] = [
 ];
 
 /**
- * **Feuillet V — Calibrage de la Reliure** (page de gauche de l'atelier de
+ * **Feuillet VI — Calibrage du Volume & Reliure** (page de droite de l'atelier de
  * couverture) : matière & finitions, métriques temps réel de la forme complète
- * et composition du plat IV (prière d'insérer + zone de code-barres KDP).
+ * et composition du plat IV (prière d'insérer + cartouche code-barres KDP).
  *
  * Les métriques proviennent du miroir `data/coverMetrics.ts` (source de vérité :
- * `src-tauri/src/cover/geometry.rs`) ; l'épreuve 2D/3D et l'export restent sur le
- * Feuillet VI.
+ * `src-tauri/src/cover/geometry.rs`) ; l'épreuve 2D/3D et l'export sont sur le
+ * Feuillet V (marbre de montage).
  */
-export const CoverBindingPanel: React.FC = () => {
+export const CoverCalibration: React.FC = () => {
   const { cover, onCoverChange, manuscriptConfig } = useStudio();
   const trim = findTrimPreset(manuscriptConfig.trimSize);
   const trimWidthMm = trim ? trimToMm(trim.width, trim.unit) : 152.4;
@@ -264,7 +264,7 @@ export const CoverBindingPanel: React.FC = () => {
   return (
     <div className="animate-ink-reveal mx-auto flex h-full w-full max-w-2xl flex-col overflow-y-auto px-2 pr-1">
       <h2 className="mb-6 text-center font-serif text-lg tracking-[0.25em] text-[#d4af37] uppercase">
-        V. Calibrage de la Reliure
+        VI. Calibrage du Volume &amp; Reliure
       </h2>
 <Section index={2} title="Métriques de la Forme Complète">
         <Row label="Format de coupe" value={trim ? trim.label : manuscriptConfig.trimSize} />

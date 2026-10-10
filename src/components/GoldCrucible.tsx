@@ -4,7 +4,7 @@ import React, { useEffect, useState } from "react";
 export type CruciblePhase = "idle" | "filling" | "ready";
 
 /** Répit de stabilisation avant le démarrage automatique (ms). */
-export const START_DELAY_MS = 500;
+export const START_DELAY_MS = 400;
 /** Durée (ms) de la coulée d'or (9,5 s : tempo lent, viscosité du métal en fusion). */
 export const POUR_DURATION_MS = 9500;
 /** Durée (ms) du fondu enchaîné vers l'or antique d'Aldus. */

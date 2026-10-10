@@ -16,20 +16,22 @@ import { CoverCanvas2D } from "./CoverCanvas2D";
 import { Cover3DPreview } from "./Cover3DPreview";
 import { CoverPreExportModal, type PreExportCheck } from "./CoverPreExportModal";
 
-/** Bascule d'épreuve du marbre de montage (Feuillet VI). */
+/** Bascule d'épreuve du marbre de montage (Feuillet V). */
 const SUB_TABS = [
-  { id: "canvas2d", label: "Planche Dépliée 2D" },
-  { id: "preview3d", label: "Volume Relié 3D" },
+  { id: "canvas2d", label: "Épreuve à plat 2D" },
+  { id: "preview3d", label: "Volume relié 3D" },
 ] as const;
 
 type SubTab = (typeof SUB_TABS)[number]["id"];
 
 /**
- * Atelier de composition de la couverture : navigation en **3 vues
- * séquentielles**, état persistant (contexte projet), détection de dérive (§10)
- * et dialogue de conformité avant export (§9).
+ * **Feuillet V — Le Marbre de Montage 2D/3D** (page de gauche de l'atelier de
+ * couverture) : table d'encrage en ardoise sombre, grille de composition
+ * millimétrique en filigrane, bascule d'épreuve `[ Épreuve à plat 2D ]` /
+ * `[ Volume relié 3D ]`, bannière de dérive (§10) et dialogue de conformité
+ * avant export (§9). L'état persistant vit dans le contexte projet.
  */
-export const CoverStudioView: React.FC = () => {
+export const CoverPlate: React.FC = () => {
   const { manuscriptConfig, bookInfo, cover, onCoverChange, structureSignature } =
     useStudio();
   const trimSize = manuscriptConfig.trimSize;
@@ -202,15 +204,25 @@ export const CoverStudioView: React.FC = () => {
   const canExport = Boolean(frontPath && backPath && geometry) && !busy;
 
   return (
-    /* **Feuillet VI — Le Marbre de Montage** : ardoise veinée, filet en fer
-       patiné ; aucun carton gris ni bordure blanche parasite. */
-    <div className="flex h-full min-h-0 flex-col gap-3 border border-[#2a2c33] bg-[#121316] p-4">
-      <h2 className="shrink-0 text-center font-serif text-lg tracking-[0.25em] text-[#d4af37] uppercase">
-        VI. Le Marbre de Montage
+    /* **Feuillet V — Le Marbre de Montage** : table d'encrage en ardoise sombre,
+       grille millimétrique en filigrane ; aucun carton gris ni bordure blanche. */
+    <div className="relative flex h-full min-h-0 flex-col gap-3 rounded-xs border-2 border-[#382f22] bg-[#1a1815] p-6 shadow-2xl">
+      {/* Grille de composition millimétrique (filigrane discret) */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0 rounded-xs"
+        style={{
+          backgroundImage:
+            "repeating-linear-gradient(0deg, rgba(44,36,25,0.55) 0 1px, transparent 1px 10px), repeating-linear-gradient(90deg, rgba(44,36,25,0.55) 0 1px, transparent 1px 10px)",
+        }}
+      />
+
+      <h2 className="relative shrink-0 text-center font-serif text-lg tracking-[0.25em] text-[#d4af37] uppercase">
+        V. Le Marbre de Montage
       </h2>
 
       {/* Bascule d'épreuve — commutateur laiton discret */}
-      <div className="grid shrink-0 grid-cols-2 gap-2 border-b border-[#382f22] pb-3">
+      <div className="relative grid shrink-0 grid-cols-2 gap-2 border-b border-[#382f22] pb-3">
         {SUB_TABS.map((tab) => {
           const active = activeSubTab === tab.id;
           return (

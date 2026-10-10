@@ -11,7 +11,7 @@ import {
 import aldusEmblem from "../assets/aldus-emblem.png";
 import { InfoIdentityPanel } from "./InfoView";
 import { OrganizationView } from "./OrganizationView";
-import { CoverBindingPanel } from "./CoverBindingPanel";
+import { CoverPlate } from "./cover/CoverPlate";
 import { TypographicPanel } from "./TypographicPanel";
 import { useStudio } from "./StudioContext";
 import type { ActiveMenu } from "../types";
@@ -119,10 +119,11 @@ export const LeftPage: React.FC<LeftPageProps> = ({
 
   return (
     <div className="relative flex h-full flex-col items-center justify-center text-center">
-      {/* Marque-pages empilés verticalement, en débordement sur la gauche.
-          Pendant le sas d'accueil : bande atténuée (ébène discret) et
-          neutralisée ; le ruban « Quitter l'atelier » reste actif. */}
-      <nav className="absolute top-16 -left-28 flex flex-col gap-1">
+      {/* Signets de reliure **intégrés à la matière** : colonne latérale du registre,
+     bords biseautés, aucun déport hors cadre ni rognage. Pendant le sas
+     d'accueil : bande atténuée (ébène discret) et neutralisée ; le ruban
+     « Quitter l'atelier » reste actif. */}
+      <nav className="absolute top-8 left-0 flex h-[calc(100%-4rem)] flex-col justify-start gap-1">
         <div
           aria-hidden={tabsLocked}
           className={`flex flex-col gap-1 transition-opacity duration-500 ${
@@ -140,7 +141,7 @@ export const LeftPage: React.FC<LeftPageProps> = ({
                 aria-disabled={tabsLocked}
                 onClick={() => setActiveMenu(tab.id)}
                 aria-current={active ? "page" : undefined}
-                className={`flex w-32 min-w-[7.5rem] items-center gap-2.5 rounded-l-sm border-l-2 border-r border-[#383126]/60 px-3 py-2.5 text-left font-serif text-[11px] tracking-widest uppercase shadow-[-4px_2px_8px_rgba(0,0,0,0.6)] transition-all duration-150 ${tab.color} ${tab.text} ${
+                className={`flex w-36 min-w-[7.5rem] items-center gap-2.5 rounded-l-sm border-y border-l-2 border-r border-y-[#2c2414] border-r-[#2c2414] px-3 py-2.5 text-left font-serif text-[11px] tracking-widest uppercase shadow-[-4px_2px_8px_rgba(0,0,0,0.6)] transition-all duration-150 ${tab.color} ${tab.text} ${
                   active
                     ? "-translate-x-1.5 border-l-[#ffd700] text-[#ffd700] shadow-[-4px_0_12px_rgba(184,147,85,0.25)]"
                     : "border-l-[#b89355]/60 opacity-90 hover:-translate-x-1 hover:opacity-100"
@@ -196,8 +197,8 @@ export const LeftPage: React.FC<LeftPageProps> = ({
           />
         </div>
       ) : activeMenu === "couverture" ? (
-        /* Feuillet V — calibrage de la reliure (l'épreuve 2D/3D est à droite). */
-        <CoverBindingPanel />
+        /* Feuillet V — marbre de montage 2D/3D (le calibreur est à droite). */
+        <CoverPlate />
       ) : activeMenu === "correcteur" ? (
         /* Feuillet VII — examen typographique (les épreuves sont à droite). */
         <TypographicPanel />

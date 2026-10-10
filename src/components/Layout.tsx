@@ -101,7 +101,7 @@ export const Layout: React.FC<LayoutProps> = ({
 
           <div className="relative flex h-full w-full min-h-0 rounded-md shadow-[0_20px_50px_rgba(0,0,0,0.6)]">
             {/* Page de gauche : ombre interne simulant la courbure vers la reliure */}
-            <section className="relative h-full w-1/2 rounded-l-md border border-[#383126]/60 bg-[#181614] p-10 shadow-[inset_-30px_0_40px_-18px_rgba(0,0,0,0.85)]">
+            <section className="relative h-full w-1/2 rounded-l-md border border-[#383126]/60 bg-[#181614] py-10 pr-10 pl-40 shadow-[inset_-30px_0_40px_-18px_rgba(0,0,0,0.85)]">
               {leftContent}
             </section>
 

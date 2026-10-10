@@ -4,7 +4,7 @@ import { useStudio } from "./StudioContext";
 import { SettingsNavigator } from "./SettingsNavigator";
 import { InfoEditionPanel } from "./InfoView";
 import { ImpositionPanel } from "./ImpositionPanel";
-import { CoverStudioView } from "./cover/CoverStudioView";
+import { CoverCalibration } from "./CoverCalibration";
 import { ExportView } from "./ExportView";
 import { CorrectorView } from "./CorrectorView";
 
@@ -43,7 +43,9 @@ export const MenuPage: React.FC<{ menu: ActiveMenu }> = ({ menu }) => {
          (Feuillet III) est composée sur la page de gauche. */
       return <ImpositionPanel />;
     case "couverture":
-      return <CoverStudioView />;
+      /* Feuillet VI (droite) : calibreur KDP — le marbre de montage 2D/3D est
+         composé sur la page de gauche (Feuillet V). */
+      return <CoverCalibration />;
     case "correcteur":
       return <CorrectorView />;
     case "export":

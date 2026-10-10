@@ -28,14 +28,16 @@ export const ProgressBar: React.FC<ProgressBarProps> = ({
         <span className="absolute bottom-2 right-2 h-1.5 w-1.5 rounded-full bg-brass/70 shadow-[inset_0_1px_1px_rgba(0,0,0,0.6)]" />
 
         <div className="mb-2 flex items-end justify-between">
-          {/* Statut d'opération — encre bistre, accentuation or */}
-          <span className="font-serif text-[11px] tracking-[0.3em] text-[#9e9587] uppercase">
+          {/* Libellé de phase — petites capitales romaines, dorure douce */}
+          <span className="font-serif text-[11px] tracking-[0.3em] text-[#e2dbce] uppercase">
             {label}
             {running && <span className="ml-2 text-[#d4af37]">— en cours</span>}
           </span>
-          {/* Compteur gradué à trois chiffres */}
-          <span className="rounded-xs border border-[#2e261b] bg-[#0f0c0a] px-2 py-0.5 font-mono text-sm tracking-widest text-[#d4af37] tabular-nums shadow-[inset_0_2px_4px_rgba(0,0,0,0.9)]">
-            {String(clamped).padStart(3, "0")}&#8202;%
+          {/* Curseur gradué du typographe (plus aucun affichage digital) */}
+          <span className="flex items-center gap-2 font-serif text-[10px] tracking-widest text-[#8f6e2b] uppercase">
+            <span className="h-2 w-px bg-[#8f6e2b]" />
+            <span className="h-3 w-px bg-[#8f6e2b]" />
+            <span className="h-2 w-px bg-[#8f6e2b]" />
           </span>
         </div>
 
