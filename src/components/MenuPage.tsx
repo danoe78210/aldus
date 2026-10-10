@@ -5,8 +5,8 @@ import { SettingsNavigator } from "./SettingsNavigator";
 import { InfoEditionPanel } from "./InfoView";
 import { ImpositionPanel } from "./ImpositionPanel";
 import { CoverCalibration } from "./CoverCalibration";
+import { ProofWorkbench } from "./ProofWorkbench";
 import { ExportView } from "./ExportView";
-import { CorrectorView } from "./CorrectorView";
 
 /**
  * Page du livre virtuel : rend la **vue correspondant au menu** en lisant l'état
@@ -47,7 +47,7 @@ export const MenuPage: React.FC<{ menu: ActiveMenu }> = ({ menu }) => {
          composé sur la page de gauche (Feuillet V). */
       return <CoverCalibration />;
     case "correcteur":
-      return <CorrectorView />;
+      return <ProofWorkbench />;
     case "export":
       return (
         <ExportView

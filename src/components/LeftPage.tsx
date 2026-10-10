@@ -12,7 +12,7 @@ import aldusEmblem from "../assets/aldus-emblem.png";
 import { InfoIdentityPanel } from "./InfoView";
 import { OrganizationView } from "./OrganizationView";
 import { CoverPlate } from "./cover/CoverPlate";
-import { TypographicPanel } from "./TypographicPanel";
+import { ProofExaminer } from "./ProofExaminer";
 import { useStudio } from "./StudioContext";
 import type { ActiveMenu } from "../types";
 
@@ -200,8 +200,8 @@ export const LeftPage: React.FC<LeftPageProps> = ({
         /* Feuillet V — marbre de montage 2D/3D (le calibreur est à droite). */
         <CoverPlate />
       ) : activeMenu === "correcteur" ? (
-        /* Feuillet VII — examen typographique (les épreuves sont à droite). */
-        <TypographicPanel />
+        /* Feuillet VII — l'Examen Aldin (le banc d'épreuve est à droite). */
+        <ProofExaminer />
       ) : (
         <Frontispice leaving={isTransitioning} />
       )}

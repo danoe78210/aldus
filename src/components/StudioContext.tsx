@@ -5,6 +5,7 @@ import type {
   ErrorLogConfig,
   ImageColorMode,
   LogDiagnosticLevel,
+  LogLevel,
   ManuscriptLayoutConfig,
   SourcesConfig,
   SpecialPageRole,
@@ -91,6 +92,10 @@ export interface StudioContextValue {
    * bascule d'état vers l'onglet **Informations** (Feuillets I & II).
    */
   onEnterAtelier: () => void;
+
+  // --- Journal d'atelier (StatusBar) ---
+  /** Consigne un message horodaté dans le journal d'opérations. */
+  onNotify: (level: LogLevel, message: string) => void;
 }
 
 const StudioContext = createContext<StudioContextValue | null>(null);

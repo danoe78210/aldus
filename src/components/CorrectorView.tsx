@@ -4,7 +4,7 @@ import { useStudio } from "./StudioContext";
 import { CorrectorSidebar } from "./CorrectorSidebar";
 import { ChapterEditor, type ChapterEditorHandle } from "./ChapterEditor";
 import { readChapterFile, writeChapterFile } from "../utils/projectApi";
-import { applyAldineUsage } from "../data/typography";
+import { applyAldineUsage } from "../utils/typographyEngine";
 import type { CorrectionMatch } from "../utils/correctorApi";
 import type { AppliedCorrection } from "../types";
 

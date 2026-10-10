@@ -784,6 +784,7 @@ const App: React.FC = () => {
     isAtelierOpen,
     isTransitioning,
     onEnterAtelier: enterAtelier,
+    onNotify: addLog,
     manuscriptConfig,
     sourceConfig,
     errorLogConfig,

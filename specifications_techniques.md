@@ -269,17 +269,33 @@ de l'onglet Organisation) et par `OrganizationView` (rangs romains des lignes).
 
 ### 8.4 Module Correcteur (Feuillets VII & VIII)
 
-- `src/data/typography.ts` — moteur **Usage Aldin** pur et testé
-  (`src/data/__tests__/typography.test.ts`) : `analyzeTypography` (6 règles :
-  insécables des ponctuations hautes et des guillemets, cadratins des incises,
-  doubles espaces et blancs de tête, césures orphelines, lignes veuves) et
-  `applyAldineUsage` (corrections automatiques idempotentes ; ne touche jamais aux
-  césures ni aux veuves). Constantes `NBSP` (U+00A0) et `NNBSP` (U+202F).
-- `src/components/TypographicPanel.tsx` (Feuillet VII) : sélection du chapitre
-  (`read_chapter_file`), rapport et annotations marginales (carmin / bistre).
-- `src/components/CorrectorView.tsx` (Feuillet VIII) : épreuves in-situ
-  (`ChapterEditor` + `CorrectorSidebar`) et bouton
-  **`[ Justifier selon l'Usage Aldin › ]`** (application + sauvegarde atomique).
+- `src/utils/typographyEngine.ts` — moteur **Usage Aldin** pur et testé
+  (`src/utils/__tests__/typographyEngine.test.ts`) : 18 règles du *Code
+  typographique* et du *Lexique de l'Imprimerie nationale*, réparties en 5
+  familles — ponctuation haute (insécable `U+00A0` avant `:`, fine `U+202F` avant
+  `; ! ?`, ellipse `U+2026`), guillemets & dialogues (guillemets français,
+  anglais courbes en citation imbriquée, cadratin de réplique `^[-–]\s+`,
+  demi-cadratin d'incise), apostrophe courbe `U+2019`, ligatures `œ/æ` (liste
+  d'usage : cœur, œuvre, mœurs, manœuvre, ex æquo, curriculum vitæ… + faux amis
+  préservés), majuscules accentuées et accents omis, tranches de mille, siècles,
+  civilités (`M.`, `chap.`, `n°`, `p.`), hygiène spatiale. Exports :
+  `analyzeTypography(text, enabled?)` → anomalies **positionnées**
+  (offset/longueur/ligne/gravité/replacement) + indice de pureté,
+  `applyAldineUsage` (ordre majeur, substitutions de la fin vers le début),
+  `applyAnomaly` (occurrence isolée).
+- `src/components/ProofExaminer.tsx` (Feuillet VII) : sceau d'intégrité
+  (indice de pureté), cartouches d'inventaire par famille, **basse-cour** des
+  règles (interrupteurs), `[ Imposer l'Usage Typographique Aldin › ]` (correction
+  en mémoire + notification `onNotify`) et consignation du chapitre.
+- `src/components/ProofWorkbench.tsx` (Feuillet VIII) : feuillet type en vélin
+  `#dcd8cf` (justifié, alinéa `1.5em`), anomalies soulignées (ondulé carmin /
+  pointillé or), **gloses marginales** (ligne, signe de correcteur, libellé,
+  `avant → après`), clic = correctif d'une occurrence (`animate-ink-reveal`),
+  navigation `‹ Feuillet précédent | Feuillet suivant ›`, filtre « feuillets à
+  anomalies », et bascule `[ Relecture linguistique ]` conservant l'épreuve
+  LanguageTool (`CorrectorView` — soulignements in-situ, sidebar, journal).
+- `onNotify(level, message)` (contexte) alimente le journal inférieur
+  (`LogPanel`) depuis n'importe quelle page.
 
 ---
 
