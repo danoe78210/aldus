@@ -34,6 +34,7 @@ import {
   specialRoleHasSource,
   specialRoleHasTitle,
 } from "../data/specialPages";
+import { romanNumeral } from "../data/imposition";
 
 interface OrganizationViewProps {
   /** Structure du roman (tableau plat ordonné). */
@@ -155,6 +156,8 @@ const StructureSeparator: React.FC<{ text: string }> = ({ text }) => (
 
 interface SortableRowProps {
   item: StructureItem;
+  /** Rang global de la ligne (numéral romain du registre). */
+  rank: number;
   /** Indente la ligne (enfant d'un Acte). */
   indent: boolean;
   chapterFiles: string[];
@@ -172,6 +175,7 @@ interface SortableRowProps {
 /** Ligne de structure déplaçable (glisser-déposer via la poignée). */
 const SortableRow: React.FC<SortableRowProps> = ({
   item,
+  rank,
   indent,
   chapterFiles,
   imageFiles,
@@ -193,16 +197,24 @@ const SortableRow: React.FC<SortableRowProps> = ({
         indent ? "ml-8" : ""
       } ${isDragging ? "bg-parchment-dark/80 shadow-[0_6px_16px_rgba(0,0,0,0.25)]" : ""}`}
     >
-      {/* Poignée de déplacement — déplace le bloc entier */}
+      {/* Poignée de déplacement — fer forgé feutré */}
       <button
         type="button"
         {...attributes}
         {...listeners}
         aria-label="Déplacer"
-        className="flex cursor-grab items-center rounded-sm px-1 text-stone-400 transition-colors hover:bg-black/5 hover:text-copper active:cursor-grabbing"
+        className="flex cursor-grab items-center rounded-sm px-1 text-[#5a4f3f] transition-colors hover:text-[#d4af37] active:cursor-grabbing"
       >
         <GripVertical size={16} />
       </button>
+
+      {/* Numéral romain + ligne de pointillés traditionnelle du registre */}
+      <span className="flex shrink-0 items-center gap-1.5 self-center">
+        <span className="min-w-[1.75rem] text-right font-serif text-xs tracking-widest text-[#c5a059]">
+          {romanNumeral(rank)}
+        </span>
+        <span aria-hidden className="h-px w-2 bg-[#5a4f3f]" />
+      </span>
 
       {item.type === "act" && (
         <div className="flex flex-1 items-center gap-3">
@@ -456,6 +468,10 @@ export const OrganizationView: React.FC<OrganizationViewProps> = ({
     }
   }
 
+  // Rang global (numérotation romaine du registre), stable d'une page à l'autre.
+  const rankById = new Map<string, number>();
+  items.forEach((item, index) => rankById.set(item.id, index + 1));
+
   const clearHoverTimer = () => {
     if (hoverTimerRef.current !== null) {
       window.clearTimeout(hoverTimerRef.current);
@@ -605,6 +621,7 @@ export const OrganizationView: React.FC<OrganizationViewProps> = ({
                   <SortableRow
                     key={item.id}
                     item={item}
+                    rank={rankById.get(item.id) ?? 0}
                     indent={indentById.get(item.id) ?? false}
                     chapterFiles={chapterFiles}
                     imageFiles={imageFiles}

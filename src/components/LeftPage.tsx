@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import aldusEmblem from "../assets/aldus-emblem.png";
 import { InfoIdentityPanel } from "./InfoView";
+import { OrganizationView } from "./OrganizationView";
 import { useStudio } from "./StudioContext";
 import type { ActiveMenu } from "../types";
 
@@ -26,20 +27,21 @@ interface TabItem {
   id: ActiveMenu;
   label: string;
   icon: React.ComponentType<{ size?: number; className?: string; strokeWidth?: number }>;
-  /** Couleur thématique de l'onglet. */
+  /** Dégradé de cuir du signet. */
   color: string;
+  /** Encre du titre, accordée au cuir du signet. */
+  text: string;
 }
 
-// Marque-pages / onglets extérieurs (débordent à gauche du livre).
-// Cuirs anciens : maroquin havane, lapis-lazuli, vert sauge, cuir doré,
-// garance, encre de noix de galle.
+// Signets de reliure : maroquin ancien ancré sur le flanc gauche du livre.
+// Chaque cuir est associé à son encre d'époque.
 const tabs: TabItem[] = [
-  { id: "reglages", label: "Réglages", icon: Settings, color: "bg-linear-to-r from-[#2c1a0e] to-[#1c1209]" },
-  { id: "infos", label: "Informations", icon: Info, color: "bg-linear-to-r from-[#121c26] to-[#0b1219]" },
-  { id: "organisation", label: "Organisation", icon: ListTree, color: "bg-linear-to-r from-[#122117] to-[#0a140e]" },
-  { id: "correcteur", label: "Correcteur", icon: SpellCheck, color: "bg-linear-to-r from-[#332408] to-[#1f1604]" },
-  { id: "couverture", label: "Couverture", icon: BookMarked, color: "bg-linear-to-r from-[#300d0d] to-[#1f0808]" },
-  { id: "export", label: "Export", icon: Share2, color: "bg-linear-to-r from-[#1c1421] to-[#110c14]" },
+  { id: "reglages", label: "Réglages", icon: Settings, color: "bg-linear-to-r from-[#2c1a0e] to-[#1c1209]", text: "text-[#ecd8b0]" },
+  { id: "infos", label: "Informations", icon: Info, color: "bg-linear-to-r from-[#121c26] to-[#0b1219]", text: "text-[#d6e3f0]" },
+  { id: "organisation", label: "Organisation", icon: ListTree, color: "bg-linear-to-r from-[#122117] to-[#0a140e]", text: "text-[#d0e5d6]" },
+  { id: "correcteur", label: "Correcteur", icon: SpellCheck, color: "bg-linear-to-r from-[#332408] to-[#1f1604]", text: "text-[#f2e2be]" },
+  { id: "couverture", label: "Couverture", icon: BookMarked, color: "bg-linear-to-r from-[#300d0d] to-[#1f0808]", text: "text-[#eed0d0]" },
+  { id: "export", label: "Export", icon: Share2, color: "bg-linear-to-r from-[#1c1421] to-[#110c14]", text: "text-[#e0d2e8]" },
 ];
 
 /**
@@ -91,7 +93,25 @@ export const LeftPage: React.FC<LeftPageProps> = ({
   setActiveMenu,
   onExitApp,
 }) => {
-  const { isAtelierOpen, isTransitioning } = useStudio();
+  const {
+    isAtelierOpen,
+    isTransitioning,
+    structure,
+    chapterFiles,
+    imageFiles,
+    sourcesConfigured,
+    onAddAct,
+    onAddChapter,
+    onAddImage,
+    onAddSpecial,
+    onRemoveStructureItem,
+    onRenameStructureItem,
+    onSpecialRoleChange,
+    onStructureSourceChange,
+    onStructureReorder,
+    onPickSourcesDirectory,
+    onImportIntoFolder,
+  } = useStudio();
   /** Onglets verrouillés tant que l'atelier n'est pas ouvert (sas d'accueil). */
   const tabsLocked = !isAtelierOpen;
 
@@ -118,10 +138,10 @@ export const LeftPage: React.FC<LeftPageProps> = ({
                 aria-disabled={tabsLocked}
                 onClick={() => setActiveMenu(tab.id)}
                 aria-current={active ? "page" : undefined}
-                className={`flex w-32 min-w-[7.5rem] items-center gap-2.5 rounded-l-sm border-l-2 border-[#b89355]/50 border-r border-[#383126]/60 px-3 py-2.5 text-left font-serif text-[11px] uppercase tracking-widest text-[#e2d5bd] shadow-[-4px_2px_8px_rgba(0,0,0,0.6)] transition-all duration-150 ${tab.color} ${
+                className={`flex w-32 min-w-[7.5rem] items-center gap-2.5 rounded-l-sm border-l-2 border-r border-[#383126]/60 px-3 py-2.5 text-left font-serif text-[11px] tracking-widest uppercase shadow-[-4px_2px_8px_rgba(0,0,0,0.6)] transition-all duration-150 ${tab.color} ${tab.text} ${
                   active
-                    ? "-translate-x-1.5 text-[#ffd700] shadow-[-4px_0_12px_rgba(184,147,85,0.25)]"
-                    : "opacity-90 hover:-translate-x-1 hover:opacity-100"
+                    ? "-translate-x-1.5 border-l-[#ffd700] text-[#ffd700] shadow-[-4px_0_12px_rgba(184,147,85,0.25)]"
+                    : "border-l-[#b89355]/60 opacity-90 hover:-translate-x-1 hover:opacity-100"
                 }`}
               >
                 <Icon size={18} strokeWidth={1.75} />
@@ -147,6 +167,32 @@ export const LeftPage: React.FC<LeftPageProps> = ({
 
       {activeMenu === "infos" ? (
         <InfoIdentityPanel />
+      ) : activeMenu === "organisation" ? (
+        /* Feuillet III — Table des matières & feuillets (registre de composition). */
+        <div className="animate-ink-reveal flex h-full w-full flex-col">
+          <h2 className="mb-5 text-center font-serif text-lg tracking-[0.25em] text-[#d4af37] uppercase">
+            III. Table des Matières &amp; Feuillets
+          </h2>
+          <OrganizationView
+            items={structure}
+            chapterFiles={chapterFiles}
+            imageFiles={imageFiles}
+            sourcesConfigured={sourcesConfigured}
+            onAddAct={onAddAct}
+            onAddChapter={onAddChapter}
+            onAddImage={onAddImage}
+            onAddSpecial={onAddSpecial}
+            onRemove={onRemoveStructureItem}
+            onRename={onRenameStructureItem}
+            onRoleChange={onSpecialRoleChange}
+            onSourceChange={onStructureSourceChange}
+            onReorder={onStructureReorder}
+            onPickSourcesDirectory={onPickSourcesDirectory}
+            onImportChapterSource={onImportIntoFolder}
+            onImportImageSource={onImportIntoFolder}
+            onImportSpecialSource={onImportIntoFolder}
+          />
+        </div>
       ) : (
         <Frontispice leaving={isTransitioning} />
       )}

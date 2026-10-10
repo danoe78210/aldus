@@ -328,7 +328,7 @@ export const GoldCrucible: React.FC<GoldCrucibleProps> = ({ skip = false, onEnte
           <span
             key={`${ember.left}-${ember.top}`}
             aria-hidden
-            className="animate-ember pointer-events-none absolute h-1 w-1 rounded-full bg-[#ffb733] shadow-[0_0_6px_2px_rgba(255,140,0,0.55)]"
+            className="animate-ember pointer-events-none absolute h-1.5 w-1.5 rounded-full bg-[#ffd700] shadow-[0_0_6px_2px_rgba(255,140,0,0.55)]"
             style={
               {
                 left: ember.left,

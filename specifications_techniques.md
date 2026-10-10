@@ -187,7 +187,8 @@ toutes désactivées sous `@media (prefers-reduced-motion: reduce)`.
 Exposés par `StudioContext` (`isAtelierOpen`, `isTransitioning`, `onEnterAtelier`)
 et pilotés par `App.tsx` :
 
-- `ATELIER_TRANSITION_MS = 550` — durée du voile d'encre avant bascule.
+- `ATELIER_TRANSITION_MS = 450` — durée du voile d'encre avant bascule (le fondu
+  sortant dure 400 ms, `duration-400`).
 - `enterAtelier()` : `isTransitioning = true` → garde `enteringRef` (anti double
   déclenchement) → après 550 ms : `isAtelierOpen = true`,
   `activeMenu = 'infos'`, `isTransitioning = false`.
@@ -195,16 +196,18 @@ et pilotés par `App.tsx` :
   sas), `animate-finale-pulse` (impulsion du creuset), `animate-ink-reveal`
   (révélation des feuillets).
 
-- Emprise : `w-[90vw] max-w-[1720px]`, gouttière gauche `pl-28` (les onglets
+- Emprise : `w-[90vw] max-w-[1700px]`, gouttière gauche `pl-28` (les onglets
   débordent de `-left-28`, soit 7 rem → **aucune troncature** à toute largeur).
+- Gouttière centrale : ombre de reliure `inset_0_0_40px_rgba(0,0,0,0.85)` au
+  centre du registre (en plus des ombres de courbure de chaque page).
 - Sous-main : `bg-[#12100e]` + dégradé radial `#1b1613 → #12100e`.
-- Onglets : `min-w-[7.5rem] px-3 py-2.5 rounded-l-sm border-l-2
-  border-[#b89355]/50`, `font-serif text-[11px] tracking-widest uppercase
-  text-[#e2d5bd]`, état actif `-translate-x-1.5 text-[#ffd700]
+- Pages : gauche `bg-[#181614]`, droite `bg-linear-to-b from-[#1c1a17] to-[#141210]`.
+- Onglets : `min-w-[7.5rem] px-3 py-2.5 rounded-l-sm border-l-2 border-[#b89355]/60`,
+  `font-serif text-[11px] tracking-widest uppercase` + **encre propre à chaque
+  cuir** (havane `#ecd8b0`, lapis `#d6e3f0`, sauge `#d0e5d6`, cire `#f2e2be`,
+  garance `#eed0d0`, noix de galle `#e0d2e8`) ; état actif
+  `-translate-x-1.5 border-l-[#ffd700] text-[#ffd700]
   shadow-[-4px_0_12px_rgba(184,147,85,0.25)]`.
-- Palette des onglets : havane `#2c1a0e/#1c1209`, lapis `#121c26/#0b1219`,
-  sauge `#122117/#0a140e`, cire `#332408/#1f1604`, garance `#300d0d/#1f0808`,
-  noix de galle `#1c1421/#110c14` (tous `bg-linear-to-r`).
 
 ---
 
@@ -221,7 +224,33 @@ et pilotés par `App.tsx` :
 
 ---
 
-## 8. Persistance
+## 8. Imposition & instruments du registre
+
+### 8.1 `src/data/imposition.ts` — miroir frontend du backend
+
+Source de vérité : `src-tauri/src/kdp.rs` (`MIN_PAGES = 24`, `MAX_PAGES = 828`)
+et `src-tauri/src/cover/geometry.rs` (coefficients papier `0,05720` blanc ·
+`0,06350` crème · `0,05960` couleur ; fond perdu 3,2 mm).
+
+Fonctions pures exportées : `romanNumeral`, `estimateKdpPages`
+(`24 + 20 × chapitres`, bornée), `spineThicknessMm` (Pages × coefficient),
+`sheetsOf`, `planCahiers` (16/20/24), `placeChapters` (liminaires puis
+répartition uniforme ; belle page = page impaire), `misplacedChapters`,
+`paginationDrift`. Couvertes par `src/data/__tests__/imposition.test.ts`.
+
+Consommé par `src/components/ImpositionPanel.tsx` (Feuillet IV, page de droite
+de l'onglet Organisation) et par `OrganizationView` (rangs romains des lignes).
+
+### 8.2 Pupitre supérieur & journal d'atelier
+
+| Élément | Traitement |
+|---|---|
+| `ProgressBar.tsx` (pupitre) | `bg-[#141210] border-b border-[#382f22] text-[#e2dbce]` ; statut `text-[#9e9587]` + accent or `#d4af37` ; réglette `bg-[#1c1814] border-[#2e261b] h-3 rounded-xs` ; curseur `bg-linear-to-r from-[#8f6e2b] via-[#c5a059] to-[#8f6e2b]` ; tirets millimétriques tous les 10 % en filigrane. |
+| `LogPanel.tsx` (journal) | `bg-[#12100e] border-t border-[#382f22]` ; horodatage `text-[#786c59] font-mono text-[11px]` ; logs `text-[#bda888] font-serif text-xs` ; succès `text-[#c5a059]` ; avertissement `#c8a06a` ; erreur `text-[#a83232]` (aucun vert néon) ; témoin d'enregistrement = **sceau de laiton poli** `bg-[#d4af37] shadow-[0_0_6px_rgba(212,175,55,0.4)]`. |
+
+---
+
+## 9. Persistance
 
 - `app_data_dir/project.danoe` (JSON) — **jamais purgé**.
 - `app_data_dir/{ignored_words,places,corrector_options}.json`.
@@ -230,7 +259,7 @@ et pilotés par `App.tsx` :
 
 ---
 
-## 9. Qualité & politique
+## 10. Qualité & politique
 
 ```bash
 npx tsc --noEmit -p tsconfig.app.json   # 0 erreur (strict + noUnusedLocals)
@@ -246,7 +275,7 @@ d'information) et respecte `prefers-reduced-motion`.
 
 ---
 
-## 10. Renvois
+## 11. Renvois
 
 - **Spécifications fonctionnelles** : `specifications_fonctionnelles.md`
 - **Module Couverture** : `SPECIFICATIONS_COVER_STUDIO_v1.2.0.md`

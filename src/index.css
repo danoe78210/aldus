@@ -195,8 +195,9 @@ body {
 /* ── Boucle vivante de la lettrine (« ready ») : forge en activité ───────── */
 
 /* Remplissage progressif et lourd de l'or — paliers de viscosité (9,5 s).
-   Les fractions de course reproduisent exactement les paliers du cahier :
-   15 % → 85 % / 50 % → 50 % / 80 % → 20 % / 100 % → 0 (course totale : 220 px). */
+   Chronologie du cahier : 0 → 1,5 s amorçage dans les fûts · 1,5 → 7 s montée
+   continue · 7 → 9,5 s comblement du sommet et des volutes.
+   Fractions de course : 15 % → 85 % · 50 % → 50 % · 74 % → 30 % (course 220 px). */
 @keyframes moltenGoldFill {
   0% {
     transform: translateY(220px);
@@ -210,8 +211,8 @@ body {
     transform: translateY(110px);
     animation-timing-function: cubic-bezier(0.33, 0.2, 0.67, 1);
   }
-  80% {
-    transform: translateY(44px);
+  74% {
+    transform: translateY(66px);
     animation-timing-function: cubic-bezier(0.22, 0.61, 0.36, 1);
   }
   100% {
@@ -223,17 +224,17 @@ body {
 @keyframes fireFlickerA {
   0%,
   100% {
-    opacity: 0.35;
+    opacity: 0.38;
     transform: scale(0.98);
     filter: blur(20px);
   }
-  35% {
-    opacity: 0.7;
+  33% {
+    opacity: 0.72;
     transform: scale(1.02);
-    filter: blur(26px);
+    filter: blur(24px);
   }
-  70% {
-    opacity: 0.45;
+  66% {
+    opacity: 0.48;
     transform: scale(0.99);
     filter: blur(18px);
   }

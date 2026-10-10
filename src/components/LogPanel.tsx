@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from "react";
-import { Feather, FolderOpen } from "lucide-react";
+import { FolderOpen } from "lucide-react";
 import type { LogEntry, LogLevel } from "../types";
 
 interface LogPanelProps {
@@ -14,9 +14,9 @@ interface LogPanelProps {
 
 const levelStyles: Record<LogLevel, string> = {
   info: "text-[#bda888]",
-  success: "text-[#d4af37]",
+  success: "text-[#c5a059]",
   warning: "text-[#c8a06a]",
-  error: "text-[#b0553f]",
+  error: "text-[#a83232]",
 };
 
 const levelPrefix: Record<LogLevel, string> = {
@@ -47,23 +47,23 @@ export const LogPanel: React.FC<LogPanelProps> = ({
 
   return (
     <div className="w-full max-w-6xl">
-      {/* Registre de bord — console d'atelier */}
-      <div className="relative overflow-hidden rounded-md border-y border-[#423220] bg-[#171310] shadow-[inset_0_2px_14px_rgba(0,0,0,0.9),0_6px_14px_rgba(0,0,0,0.5)]">
+      {/* Journal d'atelier — registre inférieur en ébène et laiton */}
+      <div className="relative overflow-hidden rounded-xs border-t border-[#382f22] bg-[#12100e] shadow-[inset_0_2px_14px_rgba(0,0,0,0.9),0_6px_14px_rgba(0,0,0,0.5)]">
         {/* Vis de fixation aux quatre coins */}
         <span className="absolute left-2 top-2 h-1.5 w-1.5 rounded-full bg-brass/60 shadow-[inset_0_1px_1px_rgba(0,0,0,0.6)]" />
         <span className="absolute right-2 top-2 h-1.5 w-1.5 rounded-full bg-brass/60 shadow-[inset_0_1px_1px_rgba(0,0,0,0.6)]" />
         <span className="absolute bottom-2 left-2 h-1.5 w-1.5 rounded-full bg-brass/60 shadow-[inset_0_1px_1px_rgba(0,0,0,0.6)]" />
         <span className="absolute bottom-2 right-2 h-1.5 w-1.5 rounded-full bg-brass/60 shadow-[inset_0_1px_1px_rgba(0,0,0,0.6)]" />
 
-        <div className="flex items-center justify-between gap-3 border-b border-[#423220] px-5 py-2">
-          <span className="font-mono text-[11px] uppercase tracking-[0.3em] text-[#d4af37]">
+        <div className="flex items-center justify-between gap-3 border-b border-[#382f22] px-5 py-2">
+          <span className="font-serif text-[11px] tracking-[0.3em] text-[#d4af37] uppercase">
             Journal des op&eacute;rations
           </span>
           <span className="flex items-center gap-4">
-            {/* Témoin discret de sauvegarde automatique */}
+            {/* Sceau de laiton poli : projet consigné */}
             {saveState === "saved" && (
-              <span className="flex items-center gap-1 font-mono text-[10px] uppercase tracking-widest text-[#d4af37]">
-                <Feather size={12} />
+              <span className="flex items-center gap-2 font-mono text-[10px] tracking-widest text-[#c5a059] uppercase">
+                <span className="inline-block h-2 w-2 rounded-full bg-[#d4af37] shadow-[0_0_6px_rgba(212,175,55,0.4)]" />
                 Consign&eacute;
               </span>
             )}
@@ -74,13 +74,13 @@ export const LogPanel: React.FC<LogPanelProps> = ({
               title={
                 projectFilePath ?? "Choisir l'emplacement du fichier de projet"
               }
-              className="flex items-center gap-1 font-mono text-[10px] uppercase tracking-widest text-[#bda888] transition-colors hover:text-[#d4af37]"
+              className="flex items-center gap-1 font-mono text-[10px] tracking-widest text-[#bda888] uppercase transition-colors hover:text-[#d4af37]"
             >
               <FolderOpen size={12} />
               {fileLabel}
             </button>
-            <span className="flex items-center gap-2 font-mono text-[10px] uppercase tracking-widest text-[#bda888]/70">
-              <span className="inline-block h-1.5 w-1.5 animate-pulse rounded-full bg-[#d4af37]" />
+            <span className="flex items-center gap-2 font-mono text-[10px] tracking-widest text-[#bda888]/70 uppercase">
+              <span className="inline-block h-1.5 w-1.5 animate-pulse rounded-full bg-[#d4af37] shadow-[0_0_6px_rgba(212,175,55,0.4)]" />
               Enregistrement actif
             </span>
           </span>
@@ -88,14 +88,16 @@ export const LogPanel: React.FC<LogPanelProps> = ({
 
         <div
           ref={scrollRef}
-          className="h-32 overflow-y-auto px-5 py-2 font-mono text-xs leading-relaxed text-[#bda888]"
+          className="h-32 overflow-y-auto px-5 py-2 font-serif text-xs leading-relaxed text-[#bda888]"
         >
           {logs.length === 0 ? (
-            <p className="text-[#bda888]/50">Aucune op&eacute;ration enregistr&eacute;e.</p>
+            <p className="text-[#bda888]/50 italic">Aucune op&eacute;ration enregistr&eacute;e.</p>
           ) : (
             logs.map((log) => (
               <div key={log.id} className="flex gap-3">
-                <span className="shrink-0 text-[#bda888]/50">[{log.time}]</span>
+                <span className="shrink-0 font-mono text-[11px] text-[#786c59]">
+                  [{log.time}]
+                </span>
                 <span className={levelStyles[log.level]}>
                   {levelPrefix[log.level]} {log.message}
                 </span>

@@ -28,7 +28,7 @@ export const RightPage: React.FC<RightPageProps> = ({ onEnter }) => {
   return (
     <div
       onClick={() => setSkip(true)}
-      className={`flex h-full w-full cursor-pointer items-center justify-center bg-[#181614] select-none transition-all duration-400 ease-out delay-150 ${
+      className={`flex h-full w-full cursor-pointer items-center justify-center bg-[#181614] select-none transition-all duration-400 ease-out ${
         isTransitioning ? "scale-[0.98] opacity-0" : "scale-100 opacity-100"
       }`}
     >

@@ -93,7 +93,7 @@ Six onglets de répertoire, **ordre imposé** :
 |---|---|
 | **Réglages** | Format de coupe KDP, corps de texte, polices, interligne, alignement, lettrines, dossiers de sources, journal d'erreurs, correcteur linguistique (région, mode pointilleux, règles). |
 | **Informations** | Métadonnées du roman — **dédoublé sur les deux feuillets** (§4). |
-| **Organisation** | Structure du livre : Actes / Chapitres / Images / Pages spéciales, glisser-déposer multi-pages, rôles, import de sources. |
+| **Organisation** | Registre de composition sur **deux feuillets** : *Feuillet III* (table des matières, rangs romains, réorganisation) et *Feuillet IV* (imposition & calibrage KDP) — voir §4.3. |
 | **Correcteur** | Relecture LanguageTool : suggestions, contexte, localiser, ignorer, journal des corrections de la session. |
 | **Couverture** | *Cover Studio* : gabarit KDP dos carré, extraction de couleurs, inspection, génération Typst, aperçu 2D/3D. |
 | **Export** | Lancement Word / PDF / EPUB, aperçu paginé, progression, journal. |
@@ -125,6 +125,18 @@ En-tête : **II. Édition & Mentions Légales**.
 
 Chaque champ est validé au `blur` et **sauvegardé automatiquement** dans le
 fichier de projet (journalisation de l'opération).
+
+### 4.3 Feuillets III & IV — onglet Organisation
+
+| Page | Feuillet | Contenu |
+|---|---|---|
+| **Gauche** | **III. Table des Matières & Feuillets** | Registre de composition : chaque ligne porte son **rang en chiffres romains**, une **ligne de pointillés traditionnelle** et une **poignée de réorganisation en fer forgé** (`#5a4f3f` → `#d4af37` au survol). Le glisser-déposer réordonne la structure (multi-pages), et les commandes d'ajout (Acte, Chapitre, Image, Page spéciale), de renommage, de rôle et d'import de sources restent disponibles. |
+| **Droite** | **IV. Imposition & Calibrage KDP** | Panneaux techniques : pagination de référence (déclarée vs estimation KDP `24 + 20 × chapitres`), **répartition en cahiers** (16 / 20 / 24 pages, multiples de 4), **calculateur d'épaisseur de dos** (`Pages × Coeff. papier` : 0,0572 mm blanc · 0,0635 mm crème · 0,0596 mm couleur) avec **schéma proportionnel** du dos et **zones de sécurité de 1,6 mm (≈ 0,0625 po)**, et **détection d'anomalies** : tout chapitre ouvrant sur un feuillet **pair** (page de gauche) au lieu d'une **belle page impaire** est signalé avec sa page de départ. |
+
+> Modèle d'estimation : les pages liminaires (`24`) précèdent la répartition
+> uniforme de la pagination déclarée sur les chapitres ; le recto KDP (belle
+> page) est la page **impaire**. La pagination per-chapitre exacte sera
+> disponible lorsque le moteur Rust exposera les comptes de mots au frontend.
 ---
 
 ## 5. Instruments du registre

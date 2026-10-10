@@ -80,9 +80,8 @@ export const Layout: React.FC<LayoutProps> = ({
           `pl-28` réserve une gouttière franche à gauche : les marque-pages du registre
           se déploient intégralement, sans troncature (ils débordent de `-left-28`,
           soit exactement 7 rem). `flex-1 min-h-0` fait tenir le tout dans la
-          hauteur de la fenêtre (aucun ascenseur global).
-          Grand format : `w-[90vw] max-w-[1720px]`. */}
-      <div className="flex w-[90vw] min-h-0 max-w-[1720px] flex-1 flex-col items-center gap-4 pr-6 pl-28">
+          global). Grand format : `w-[90vw] max-w-[1700px]`. */}
+      <div className="flex w-[90vw] min-h-0 max-w-[1700px] flex-1 flex-col items-center gap-4 pr-6 pl-28">
         {/* Barre de progression — au-dessus du livre */}
         <ProgressBar progress={progress} label={progressLabel} running={running} />
 
@@ -108,7 +107,7 @@ export const Layout: React.FC<LayoutProps> = ({
 
             {/* Page de droite : volet qui pivote autour de la reliure (`left`). */}
             <section
-              className="relative flex h-full w-1/2 flex-col overflow-hidden rounded-r-md border border-[#383126]/60 bg-linear-to-b from-[#1c1a17] to-[#161412] shadow-[inset_30px_0_40px_-18px_rgba(0,0,0,0.85)]"
+              className="relative flex h-full w-1/2 flex-col overflow-hidden rounded-r-md border border-[#383126]/60 bg-linear-to-b from-[#1c1a17] to-[#141210] shadow-[inset_30px_0_40px_-18px_rgba(0,0,0,0.85)]"
               style={{
                 transformOrigin: "left center",
                 transformStyle: "preserve-3d",
@@ -182,6 +181,12 @@ export const Layout: React.FC<LayoutProps> = ({
             }}
           />
         </div>
+
+        {/* Gouttière centrale — ombre portée de reliure cousue main (double page). */}
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-y-0 left-1/2 z-10 w-24 -translate-x-1/2 shadow-[inset_0_0_40px_rgba(0,0,0,0.85)]"
+        />
 
         {/* Terminal — journal des opérations, sous le livre */}
         <LogPanel

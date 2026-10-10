@@ -3,7 +3,7 @@ import type { ActiveMenu } from "../types";
 import { useStudio } from "./StudioContext";
 import { SettingsNavigator } from "./SettingsNavigator";
 import { InfoEditionPanel } from "./InfoView";
-import { OrganizationView } from "./OrganizationView";
+import { ImpositionPanel } from "./ImpositionPanel";
 import { CoverStudioView } from "./cover/CoverStudioView";
 import { ExportView } from "./ExportView";
 import { CorrectorView } from "./CorrectorView";
@@ -39,27 +39,9 @@ export const MenuPage: React.FC<{ menu: ActiveMenu }> = ({ menu }) => {
     case "infos":
       return <InfoEditionPanel />;
     case "organisation":
-      return (
-        <OrganizationView
-          items={studio.structure}
-          chapterFiles={studio.chapterFiles}
-          imageFiles={studio.imageFiles}
-          sourcesConfigured={studio.sourcesConfigured}
-          onAddAct={studio.onAddAct}
-          onAddChapter={studio.onAddChapter}
-          onAddImage={studio.onAddImage}
-          onAddSpecial={studio.onAddSpecial}
-          onRemove={studio.onRemoveStructureItem}
-          onRename={studio.onRenameStructureItem}
-          onRoleChange={studio.onSpecialRoleChange}
-          onSourceChange={studio.onStructureSourceChange}
-          onReorder={studio.onStructureReorder}
-          onPickSourcesDirectory={studio.onPickSourcesDirectory}
-          onImportChapterSource={studio.onImportIntoFolder}
-          onImportImageSource={studio.onImportIntoFolder}
-          onImportSpecialSource={studio.onImportIntoFolder}
-        />
-      );
+      /* Feuillet IV : imposition & calibrage KDP — la table des matières
+         (Feuillet III) est composée sur la page de gauche. */
+      return <ImpositionPanel />;
     case "couverture":
       return <CoverStudioView />;
     case "correcteur":

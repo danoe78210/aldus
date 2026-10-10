@@ -32,7 +32,7 @@ import { isImageFile, splitSourceFiles } from "./utils/sources";
 import { finalizeExit, onCloseRequested } from "./utils/shutdown";
 
 /** Délai (ms) du voile d'encre avant la bascule d'état du sas d'accueil. */
-const ATELIER_TRANSITION_MS = 550;
+const ATELIER_TRANSITION_MS = 450;
 
 const currentTime = () =>
   new Date().toLocaleTimeString("fr-FR", { hour12: false });

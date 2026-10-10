@@ -6,24 +6,33 @@ import type { BookInfoConfig } from "../types";
 const labelClass =
   "mb-1.5 block font-serif text-xs tracking-wider text-[#c9bea9] uppercase";
 
-/** Champ standard — ébène, filet laiton au focus. */
-const inputClass =
-  "w-full rounded-xs border border-[#3a3022] bg-[#13110f] px-3 py-2 font-serif text-sm text-[#f5efe4] transition-colors placeholder:italic placeholder:text-[#5a5040] focus:border-[#d4af37] focus:outline-none";
+/** Base commune des champs — ébène feutré, filet laiton au focus.
+    (La famille typographique est portée par les variantes : jamais de conflit.) */
+const inputBase =
+  "w-full rounded-xs border border-[#3a3022] bg-[#13110f] px-3 py-2 transition-colors placeholder:italic placeholder:text-[#5a5040] focus:border-[#d4af37] focus:outline-none";
+
+/** Champ standard — serif éditoriale. */
+const inputClass = `${inputBase} font-serif text-sm text-[#f5efe4]`;
 
 /** Champ en vedette — titre de l'œuvre, plus ample et plus clair. */
-const featuredInputClass =
-  "w-full rounded-xs border border-[#3e3425] bg-[#13110f] px-3.5 py-2.5 font-serif text-base text-[#fbf6ea] transition-colors placeholder:italic placeholder:text-[#5a5040] focus:border-[#d4af37] focus:outline-none";
+const featuredInputClass = `${inputBase} border-[#3e3425] px-3.5 py-2.5 font-serif text-base text-[#fbf6ea]`;
 
-/** Champ secondaire — sous-titre, encre légèrement patinée. */
-const mutedInputClass =
-  "w-full rounded-xs border border-[#3a3022] bg-[#13110f] px-3 py-2 font-serif text-sm text-[#e8dcc4] transition-colors placeholder:italic placeholder:text-[#5a5040] focus:border-[#d4af37] focus:outline-none";
+/** Champ technique (ISBN) — chiffres alignés en monospace. */
+const monoInputClass = `${inputBase} font-mono text-xs text-[#f5efe4]`;
 
-type FieldVariant = "default" | "featured" | "muted";
+type FieldVariant = "default" | "featured" | "mono";
 
 const VARIANT_CLASS: Record<FieldVariant, string> = {
   default: inputClass,
   featured: featuredInputClass,
-  muted: mutedInputClass,
+  mono: monoInputClass,
+};
+
+/** Occupation d'une cellule de la grille de section (2 colonnes par défaut). */
+const SPAN_CLASS: Record<number, string> = {
+  1: "",
+  2: "col-span-2",
+  3: "col-span-3",
 };
 
 interface InfoInputProps {
@@ -32,8 +41,8 @@ interface InfoInputProps {
   onChange: (value: string) => void;
   placeholder?: string;
   type?: "text" | "number";
-  /** Champ pleine largeur (occupe les 2 colonnes). */
-  full?: boolean;
+  /** Nombre de colonnes occupées dans la grille locale. */
+  span?: number;
   /** Importance typographique du champ. */
   variant?: FieldVariant;
 }
@@ -45,10 +54,10 @@ const InfoInput: React.FC<InfoInputProps> = ({
   onChange,
   placeholder,
   type = "text",
-  full = false,
+  span = 1,
   variant = "default",
 }) => (
-  <div className={`flex flex-col ${full ? "col-span-2" : ""}`}>
+  <div className={`flex flex-col ${SPAN_CLASS[span] ?? SPAN_CLASS[1]}`}>
     <label className={labelClass}>{label}</label>
     <input
       type={type}
@@ -122,7 +131,7 @@ export const InfoIdentityPanel: React.FC = () => {
       <Section title="Titres &amp; Saga">
         <InfoInput
           label="Titre du livre"
-          full
+          span={2}
           variant="featured"
           value={config.title}
           placeholder="ex. Nunael"
@@ -130,25 +139,27 @@ export const InfoIdentityPanel: React.FC = () => {
         />
         <InfoInput
           label="Sous-titre"
-          full
-          variant="muted"
+          span={2}
           value={config.subtitle}
           onChange={set("Identité de l'œuvre", "Sous-titre", "subtitle")}
         />
-        <InfoInput
-          label="Nom de la série / Saga"
-          full
-          value={config.sagaTitle}
-          placeholder="ex. Les Schattenjägers"
-          onChange={set("Identité de l'œuvre", "Nom de la série / Saga", "sagaTitle")}
-        />
-        <InfoInput
-          label="Numéro de tome"
-          type="number"
-          value={config.volumeNumber}
-          placeholder="ex. 1"
-          onChange={set("Identité de l'œuvre", "Numéro de tome", "volumeNumber")}
-        />
+        {/* Saga / Cycle (2 colonnes) & Numéro de tome (1 colonne) : grille à 3 colonnes. */}
+        <div className="col-span-2 grid grid-cols-3 gap-x-8 gap-y-5">
+          <InfoInput
+            label="Saga / Cycle"
+            span={2}
+            value={config.sagaTitle}
+            placeholder="ex. Les Schattenjägers"
+            onChange={set("Identité de l'œuvre", "Nom de la série / Saga", "sagaTitle")}
+          />
+          <InfoInput
+            label="Numéro de tome"
+            type="number"
+            value={config.volumeNumber}
+            placeholder="ex. 1"
+            onChange={set("Identité de l'œuvre", "Numéro de tome", "volumeNumber")}
+          />
+        </div>
       </Section>
 
       <Section title="Paternité">
@@ -159,7 +170,7 @@ export const InfoIdentityPanel: React.FC = () => {
           onChange={set("Auteurs et contributeurs", "Nom de l'auteur principal", "author")}
         />
         <InfoInput
-          label="Traducteur ou illustrateur"
+          label="Illustrateur / Traducteur"
           value={config.contributor}
           placeholder="Optionnel"
           onChange={set("Auteurs et contributeurs", "Traducteur ou illustrateur", "contributor")}
@@ -181,24 +192,25 @@ export const InfoEditionPanel: React.FC = () => {
       style={{ animationDelay: "90ms" }}
     >
       <h2 className="mb-6 text-center font-serif text-lg tracking-[0.25em] text-[#d4af37] uppercase">
-        II. Édition &amp; Mentions Légales
+        II. Édition &amp; Achevé d&rsquo;Imprimer
       </h2>
 
       <Section title="Mentions Légales">
         <InfoInput
-          label="Nom de l'éditeur"
+          label="Maison d'édition"
           value={config.publisher}
           placeholder="ex. Auto-édition ou nom de la maison"
           onChange={set("Édition et mentions légales", "Nom de l'éditeur", "publisher")}
         />
         <InfoInput
           label="Numéro ISBN"
+          variant="mono"
           value={config.isbn}
-          placeholder="ex. 978-2-…"
+          placeholder="978-2-XXXXXX-XX-X"
           onChange={set("Édition et mentions légales", "Numéro ISBN", "isbn")}
         />
         <InfoInput
-          label="Date de parution"
+          label="Année de parution"
           value={config.year}
           placeholder="ex. Octobre 2026"
           onChange={set("Édition et mentions légales", "Date de parution", "year")}
