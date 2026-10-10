@@ -27,7 +27,7 @@ const labelClass =
 
 /** Base commune des champs — ébène feutré, filet laiton au focus. */
 const inputBase =
-  "w-full rounded-xs border border-[#3a3022] bg-[#13110f] px-3 py-2 font-serif text-sm text-[#f5efe4] transition-colors placeholder:italic placeholder:text-[#5a5040] focus:border-[#d4af37] focus:outline-none";
+  "w-full rounded-xs border border-[#3a3022] bg-[#13110f] px-3 py-2 font-serif text-sm text-[#f5efe4] transition-colors placeholder:italic placeholder:text-[#5a5040] focus:border-[#d4af37] focus:ring-1 focus:ring-[#d4af37]/30 focus:outline-none";
 
 /** Panneau de section du registre de reliure. */
 const Section: React.FC<{ index: number; title: string; children: React.ReactNode }> = ({
@@ -75,7 +75,7 @@ const FINISHES: { id: CoverFinish; title: string; note: string }[] = [
  * Feuillet V (marbre de montage).
  */
 export const CoverCalibration: React.FC = () => {
-  const { cover, onCoverChange, manuscriptConfig } = useStudio();
+  const { cover, onCoverChange, manuscriptConfig, onRequestCoverExport } = useStudio();
   const trim = findTrimPreset(manuscriptConfig.trimSize);
   const trimWidthMm = trim ? trimToMm(trim.width, trim.unit) : 152.4;
   const trimHeightMm = trim ? trimToMm(trim.height, trim.unit) : 228.6;
@@ -242,8 +242,9 @@ export const CoverCalibration: React.FC = () => {
             className={`${inputBase} disabled:opacity-50`}
           />
           {cover.pageCount < 80 && (
-            <p className="mt-1 font-serif text-[11px] italic text-[#9e9587]">
-              Moins de 80 pages : le dos reste vierge (contrainte KDP).
+            <p className="mt-1 font-serif text-[11px] italic text-[#a83232]">
+              Moins de 80 pages : tout texte sur le dos est <strong>interdit par KDP</strong> —
+              laissez la tranche vierge ou augmentez la pagination.
             </p>
           )}
         </div>
@@ -348,6 +349,15 @@ export const CoverCalibration: React.FC = () => {
           {cover.backPath ? "visuel IV déposé" : "visuel IV manquant"}
         </p>
       </Section>
+
+      {/* Export du gabarit certifié (l'épreuve 2D/3D est sur le Feuillet V) */}
+      <button
+        type="button"
+        onClick={onRequestCoverExport}
+        className="mb-2 w-full border border-[#997728]/70 bg-linear-to-b from-[#2e1d0f] to-[#170f07] py-3.5 font-serif text-xs tracking-[0.28em] text-[#eedcb8] uppercase shadow-xl transition-all duration-300 hover:border-[#ffd700] hover:text-[#ffd700] hover:shadow-[0_0_20px_rgba(212,175,55,0.25)] active:scale-[0.99]"
+      >
+        [ Générer le gabarit KDP certifié (PDF/PNG 300 DPI) &rsaquo; ]
+      </button>
     </div>
   );
 };

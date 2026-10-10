@@ -32,7 +32,7 @@ type SubTab = (typeof SUB_TABS)[number]["id"];
  * avant export (§9). L'état persistant vit dans le contexte projet.
  */
 export const CoverPlate: React.FC = () => {
-  const { manuscriptConfig, bookInfo, cover, onCoverChange, structureSignature } =
+  const { manuscriptConfig, bookInfo, cover, onCoverChange, structureSignature, coverExportRequest } =
     useStudio();
   const trimSize = manuscriptConfig.trimSize;
 
@@ -110,6 +110,14 @@ export const CoverPlate: React.FC = () => {
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [frontPath, backPath, trimSize]);
+
+  // Demande d'export émise depuis le calibreur (Feuillet VI) : le marbre ouvre
+  // son dialogue de conformité pré-export.
+  useEffect(() => {
+    if (coverExportRequest > 0) {
+      setModalOpen(true);
+    }
+  }, [coverExportRequest]);
 
   // Détection de dérive (§10) : pagination ou contenu modifiés depuis la validation.
   const drift =

@@ -9,7 +9,7 @@ const labelClass =
 /** Base commune des champs — ébène feutré, filet laiton au focus.
     (La famille typographique est portée par les variantes : jamais de conflit.) */
 const inputBase =
-  "w-full rounded-xs border border-[#3a3022] bg-[#13110f] px-3 py-2 transition-colors placeholder:italic placeholder:text-[#5a5040] focus:border-[#d4af37] focus:outline-none";
+  "w-full rounded-xs border border-[#3a3022] bg-[#13110f] px-3 py-2 transition-colors placeholder:italic placeholder:text-[#5a5040] focus:border-[#d4af37] focus:ring-1 focus:ring-[#d4af37]/30 focus:outline-none";
 
 /** Champ standard — serif éditoriale. */
 const inputClass = `${inputBase} font-serif text-sm text-[#f5efe4]`;
@@ -125,10 +125,10 @@ export const InfoIdentityPanel: React.FC = () => {
   return (
     <div className="animate-ink-reveal mx-auto flex h-full w-full max-w-2xl flex-col overflow-y-auto px-2 pr-1">
       <h2 className="mb-6 text-center font-serif text-lg tracking-[0.25em] text-[#d4af37] uppercase">
-        I. Identité de l&rsquo;Œuvre
+        I. Identité de l&rsquo;Œuvre &amp; Maîtres d&rsquo;Ouvrage
       </h2>
 
-      <Section title="Titres &amp; Saga">
+      <Section title="Identité">
         <InfoInput
           label="Titre du livre"
           span={2}
@@ -162,7 +162,7 @@ export const InfoIdentityPanel: React.FC = () => {
         </div>
       </Section>
 
-      <Section title="Paternité">
+      <Section title="Créateurs">
         <InfoInput
           label="Auteur principal"
           value={config.author}
@@ -192,10 +192,10 @@ export const InfoEditionPanel: React.FC = () => {
       style={{ animationDelay: "90ms" }}
     >
       <h2 className="mb-6 text-center font-serif text-lg tracking-[0.25em] text-[#d4af37] uppercase">
-        II. Édition &amp; Achevé d&rsquo;Imprimer
+        II. Édition, Dépôt &amp; Colophon
       </h2>
 
-      <Section title="Mentions Légales">
+      <Section title="Édition">
         <InfoInput
           label="Maison d'édition"
           value={config.publisher}
@@ -223,7 +223,7 @@ export const InfoEditionPanel: React.FC = () => {
         />
       </Section>
 
-      <Section title="Apparat &amp; Bibliographie">
+      <Section title="Mentions &amp; Apparat">
         <InfoTextArea
           label="Autres œuvres du même auteur"
           value={config.otherBooks}

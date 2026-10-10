@@ -1,101 +1,80 @@
-# Aldus — Atelier du Livre Moderne
+# ❦ ALDUS : Atelier du Livre Moderne
 
-> *Venise, c. 1500.* Un atelier humaniste de composition et de reliure, hommage à
-> **Alde Manuce**. L'application simule un **grand registre d'ébène, d'or et de
-> reliure d'art** : construction de la structure d'un roman (Actes / Chapitres /
-> Images / Pages spéciales), paramétrage typographique **KDP**, atelier de
-> couverture, relecture linguistique, et export **Word (`.docx`)** / **PDF** /
-> **EPUB** prêts pour Amazon KDP.
+> *« Festina Lente »* — Hâte-toi lentement.
 
-## Stack
+**Aldus** est un environnement d'artisanat littéraire et d'ingénierie éditoriale conçu pour les
+écrivains indépendants et les typographes exigeants. Inspiré par les maîtres imprimeurs de la
+Renaissance vénitienne, il unifie la rigueur millimétrique des normes Amazon KDP et l'élégance de
+la typographie humaniste.
 
-- **Frontend** : React 19 + TypeScript + Vite, Tailwind CSS v4, Framer Motion, `@dnd-kit`.
-- **Backend de bureau** : **Tauri v2** + **Rust** (`src-tauri/`) — moteurs d'export
-  (`.docx` via `docx-rs`, **PDF** via Typst embarqué, **EPUB 3** via `epub-builder`).
+---
 
-L'interface fonctionne **dans le navigateur** (SPA, export simulé) **et** en
-**application de bureau** (Tauri, export réel). Les utilitaires détectent
-`window.__TAURI__` et retombent proprement.
+## ✦ Fonctionnalités Majeures
 
-## Prérequis
+- **Ambiance Dark Atelier :** une interface feutrée d'ébène, d'or et de cuir, conçue pour éliminer
+  la fatigue visuelle et honorer la noblesse du texte.
+- **Creuset Typographique :** fonderie de caractères en or liquide, symbolisant l'acte premier de
+  la composition du livre.
+- **Réglette & Calibreur de Dos KDP :** calcul dynamique de l'épaisseur du dos (papier blanc, crème
+  ou couleur) et génération du gabarit de couverture complet avec marges de fond perdu (3,2 mm).
+- **Correcteur Humaniste :** traitement conforme au *Code typographique* et au *Lexique des règles
+  typographiques en usage à l'Imprimerie nationale* (espaces insécables et fines insécables, tirets
+  cadratins, apostrophes courbes, ligatures `œ`/`æ`, majuscules accentuées, gloses marginales).
+- **Le Pressoir Final :** tirage cérémoniel en trois temps (encrage, serrage, massicotage) et export
+  vers les formes d'édition validées — PDF d'impression prêt-à-imprimer (gabarit KDP), ePub 3
+  reflowable, gabarit de jaquette.
 
-- **Node.js** ≥ 20 et **npm**.
-- **Rust** (stable) + **cargo** — pour compiler le backend de bureau.
+---
 
-## Développement
+## ✦ Stack Technique
+
+- **Moteur :** [Tauri v2](https://tauri.app/) (Rust) — moteurs Typst (PDF), `docx-rs`, `epub-builder`
+- **Interface :** React, TypeScript, Vite
+- **Styles :** Tailwind CSS v4
+- **Typographie :** glyphes et tracés vectoriels SVG d'artisanat
+
+---
+
+## ✦ Installation & Compilation
+
+### Prérequis
+- [Node.js](https://nodejs.org/) (version 20 ou supérieure)
+- [Rust & Cargo](https://rustup.rs/) (version 1.75 ou supérieure)
+
+### Démarrage en mode développement
 
 ```bash
-npm install            # dépendances frontend (inclut @tauri-apps/cli)
-
-# SPA dans le navigateur (Vite)
-npm run dev            # http://localhost:5173  — export simulé
-
-# Application de bureau (Vite + fenêtre Tauri)
+npm install
 npm run tauri dev
 ```
 
-## Build
+### Compilation de production locale
 
 ```bash
-npm run build          # build du frontend dans dist/
-npm run tauri build    # installeur / exécutable de bureau (dist + binaire Rust)
+npm run build
+npm run tauri build
 ```
 
-## Structure
+---
 
-```
-aldus/
-├─ src/                 # Frontend (voir specifications_fonctionnelles.md)
-│  ├─ components/       # Registre, onglets, creuset, modules
-│  ├─ components/cover/ # Atelier de couverture (Cover Studio v1.2.0)
-│  └─ utils/            # Ponts Tauri, projet (.danoe), sources, correcteur
-└─ src-tauri/           # Backend Tauri v2 + Rust
-   ├─ Cargo.toml        # tauri, serde/serde_json, docx-rs, typst, epub-builder
-   ├─ tauri.conf.json   # productName "Aldus", withGlobalTauri, assetProtocol
-   ├─ capabilities/     # permissions de la fenêtre
-   ├─ src/kdp.rs        # source unique de vérité KDP
-   ├─ src/lib.rs        # handshake natif, commandes, sortie propre
-   ├─ src/cover/        # géométrie & génération Typst de la couverture
-   ├─ icons/            # icônes d'application (générées par `tauri icon`)
-   └─ assets/           # ressources empaquetées — voir assets/README.md
-```
-
-## Identité & accueil
-
-- **Page gauche** : frontispice ébène, médaillon laiton, lettrine « A ».
-- **Page droite** : **creuset de fonderie** — la matrice du « A » orné se remplit
-  d'or en fusion (9,5 s), entretenue par la lueur d'un foyer de forge, puis
-  dévoile le bouton `[ Entrer dans l'atelier › ]`.
-- **Onglets** : Réglages → Informations → Organisation → Correcteur → Couverture
-  → Export, sur cuir patiné et or.
-
-## Statut de l'export
-
-- **Word (`.docx`)** — **fonctionnel** : fichier intérieur KDP (couverture exclue),
-  pages liminaires (faux-titre, copyright, page de titre avec saga), table des
-  matières native, corps du texte (Markdown étendu : titres, séparateurs de scène,
-  citations, listes, images, gras/italique), lettrines, glossaire et notes,
-  achevé d'imprimer, en-têtes dynamiques, marges **miroir** KDP et gouttière
-  calculée. La commande `generate_docx` ouvre une boîte de dialogue
-  d'enregistrement et émet `export-progress` (jauge UI + notification).
-- **Ebook (`.epub`)** — **fonctionnel** : page de titre + un XHTML par
-  chapitre/page (Markdown → HTML), métadonnées et sommaire (`epub-builder`).
-- **PDF** — **fonctionnel** : compilation Typst embarquée (polices incluses,
-  aucune dépendance système), aperçu paginé via `pdf.js` + `react-pageflip`.
-- Hors application empaquetée (navigateur), l'export reste **simulé**.
-
-## Documentation
+## ✦ Documentation
 
 - `specifications_fonctionnelles.md` — référence produit (identité, parcours, recette).
 - `specifications_techniques.md` — référence d'implémentation (stack, charte, composants).
-- `SPECIFICATIONS_COVER_STUDIO_v1.2.0.md` — module Atelier de Couverture.
+- `SPECIFICATIONS_COVER_STUDIO_v1.2.0.md` — atelier de reliure & marbre de montage.
 - `specifications_roman_kdp.md` — cahier des charges fonctionnel KDP.
-- `archive/` — documents v0 (univers « Danoë Studio »), conservés pour traçabilité.
+- `archive/` — documents v0, conservés pour traçabilité.
 
-## Validation
+### Contrôles de validation
 
 ```bash
 npx tsc --noEmit -p tsconfig.app.json
 npm run build
 cargo check --manifest-path src-tauri/Cargo.toml
 ```
+
+---
+
+## ✦ Licence
+
+Ce projet est distribué sous licence MIT. Consultez le fichier `LICENSE` pour plus de détails.

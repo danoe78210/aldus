@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useMemo } from "react";
 import {
   Settings,
   Info,
@@ -15,6 +15,7 @@ import { CoverPlate } from "./cover/CoverPlate";
 import { PressInspection } from "./PressInspection";
 import { ProofExaminer } from "./ProofExaminer";
 import { useStudio } from "./StudioContext";
+import { placeChapters } from "../data/imposition";
 import type { ActiveMenu } from "../types";
 
 interface LeftPageProps {
@@ -114,9 +115,19 @@ export const LeftPage: React.FC<LeftPageProps> = ({
     onStructureReorder,
     onPickSourcesDirectory,
     onImportIntoFolder,
+    cover,
   } = useStudio();
   /** Onglets verrouillés tant que l'atelier n'est pas ouvert (sas d'accueil). */
   const tabsLocked = !isAtelierOpen;
+
+  /** Folio composé de chaque élément (points de conduite du Feuillet III). */
+  const folioById = useMemo(() => {
+    const map = new Map<string, number>();
+    placeChapters(structure, Math.max(1, cover.pageCount)).forEach((placement) => {
+      map.set(placement.id, placement.startPage);
+    });
+    return map;
+  }, [structure, cover.pageCount]);
 
   return (
     <div className="relative flex h-full flex-col items-center justify-center text-center">
@@ -195,6 +206,7 @@ export const LeftPage: React.FC<LeftPageProps> = ({
             onImportChapterSource={onImportIntoFolder}
             onImportImageSource={onImportIntoFolder}
             onImportSpecialSource={onImportIntoFolder}
+            folioById={folioById}
           />
         </div>
       ) : activeMenu === "couverture" ? (

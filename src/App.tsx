@@ -190,6 +190,7 @@ const App: React.FC = () => {
     "cover-300": true,
   });
   const [exportDirectory, setExportDirectory] = useState<string | null>(null);
+  const [coverExportRequest, setCoverExportRequest] = useState(0);
   const [pressStage, setPressStage] = useState(-1);
   const [isPressing, setIsPressing] = useState(false);
   const [logs, setLogs] = useState<LogEntry[]>(() => [
@@ -942,6 +943,8 @@ const App: React.FC = () => {
     cover,
     onCoverChange: handleCoverChange,
     structureSignature,
+    coverExportRequest,
+    onRequestCoverExport: () => setCoverExportRequest((current) => current + 1),
     isExporting: running,
     onQuit: handleQuit,
   };

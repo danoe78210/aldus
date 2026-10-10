@@ -67,6 +67,8 @@ interface OrganizationViewProps {
   onImportImageSource: (id: string) => void;
   /** Importe un fichier externe pour une page spéciale donnée (id). */
   onImportSpecialSource: (id: string) => void;
+  /** Folio (première page composée) de chaque élément — points de conduite. */
+  folioById?: Map<string, number>;
 }
 
 /** Options d'un menu source : les fichiers détectés, plus la valeur courante. */
@@ -158,6 +160,8 @@ interface SortableRowProps {
   item: StructureItem;
   /** Rang global de la ligne (numéral romain du registre). */
   rank: number;
+  /** Folio composé (première page) — relié au titre par les points de conduite. */
+  folio?: number;
   /** Indente la ligne (enfant d'un Acte). */
   indent: boolean;
   chapterFiles: string[];
@@ -176,6 +180,7 @@ interface SortableRowProps {
 const SortableRow: React.FC<SortableRowProps> = ({
   item,
   rank,
+  folio,
   indent,
   chapterFiles,
   imageFiles,
@@ -208,10 +213,17 @@ const SortableRow: React.FC<SortableRowProps> = ({
         <GripVertical size={16} />
       </button>
 
-      {/* Numéral romain + ligne de pointillés traditionnelle du registre */}
+      {/* Numéral romain ………………………………… folio composé */}
       <span className="flex shrink-0 items-center gap-1.5 self-center">
         <span className="min-w-[1.75rem] text-right font-serif text-xs tracking-widest text-[#c5a059]">
           {romanNumeral(rank)}
+        </span>
+        <span aria-hidden className="h-px w-2 bg-[#5a4f3f]" />
+        <span
+          className="min-w-[3.25rem] font-mono text-[10px] text-[#786c59] tabular-nums"
+          title="Première page composée (folio)"
+        >
+          {folio ? `ff. ${folio}` : "—"}
         </span>
         <span aria-hidden className="h-px w-2 bg-[#5a4f3f]" />
       </span>
@@ -426,6 +438,7 @@ export const OrganizationView: React.FC<OrganizationViewProps> = ({
   onImportChapterSource,
   onImportImageSource,
   onImportSpecialSource,
+  folioById,
 }) => {
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
@@ -622,6 +635,7 @@ export const OrganizationView: React.FC<OrganizationViewProps> = ({
                     key={item.id}
                     item={item}
                     rank={rankById.get(item.id) ?? 0}
+                    folio={folioById?.get(item.id)}
                     indent={indentById.get(item.id) ?? false}
                     chapterFiles={chapterFiles}
                     imageFiles={imageFiles}

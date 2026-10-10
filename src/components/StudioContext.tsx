@@ -72,6 +72,14 @@ export interface StudioContextValue {
   onCoverChange: (patch: Partial<CoverStudioState>) => void;
   /** Signature de la structure courante (détection de dérive de pagination). */
   structureSignature: string;
+  /**
+   * Compteur de demandes d'export du gabarit de couverture : incrémenté depuis le
+   * Feuillet VI, écouté par le marbre de montage (Feuillet V) qui ouvre son
+   * dialogue de conformité pré-export.
+   */
+  coverExportRequest: number;
+  /** Demande l'export du gabarit KDP certifié (Feuillet VI). */
+  onRequestCoverExport: () => void;
 
   // --- Export ---
   onExport: (format: string) => void;

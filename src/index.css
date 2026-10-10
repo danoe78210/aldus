@@ -220,33 +220,33 @@ body {
   }
 }
 
-/* Lueur de foyer — pulsations asynchrones simulant le souffle des braises. */
+/* Lueur de forge / cheminée — deux cycles asynchrones imprévisibles. */
 @keyframes fireFlickerA {
   0%,
   100% {
-    opacity: 0.38;
+    opacity: 0.35;
     transform: scale(0.98);
-    filter: blur(20px);
+    filter: blur(16px);
   }
   33% {
-    opacity: 0.72;
+    opacity: 0.75;
     transform: scale(1.02);
     filter: blur(24px);
   }
   66% {
     opacity: 0.48;
     transform: scale(0.99);
-    filter: blur(18px);
+    filter: blur(20px);
   }
 }
 @keyframes fireFlickerB {
   0%,
   100% {
-    opacity: 0.3;
+    opacity: 0.35;
     filter: brightness(1);
   }
   50% {
-    opacity: 0.65;
+    opacity: 0.7;
     filter: brightness(1.2) drop-shadow(0 0 16px rgba(255, 90, 0, 0.4));
   }
 }
@@ -284,11 +284,11 @@ body {
   animation: moltenGoldFill 9500ms linear both;
 }
 .animate-fire-flicker-a {
-  animation: fireFlickerA 2100ms ease-in-out infinite;
+  animation: fireFlickerA 1700ms ease-in-out infinite;
 }
 .animate-fire-flicker-b {
-  animation: fireFlickerB 3700ms ease-in-out infinite;
-  animation-delay: 1400ms;
+  animation: fireFlickerB 3100ms ease-in-out infinite;
+  animation-delay: 900ms;
 }
 .animate-ember {
   animation: emberDrift 5200ms ease-out infinite;
@@ -313,13 +313,11 @@ body {
 @keyframes inkReveal {
   from {
     opacity: 0;
-    transform: translateY(8px);
-    filter: blur(1px);
+    transform: translateY(6px);
   }
   to {
     opacity: 1;
     transform: translateY(0);
-    filter: blur(0);
   }
 }
 
@@ -327,7 +325,7 @@ body {
   animation: finalePulse 320ms ease-out 1 both;
 }
 .animate-ink-reveal {
-  animation: inkReveal 0.55s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: inkReveal 0.45s cubic-bezier(0.22, 1, 0.36, 1) forwards;
 }
 
 /* Accessibilité : les effets restent décoratifs, jamais indispensables. */

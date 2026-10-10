@@ -139,7 +139,7 @@ export const GoldCrucible: React.FC<GoldCrucibleProps> = ({ skip = false, onEnte
 
   return (
     <div className="flex flex-col items-center">
-      <div className="relative flex h-[300px] w-[300px] items-center justify-center rounded-xs border border-[#2b241c] bg-[#12100e] p-8 shadow-2xl">
+      <div className="relative flex h-[300px] w-[300px] items-center justify-center rounded-xs border-2 border-[#2b241c] bg-[#12100e] p-8 shadow-2xl">
       {/* Halo thermique pulsant (intensité croissante au fil du remplissage) */}
       {filled && (
         <div
@@ -184,7 +184,7 @@ export const GoldCrucible: React.FC<GoldCrucibleProps> = ({ skip = false, onEnte
       >
         <defs>
           {/* Silhouette gravée de la lettrine servant de masque */}
-          <clipPath id="renaissance-a-mask">
+          <clipPath id="letter-a-mask">
             <path d={LETTER_A_PATH} />
           </clipPath>
           {/* Or en fusion : étincelant → cœur incandescent */}
@@ -199,7 +199,7 @@ export const GoldCrucible: React.FC<GoldCrucibleProps> = ({ skip = false, onEnte
           </linearGradient>
         </defs>
 
-        <g clipPath="url(#renaissance-a-mask)">
+        <g clipPath="url(#letter-a-mask)">
           {/* Fond de la matrice (métal creux) */}
           <rect x="0" y="0" width="200" height="220" fill="#0c0a08" />
 
