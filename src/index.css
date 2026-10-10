@@ -293,6 +293,42 @@ body {
   animation: emberDrift 5200ms ease-out infinite;
 }
 
+/* ── Transition cinématique d'entrée dans l'atelier ─────────────────────── */
+
+/* Pulsation thermique finale du creuset (impulsion : 0–150 ms). */
+@keyframes finalePulse {
+  0% {
+    opacity: 0;
+  }
+  35% {
+    opacity: 0.85;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+/* Encre fraîche : révélation des feuillets manuscrits après le voile. */
+@keyframes inkReveal {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+    filter: blur(1px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+    filter: blur(0);
+  }
+}
+
+.animate-finale-pulse {
+  animation: finalePulse 320ms ease-out 1 both;
+}
+.animate-ink-reveal {
+  animation: inkReveal 0.55s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
 /* Accessibilité : les effets restent décoratifs, jamais indispensables. */
 @media (prefers-reduced-motion: reduce) {
   .animate-molten-fill,
@@ -303,8 +339,14 @@ body {
   .animate-spark-burst,
   .animate-spark-streak,
   .animate-meniscus,
-  .animate-gold-drop {
+  .animate-gold-drop,
+  .animate-finale-pulse {
     animation: none;
+  }
+
+  /* La révélation d'encre est informationnelle : elle reste, sans mouvement. */
+  .animate-ink-reveal {
+    animation-duration: 1ms;
   }
 }
 

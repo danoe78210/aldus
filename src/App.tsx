@@ -31,6 +31,9 @@ import {
 import { isImageFile, splitSourceFiles } from "./utils/sources";
 import { finalizeExit, onCloseRequested } from "./utils/shutdown";
 
+/** Délai (ms) du voile d'encre avant la bascule d'état du sas d'accueil. */
+const ATELIER_TRANSITION_MS = 550;
+
 const currentTime = () =>
   new Date().toLocaleTimeString("fr-FR", { hour12: false });
 
@@ -166,6 +169,12 @@ const DEFAULT_BOOK_INFO: BookInfoConfig = {
 
 const App: React.FC = () => {
   const [activeMenu, setActiveMenu] = useState<ActiveMenu>('reglages');
+  // Sas d'accueil → Atelier : `isTransitioning` couvre le voile d'encre (fondu
+  // sortant du frontispice et du creuset), `isAtelierOpen` marque l'entrée
+  // effective (démontage du sas, révélation des feuillets manuscrits).
+  const [isAtelierOpen, setIsAtelierOpen] = useState(false);
+  const [isTransitioning, setIsTransitioning] = useState(false);
+  const enteringRef = useRef(false);
   const [logs, setLogs] = useState<LogEntry[]>(() => [
     createLog('info', 'Studio initialisé. Prêt à écrire.'),
     createLog('success', 'Projet « Les Schattenjägers » chargé.'),
@@ -746,8 +755,35 @@ const App: React.FC = () => {
     [sourceConfig.directory, addLog],
   );
 
+  /**
+   * **Transition cinématique d'entrée** dans l'atelier (bouton
+   * « Entrer dans l'atelier › ») — trois phases enchaînées :
+   * 1. impulsion & enfoncement (gérée par le bouton + pulsation thermique du
+   *    creuset, 0–150 ms) ;
+   * 2. voile d'encre : `isTransitioning` fait disparaître en fondu le médaillon
+   *    (page gauche) et le creuset (page droite) sans toucher à la structure du
+   *    livre (150–550 ms) ;
+   * 3. bascule d'état : onglet **Informations** activé, `isAtelierOpen` posé,
+   *    les deux feuillets se révèlent (`animate-ink-reveal`, 550–1000 ms).
+   */
+  const enterAtelier = useCallback(() => {
+    if (enteringRef.current) return;
+    enteringRef.current = true;
+    setIsTransitioning(true);
+
+    window.setTimeout(() => {
+      enteringRef.current = false;
+      setIsAtelierOpen(true);
+      setActiveMenu('infos');
+      setIsTransitioning(false);
+    }, ATELIER_TRANSITION_MS);
+  }, []);
+
   // État applicatif exposé aux pages du livre virtuel (via `StudioContext`).
   const studioValue: StudioContextValue = {
+    isAtelierOpen,
+    isTransitioning,
+    onEnterAtelier: enterAtelier,
     manuscriptConfig,
     sourceConfig,
     errorLogConfig,

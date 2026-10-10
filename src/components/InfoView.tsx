@@ -114,7 +114,7 @@ export const InfoIdentityPanel: React.FC = () => {
   const set = useFieldWriter();
 
   return (
-    <div className="mx-auto flex h-full w-full max-w-2xl flex-col overflow-y-auto px-2 pr-1">
+    <div className="animate-ink-reveal mx-auto flex h-full w-full max-w-2xl flex-col overflow-y-auto px-2 pr-1">
       <h2 className="mb-6 text-center font-serif text-lg tracking-[0.25em] text-[#d4af37] uppercase">
         I. Identité de l&rsquo;Œuvre
       </h2>
@@ -175,7 +175,11 @@ export const InfoEditionPanel: React.FC = () => {
   const set = useFieldWriter();
 
   return (
-    <div className="mx-auto flex h-full w-full max-w-2xl flex-col overflow-y-auto px-2 pr-1">
+    /* Feuillet II : révélation d'encre légèrement décalée (staggered). */
+    <div
+      className="animate-ink-reveal mx-auto flex h-full w-full max-w-2xl flex-col overflow-y-auto px-2 pr-1"
+      style={{ animationDelay: "90ms" }}
+    >
       <h2 className="mb-6 text-center font-serif text-lg tracking-[0.25em] text-[#d4af37] uppercase">
         II. Édition &amp; Mentions Légales
       </h2>

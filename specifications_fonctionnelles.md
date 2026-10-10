@@ -57,6 +57,22 @@ Au lancement, le registre s'ouvre sur un frontispice double :
 5. **Interdits esthétiques** : aucun titre de roman, aucun nom d'auteur,
    aucun rayon lumineux diagonal ni balayage rectiligne traversant la lettre.
 
+### 2.2 Transition cinématique d'entrée (*Entrer dans l'atelier*)
+
+Aucune rupture visuelle brute : le clic enclenche trois phases enchaînées.
+
+| Phase | Temps | Contenu |
+|---|---|---|
+| **1. Impulsion & enfoncement** | 0 → 150 ms | Compression du bouton (`active:scale-[0.99]`) + **pulsation thermique finale** du creuset (surge ambrée de 320 ms). |
+| **2. Voile d'encre & retrait** | 150 → 550 ms | Fondu sortant (`opacity-0 scale-[0.98]`, 400 ms, retard 150 ms) du **médaillon** (feuillet gauche) et du **creuset** (feuillet droit) — la structure du livre n'est pas déstabilisée. |
+| **3. Bascule & révélation** | 550 → 1000 ms | L'onglet **Informations** devient actif, `isAtelierOpen` est posé ; les deux feuillets se révèlent à l'**encre fraîche** (`inkReveal`, Feuillet II décalé de 90 ms). |
+
+Pendant le sas : la bande d'onglets est **atténuée et neutralisée**
+(`pointer-events-none opacity-60`) ; le ruban **« Quitter l'atelier »**
+reste actif. Après l'entrée, les onglets redeviennent interactifs
+(`transition-opacity duration-500`) et l'onglet Informations s'affiche avec
+son décroché `-translate-x-1.5` et sa bordure or.
+
 ---
 
 ## 3. Navigation du registre

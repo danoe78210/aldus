@@ -80,6 +80,17 @@ export interface StudioContextValue {
   // --- Application ---
   /** Ferme proprement l'application (cinématique 3D du livre + purge des caches). */
   onQuit: () => void;
+
+  // --- Sas d'accueil → Atelier (transition cinématique d'entrée) ---
+  /** `true` dès que l'utilisateur est entré : le sas d'accueil est démonté. */
+  isAtelierOpen: boolean;
+  /** `true` pendant le voile d'encre (fondu sortant du sas d'accueil). */
+  isTransitioning: boolean;
+  /**
+   * Déclenche la transition cinématique d'entrée : impulsion, voile d'encre puis
+   * bascule d'état vers l'onglet **Informations** (Feuillets I & II).
+   */
+  onEnterAtelier: () => void;
 }
 
 const StudioContext = createContext<StudioContextValue | null>(null);

@@ -182,6 +182,19 @@ toutes désactivées sous `@media (prefers-reduced-motion: reduce)`.
 
 ## 6. Layout du registre
 
+### 6.1 Transition d'entrée (états & minutage)
+
+Exposés par `StudioContext` (`isAtelierOpen`, `isTransitioning`, `onEnterAtelier`)
+et pilotés par `App.tsx` :
+
+- `ATELIER_TRANSITION_MS = 550` — durée du voile d'encre avant bascule.
+- `enterAtelier()` : `isTransitioning = true` → garde `enteringRef` (anti double
+  déclenchement) → après 550 ms : `isAtelierOpen = true`,
+  `activeMenu = 'infos'`, `isTransitioning = false`.
+- Styles associés : `transition-all duration-400 ease-out delay-150` (retrait du
+  sas), `animate-finale-pulse` (impulsion du creuset), `animate-ink-reveal`
+  (révélation des feuillets).
+
 - Emprise : `w-[90vw] max-w-[1720px]`, gouttière gauche `pl-28` (les onglets
   débordent de `-left-28`, soit 7 rem → **aucune troncature** à toute largeur).
 - Sous-main : `bg-[#12100e]` + dégradé radial `#1b1613 → #12100e`.

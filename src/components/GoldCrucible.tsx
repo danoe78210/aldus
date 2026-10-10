@@ -102,6 +102,8 @@ const DROPS: { left: string; top: string; dx: string; dy: string; delay: string 
 export const GoldCrucible: React.FC<GoldCrucibleProps> = ({ skip = false, onEnter }) => {
   const [phase, setPhase] = useState<CruciblePhase>("idle");
   const [instant, setInstant] = useState(false);
+  /** Pulsation thermique finale déclenchée par l'impulsion d'entrée. */
+  const [flash, setFlash] = useState(false);
   const active = phase === "filling";
   const ready = phase === "ready";
 
@@ -339,6 +341,15 @@ export const GoldCrucible: React.FC<GoldCrucibleProps> = ({ skip = false, onEnte
           />
         ))}
 
+      {/* Impulsion d'entrée : pulsation thermique finale du creuset (0–150 ms) */}
+      {flash && (
+        <div
+          aria-hidden
+          data-testid="gold-crucible-flash"
+          className="animate-finale-pulse pointer-events-none absolute -inset-4 rounded-full bg-[radial-gradient(circle,rgba(255,214,120,0.85)_0%,rgba(255,120,0,0.35)_45%,transparent_72%)]"
+        />
+      )}
+
       </div>
 
       {/* Bouton « Entrer dans l'atelier » — révélé à la fin de la coulée */}
@@ -346,6 +357,8 @@ export const GoldCrucible: React.FC<GoldCrucibleProps> = ({ skip = false, onEnte
         type="button"
         onClick={(event) => {
           event.stopPropagation();
+          setFlash(true); // impulsion : pulsation thermique finale (320 ms)
+          window.setTimeout(() => setFlash(false), 320);
           onEnter?.();
         }}
         aria-hidden={!ready}
