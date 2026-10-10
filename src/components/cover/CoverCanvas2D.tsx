@@ -1,0 +1,415 @@
+import React, { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
+import { convertFileSrc } from "@tauri-apps/api/core";
+import type { CoverGeometry, SpineColorSuggestion } from "../../utils/coverApi";
+
+/** Propriétés de la page « Planche technique 2D ». */
+export interface CoverCanvas2DProps {
+  geometry: CoverGeometry | null;
+  spineText: string;
+  suggestion: SpineColorSuggestion | null;
+  useGradient: boolean;
+  busy: boolean;
+  message: string | null;
+  canExport: boolean;
+  onExport: () => void;
+  /** Retour à la page 1 « Réglages & Sources ». */
+  onBack: () => void;
+  /** Chemin du plat 1 (Recto) — texture réelle sur la planche 2D. */
+  frontPath: string | null;
+  /** Chemin du plat 4 (Verso) — texture réelle sur la planche 2D. */
+  backPath: string | null;
+}
+
+/** Convertit un chemin local en URL `asset://` chargeable par la WebView. */
+const assetUrl = (path: string): string => {
+  try {
+    return convertFileSrc(path);
+  } catch {
+    return path;
+  }
+};
+
+type GuideId = "bleed" | "fold" | "safety" | "barcode";
+
+const TOGGLES: { id: GuideId; label: string; activeClass: string }[] = [
+  { id: "bleed", label: "Fond perdu (3,2 mm)", activeClass: "text-red-600" },
+  { id: "fold", label: "Lignes de pliure", activeClass: "text-sky-600" },
+  { id: "safety", label: "Zone de sécurité", activeClass: "text-emerald-600" },
+  { id: "barcode", label: "Réserve code-barres", activeClass: "text-stone-800" },
+];
+
+/** Marge de sécurité interne des repères KDP (mm). */
+const SAFETY_MM = 6.4;
+
+/**
+ * Page 2 : table de montage spacieuse (planche SVG pleine surface), repères KDP
+ * commutables, loupe plein écran et export PDF.
+ */
+export const CoverCanvas2D: React.FC<CoverCanvas2DProps> = ({
+  geometry,
+  spineText,
+  suggestion,
+  useGradient,
+  busy,
+  message,
+  canExport,
+  onExport,
+  onBack,
+  frontPath,
+  backPath,
+}) => {
+  const [guides, setGuides] = useState<Record<GuideId, boolean>>({
+    bleed: true,
+    fold: true,
+    safety: true,
+    barcode: true,
+  });
+  const [loupe, setLoupe] = useState(false);
+
+  const toggleGuide = (id: GuideId) =>
+    setGuides((previous) => ({ ...previous, [id]: !previous[id] }));
+
+  // Fermeture de la modale plein écran (Échap) + retour à l'onglet « settings ».
+  useEffect(() => {
+    if (!loupe) return;
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setLoupe(false);
+        onBack();
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [loupe, onBack]);
+
+  return (
+    <div className="flex h-full min-h-0 flex-col">
+      {/* Barre d'outils — repères KDP + loupe */}
+      <div className="mb-2 flex flex-wrap items-center gap-2 border-b border-stone-400/30 pb-2">
+        <span className="font-mono text-[10px] uppercase tracking-widest text-stone-500">
+          Repères
+        </span>
+        {TOGGLES.map((item) => {
+          const active = guides[item.id];
+          return (
+            <button
+              key={item.id}
+              type="button"
+              onClick={() => toggleGuide(item.id)}
+              className={`rounded-sm border px-2 py-1 font-mono text-[10px] uppercase tracking-widest transition-colors ${
+                active
+                  ? `border-stone-400/60 bg-stone-500/10 ${item.activeClass}`
+                  : "border-stone-400/30 bg-transparent text-stone-400"
+              }`}
+            >
+              {item.label}
+            </button>
+          );
+        })}
+        <button
+          type="button"
+          onClick={() => setLoupe(true)}
+          disabled={!geometry}
+          className="ml-auto rounded-sm border border-brass/50 bg-linear-to-b from-copper to-[#8a5426] px-3 py-1.5 font-mono text-[10px] uppercase tracking-widest text-amber-50 shadow-[inset_0_1px_0_rgba(255,255,255,0.3),0_2px_4px_rgba(0,0,0,0.5)] transition-all hover:brightness-110 active:translate-y-px disabled:cursor-not-allowed disabled:opacity-50"
+        >
+          [ ⛶ Plein écran ]
+        </button>
+      </div>
+
+      {/* Planche SVG (pleine surface) */}
+      <div className="flex min-h-0 flex-1 items-center justify-center rounded-sm border border-brass/30 bg-parchment-dark/40 p-3 shadow-[inset_0_0_30px_rgba(0,0,0,0.2)]">
+        {geometry ? (
+          <CoverSvg
+            geometry={geometry}
+            spineText={spineText}
+            suggestion={suggestion}
+            useGradient={useGradient}
+            guides={guides}
+            frontPath={frontPath}
+            backPath={backPath}
+          />
+        ) : (
+          <p className="font-mono text-[11px] italic text-stone-400">
+            Sélectionnez la pagination pour calculer la planche…
+          </p>
+        )}
+      </div>
+
+      {/* Pied de page — navigation + export */}
+      <div className="mt-3 flex shrink-0 items-center justify-between gap-3">
+        <button
+          type="button"
+          onClick={onBack}
+          className="rounded-sm border border-stone-400/50 bg-stone-500/5 px-4 py-2 font-mono text-[11px] uppercase tracking-widest text-stone-600 transition-colors hover:bg-stone-500/10"
+        >
+          ‹ Réglages
+        </button>
+        <span
+          className="min-w-0 flex-1 truncate text-center font-mono text-[10px] text-stone-500"
+          title={message ?? undefined}
+        >
+          {message}
+        </span>
+        <button
+          type="button"
+          onClick={onExport}
+          disabled={!canExport || busy}
+          className="rounded-sm border border-brass/50 bg-linear-to-b from-copper to-[#8a5426] px-4 py-2 font-mono text-[11px] uppercase tracking-[0.2em] text-amber-50 shadow-[inset_0_1px_0_rgba(255,255,255,0.3),0_2px_6px_rgba(0,0,0,0.5)] transition-all hover:brightness-110 active:translate-y-px disabled:cursor-not-allowed disabled:opacity-50"
+        >
+          [ {busy ? "Génération…" : "Exporter la couverture KDP (.pdf)"} &rsaquo; ]
+        </button>
+      </div>
+
+      {/* Modale plein écran détachée (portal) — pop-up sombre, Échap pour fermer */}
+      {loupe &&
+        geometry &&
+        createPortal(
+          <div className="fixed inset-0 z-[9999] flex flex-col bg-stone-950/95 p-6">
+            <div className="mb-4 flex flex-wrap items-center gap-2 border-b border-stone-400/30 pb-3">
+              <span className="font-serif text-lg uppercase tracking-[0.2em] text-parchment">
+                Planche technique KDP — Plein écran
+              </span>
+              <span className="ml-3 font-mono text-[10px] uppercase tracking-widest text-stone-400">
+                Repères
+              </span>
+              {TOGGLES.map((item) => {
+                const active = guides[item.id];
+                return (
+                  <button
+                    key={item.id}
+                    type="button"
+                    onClick={() => toggleGuide(item.id)}
+                    className={`rounded-sm border px-2 py-1 font-mono text-[10px] uppercase tracking-widest transition-colors ${
+                      active
+                        ? `border-stone-400/60 bg-stone-500/20 ${item.activeClass}`
+                        : "border-stone-400/30 bg-transparent text-stone-500"
+                    }`}
+                  >
+                    {item.label}
+                  </button>
+                );
+              })}
+              <button
+                type="button"
+                onClick={() => {
+                  setLoupe(false);
+                  onBack();
+                }}
+                className="ml-auto rounded-sm border border-brass/50 bg-linear-to-b from-copper to-[#8a5426] px-4 py-2 font-mono text-[11px] uppercase tracking-widest text-amber-50"
+              >
+                [ Fermer ✕ ]
+              </button>
+            </div>
+            <div className="flex min-h-0 flex-1 items-center justify-center">
+              <div className="h-[90vh] w-[95vw]">
+                <CoverSvg
+                  geometry={geometry}
+                  spineText={spineText}
+                  suggestion={suggestion}
+                  useGradient={useGradient}
+                  guides={guides}
+                  frontPath={frontPath}
+                  backPath={backPath}
+                />
+              </div>
+            </div>
+          </div>,
+          document.body,
+        )}
+    </div>
+  );
+};
+
+/** Planche SVG vectorielle de la couverture étalée. */
+const CoverSvg: React.FC<{
+  geometry: CoverGeometry;
+  spineText: string;
+  suggestion: SpineColorSuggestion | null;
+  useGradient: boolean;
+  guides: Record<GuideId, boolean>;
+  frontPath: string | null;
+  backPath: string | null;
+}> = ({ geometry, spineText, suggestion, useGradient, guides, frontPath, backPath }) => {
+  const b = geometry.bleedMm;
+  const t = geometry.trimWidthMm;
+  const w = geometry.totalWidthMm;
+  const h = geometry.totalHeightMm;
+  const spineW = geometry.spine.widthMm;
+  const barcode = geometry.barcode;
+
+  const plat4W = b + t;
+  const spineX = b + t;
+  const plat1X = b + t + spineW;
+  const plat1W = t + b;
+  const spineCenterX = spineX + spineW / 2;
+
+  const spineFill =
+    useGradient && suggestion ? "url(#spineGrad)" : suggestion?.colorFront ?? "#1c140e";
+  const fontSize = Math.max(h * 0.018, 3);
+  const guide = 1.4;
+  const safetyInset = b + SAFETY_MM;
+
+  return (
+    <svg
+      viewBox={`0 0 ${w} ${h}`}
+      className="h-full w-full"
+      preserveAspectRatio="xMidYMid meet"
+      role="img"
+      aria-label="Planche de couverture KDP"
+    >
+      <defs>
+        <linearGradient id="spineGrad" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0%" stopColor={suggestion?.colorFront ?? "#1c140e"} />
+          <stop offset="100%" stopColor={suggestion?.colorBack ?? "#1c140e"} />
+        </linearGradient>
+      </defs>
+
+      {/* Plat 4 (Verso) — texture réelle ou repli beige */}
+      {backPath ? (
+        <image
+          data-testid="cover-svg-back-image"
+          href={assetUrl(backPath)}
+          x={0}
+          y={0}
+          width={plat4W}
+          height={h}
+          preserveAspectRatio="none"
+        />
+      ) : (
+        <rect x={0} y={0} width={plat4W} height={h} fill="#e7e0d2" />
+      )}
+
+      {/* Plat 1 (Recto) — texture réelle ou repli beige */}
+      {frontPath ? (
+        <image
+          data-testid="cover-svg-front-image"
+          href={assetUrl(frontPath)}
+          x={plat1X}
+          y={0}
+          width={plat1W}
+          height={h}
+          preserveAspectRatio="none"
+        />
+      ) : (
+        <rect x={plat1X} y={0} width={plat1W} height={h} fill="#e7e0d2" />
+      )}
+
+      {/* Tranche (fond uni ou dégradé) */}
+      <rect x={spineX} y={0} width={spineW} height={h} fill={spineFill} />
+
+      {/* Contour général */}
+      <rect
+        x={0}
+        y={0}
+        width={w}
+        height={h}
+        fill="none"
+        stroke="#57534e"
+        strokeWidth={guide}
+        vectorEffect="non-scaling-stroke"
+      />
+
+      {/* Calques de repères KDP (au-dessus des textures, non interactifs) */}
+      <g className="pointer-events-none">
+      {/* Fond perdu (3,2 mm) — pointillés rouges */}
+      {guides.bleed && (
+        <rect
+          x={b}
+          y={b}
+          width={Math.max(w - 2 * b, 0)}
+          height={Math.max(h - 2 * b, 0)}
+          fill="none"
+          stroke="#dc2626"
+          strokeWidth={guide}
+          strokeDasharray="6 4"
+          vectorEffect="non-scaling-stroke"
+        />
+      )}
+
+      {/* Lignes de pliure — pointillés bleus */}
+      {guides.fold && (
+        <>
+          <line
+            x1={spineX}
+            y1={0}
+            x2={spineX}
+            y2={h}
+            stroke="#0284c7"
+            strokeWidth={guide}
+            strokeDasharray="6 4"
+            vectorEffect="non-scaling-stroke"
+          />
+          <line
+            x1={plat1X}
+            y1={0}
+            x2={plat1X}
+            y2={h}
+            stroke="#0284c7"
+            strokeWidth={guide}
+            strokeDasharray="6 4"
+            vectorEffect="non-scaling-stroke"
+          />
+        </>
+      )}
+
+      {/* Zone de sécurité — cadre vert */}
+      {guides.safety && (
+        <rect
+          x={safetyInset}
+          y={safetyInset}
+          width={Math.max(w - 2 * safetyInset, 0)}
+          height={Math.max(h - 2 * safetyInset, 0)}
+          fill="none"
+          stroke="#16a34a"
+          strokeWidth={guide}
+          vectorEffect="non-scaling-stroke"
+        />
+      )}
+
+      {/* Réserve code-barres (coin inférieur droit du plat 4) */}
+      {guides.barcode && (
+        <rect
+          x={barcode.xMm}
+          y={barcode.yMm}
+          width={barcode.widthMm}
+          height={barcode.heightMm}
+          fill="#ffffff"
+          stroke="#57534e"
+          strokeWidth={guide}
+          vectorEffect="non-scaling-stroke"
+        />
+      )}
+      </g>
+
+      {/* Libellés des plats */}
+      <text x={plat4W / 2} y={h * 0.05} fill="#78716c" fontSize={fontSize} textAnchor="middle">
+        Plat 4 · Verso
+      </text>
+      <text
+        x={plat1X + plat1W / 2}
+        y={h * 0.05}
+        fill="#78716c"
+        fontSize={fontSize}
+        textAnchor="middle"
+      >
+        Plat 1 · Recto
+      </text>
+
+      {/* Texte de tranche (tourné à -90°) */}
+      {geometry.spine.textEligible && spineText.trim() !== "" && (
+        <text
+          x={spineCenterX}
+          y={h / 2}
+          fill="#ffffff"
+          fontSize={fontSize}
+          textAnchor="middle"
+          dominantBaseline="middle"
+          transform={`rotate(-90 ${spineCenterX} ${h / 2})`}
+        >
+          {spineText}
+        </text>
+      )}
+    </svg>
+  );
+};

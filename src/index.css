@@ -1,0 +1,310 @@
+@import "tailwindcss";
+
+@theme {
+  /* Bureau sombre et feutré */
+  --color-desk: #12161f;
+  --color-desk-light: #1b212e;
+
+  /* Papiers du registre */
+  --color-paper: #f5f5f0;
+  --color-parchment: #f8f3e6;
+  --color-parchment-dark: #efe6d0;
+
+  /* Ors et encres */
+  --color-gold: #c5a059;
+  --color-gold-light: #e6c878;
+  --color-brass: #b08d57;
+  --color-ink: #2b2620;
+
+  /* Palette rétro années 50 */
+  --color-copper: #b87333; /* ocre / cuivre — Réglages */
+  --color-atelier: #3e5d78; /* bleu atelier — Informations */
+  --color-verdigris: #5c8d7b; /* vert-de-gris — Écriture */
+  --color-retro-violet: #6b5b95; /* violet — Export */
+
+  /* Ombres signature */
+  --shadow-book: 0 20px 50px rgba(0, 0, 0, 0.6);
+  --shadow-binding-left: inset -25px 0 25px -20px rgba(0, 0, 0, 0.15);
+  --shadow-binding-right: inset 25px 0 25px -20px rgba(0, 0, 0, 0.15);
+
+  /* Typographie — UI neutre & lisible, titres éditoriaux (v1.2.0) */
+  --font-sans: "Plus Jakarta Sans", "Source Sans 3", "Inter", "Segoe UI",
+    "Helvetica Neue", Arial, sans-serif;
+  --font-serif: "Cormorant Garamond", "Cinzel", "Libertinus Serif", Georgia,
+    "Times New Roman", serif;
+  --font-mono: "SFMono-Regular", "Consolas", "Liberation Mono", monospace;
+}
+
+html,
+body,
+#root {
+  min-height: 100vh;
+}
+
+body {
+  background-color: var(--color-desk);
+  /* v1.2.0 : l'interface applicative utilise une sans-serif humaniste neutre ;
+     les titres conservent la serif éditoriale via la classe `font-serif`. */
+  font-family: var(--font-sans);
+  color: var(--color-ink);
+  /* Texture feutrée évoquant le mobilier de bureau vintage des années 50 */
+  background-image:
+    radial-gradient(circle at 20% 15%, rgba(255, 255, 255, 0.035), transparent 45%),
+    radial-gradient(circle at 85% 90%, rgba(0, 0, 0, 0.5), transparent 55%),
+    repeating-linear-gradient(
+      45deg,
+      rgba(255, 255, 255, 0.012) 0 2px,
+      transparent 2px 7px
+    );
+  background-attachment: fixed;
+}
+
+/* Livre virtuel — masque les ascenseurs internes des pages (immersion) tout en
+   conservant le défilement (molette / gestes tactiles) : le contenu reste
+   intégralement accessible, sans barre de défilement visible. */
+.menu-flipbook__page,
+.menu-flipbook__page * {
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* anciens Edge / IE */
+}
+
+.menu-flipbook__page::-webkit-scrollbar,
+.menu-flipbook__page *::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+  display: none; /* WebView2 / Chromium / Safari */
+}
+
+/* ── v1.2.0 « Dark Atelier » — registre sombre d'ébène et or ─────────────── */
+/* Textes des pages du registre : ivoire (principal) / gris chaud (secondaire). */
+.menu-flipbook__page,
+.menu-flipbook__page .text-stone-900,
+.menu-flipbook__page .text-stone-800,
+.menu-flipbook__page .text-stone-700,
+.menu-flipbook__page .text-stone-600 {
+  color: #ded7cb;
+}
+.menu-flipbook__page .text-stone-500,
+.menu-flipbook__page .text-stone-400 {
+  color: #9e9587;
+}
+
+/* Champs de saisie / formulaires : ébène, filet laiton au focus. */
+.menu-flipbook__page input,
+.menu-flipbook__page select,
+.menu-flipbook__page textarea {
+  background-color: #121110;
+  border-color: #3d3528;
+  color: #f5f0e6;
+}
+.menu-flipbook__page input:focus,
+.menu-flipbook__page select:focus,
+.menu-flipbook__page textarea:focus {
+  border-color: #d4af37;
+  outline-color: #d4af37;
+}
+.menu-flipbook__page ::placeholder {
+  color: #9e9587;
+}
+
+/* Boutons d'action (dégradés cuivre/laiton) : laiton patiné. */
+.menu-flipbook__page button[class*="bg-linear-to-b"] {
+  background-image: linear-gradient(to bottom, #8a5d2c, #5e3c1a);
+  color: #fbf6ea;
+  border-color: rgba(184, 140, 74, 0.5);
+}
+
+/* ── Creuset de fonderie — coulée d'or (v1.2.0) ─────────────────────────── */
+@keyframes sparkBurst {
+  0% {
+    opacity: 0;
+    transform: translate(0, 0) scale(0.4);
+  }
+  15% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translate(var(--dx, 0), var(--dy, -40px)) scale(1.15);
+  }
+}
+@keyframes sparkStreak {
+  0% {
+    opacity: 0;
+    transform: scaleY(0.2);
+  }
+  25% {
+    opacity: 0.9;
+  }
+  100% {
+    opacity: 0;
+    transform: scaleY(1);
+  }
+}
+@keyframes meniscusWave {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50px);
+  }
+}
+@keyframes heatPulse {
+  0%,
+  100% {
+    opacity: 0.45;
+  }
+  50% {
+    opacity: 0.85;
+  }
+}
+@keyframes goldDrop {
+  0% {
+    opacity: 0;
+    transform: translate(0, 0) scale(0.5);
+  }
+  20% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translate(var(--dx, 0), var(--dy, 30px)) scale(0.8);
+  }
+}
+
+.animate-spark-burst {
+  animation: sparkBurst 900ms ease-out infinite;
+}
+.animate-spark-streak {
+  animation: sparkStreak 1400ms ease-out infinite;
+  transform-origin: center bottom;
+}
+.animate-meniscus {
+  animation: meniscusWave 1200ms linear infinite;
+}
+.animate-heat-pulse {
+  animation: heatPulse 1800ms ease-in-out infinite;
+}
+.animate-gold-drop {
+  animation: goldDrop 1600ms ease-out infinite;
+}
+.animate-gold-glint {
+  animation: goldGlint 3600ms ease-in-out infinite;
+}
+
+/* ── Boucle vivante de la lettrine (« ready ») : forge en activité ───────── */
+
+/* Remplissage progressif et lourd de l'or — paliers de viscosité (9,5 s).
+   Les fractions de course reproduisent exactement les paliers du cahier :
+   15 % → 85 % / 50 % → 50 % / 80 % → 20 % / 100 % → 0 (course totale : 220 px). */
+@keyframes moltenGoldFill {
+  0% {
+    transform: translateY(220px);
+    animation-timing-function: cubic-bezier(0.32, 0, 0.67, 0);
+  }
+  15% {
+    transform: translateY(187px);
+    animation-timing-function: linear;
+  }
+  50% {
+    transform: translateY(110px);
+    animation-timing-function: cubic-bezier(0.33, 0.2, 0.67, 1);
+  }
+  80% {
+    transform: translateY(44px);
+    animation-timing-function: cubic-bezier(0.22, 0.61, 0.36, 1);
+  }
+  100% {
+    transform: translateY(0);
+  }
+}
+
+/* Lueur de foyer — pulsations asynchrones simulant le souffle des braises. */
+@keyframes fireFlickerA {
+  0%,
+  100% {
+    opacity: 0.35;
+    transform: scale(0.98);
+    filter: blur(20px);
+  }
+  35% {
+    opacity: 0.7;
+    transform: scale(1.02);
+    filter: blur(26px);
+  }
+  70% {
+    opacity: 0.45;
+    transform: scale(0.99);
+    filter: blur(18px);
+  }
+}
+@keyframes fireFlickerB {
+  0%,
+  100% {
+    opacity: 0.3;
+    filter: brightness(1);
+  }
+  50% {
+    opacity: 0.65;
+    filter: brightness(1.2) drop-shadow(0 0 16px rgba(255, 90, 0, 0.4));
+  }
+}
+
+/* Ascension des flammèches et particules d'or. */
+@keyframes emberDrift {
+  0% {
+    transform: translateY(8px) translateX(0) scale(1);
+    opacity: 0;
+  }
+  25% {
+    opacity: 0.85;
+  }
+  100% {
+    transform: translateY(-70px) translateX(var(--drift-x, 10px)) scale(0.3);
+    opacity: 0;
+  }
+}
+
+/* Scintillement ponctuel sur relief (aucun balayage : éclat localisé). */
+@keyframes goldGlint {
+  0%,
+  90%,
+  100% {
+    opacity: 0;
+    transform: scale(0.5);
+  }
+  95% {
+    opacity: 1;
+    transform: scale(1.15);
+  }
+}
+
+.animate-molten-fill {
+  animation: moltenGoldFill 9500ms linear both;
+}
+.animate-fire-flicker-a {
+  animation: fireFlickerA 2100ms ease-in-out infinite;
+}
+.animate-fire-flicker-b {
+  animation: fireFlickerB 3700ms ease-in-out infinite;
+  animation-delay: 1400ms;
+}
+.animate-ember {
+  animation: emberDrift 5200ms ease-out infinite;
+}
+
+/* Accessibilité : les effets restent décoratifs, jamais indispensables. */
+@media (prefers-reduced-motion: reduce) {
+  .animate-molten-fill,
+  .animate-fire-flicker-a,
+  .animate-fire-flicker-b,
+  .animate-ember,
+  .animate-gold-glint,
+  .animate-spark-burst,
+  .animate-spark-streak,
+  .animate-meniscus,
+  .animate-gold-drop {
+    animation: none;
+  }
+}
+
