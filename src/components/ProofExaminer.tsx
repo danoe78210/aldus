@@ -53,6 +53,7 @@ export const ProofExaminer: React.FC = () => {
 
   useEffect(() => {
     if (chapter === "" && chapterFiles.length > 0) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- auto-sélection du premier chapitre (chargement initial)
       void handleChapterChange(chapterFiles[0]);
     }
   }, [chapter, chapterFiles, handleChapterChange]);

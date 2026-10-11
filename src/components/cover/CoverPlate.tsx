@@ -60,6 +60,7 @@ export const CoverPlate: React.FC = () => {
   // Géométrie recalculée à chaque changement de paramètre.
   useEffect(() => {
     if (!isInvokeAvailable()) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- repli synchrone si le moteur natif est absent
       setGeometry(null);
       return;
     }
@@ -79,6 +80,7 @@ export const CoverPlate: React.FC = () => {
   // Inspection DPI + couleur de tranche dès que les deux plats sont choisis.
   useEffect(() => {
     if (!frontPath || !backPath || !isInvokeAvailable()) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- remise à zéro synchrone hors moteur natif
       setInspection(null);
       setSuggestion(null);
       return;
@@ -115,6 +117,7 @@ export const CoverPlate: React.FC = () => {
   // son dialogue de conformité pré-export.
   useEffect(() => {
     if (coverExportRequest > 0) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- réponse à une demande d'export externe (Feuillet VI)
       setModalOpen(true);
     }
   }, [coverExportRequest]);

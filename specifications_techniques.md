@@ -196,13 +196,18 @@ et pilotés par `App.tsx` :
   sas), `animate-finale-pulse` (impulsion du creuset), `animate-ink-reveal`
   (révélation des feuillets).
 
-- Emprise : `w-[90vw] max-w-[1700px]`, gouttière gauche `pl-28` (les onglets
-  débordent de `-left-28`, soit 7 rem → **aucune troncature** à toute largeur).
-- Gouttière centrale : ombre de reliure `inset_0_0_40px_rgba(0,0,0,0.85)` au
-  centre du registre (en plus des ombres de courbure de chaque page).
-- Sous-main : `bg-[#12100e]` + dégradé radial `#1b1613 → #12100e`.
+- Arborescence : `header` (pupitre supérieur, `TopBar`) / `main` (établi) /
+  `footer` (registre inférieur, `StatusBar`) — bandeaux **continus sur toute la
+  largeur**, jamais cisaillés par la reliure.
+- Établi : `flex-1`, registre `w-full max-w-[1560px] max-h-[860px]`, gouttière
+  gauche `pl-40` (les onglets débordent de `-translate-x-full`, soit 9 rem →
+  **aucune troncature** à toute largeur).
+- Gouttière centrale : **strictement contenue dans le livre**
+  (`absolute left-1/2 top-0 bottom-0 w-8`, dégradé `from-black/80 via-black/40
+  to-black/80`) — aucun débordement sur les pupitres haut et bas.
+- Sous-main : `bg-[#0e0c0a]` + dégradé radial `#1b1613 → #0e0c0a`.
 - Pages : gauche `bg-[#181614]`, droite `bg-linear-to-b from-[#1c1a17] to-[#141210]`.
-- Onglets : `min-w-[7.5rem] px-3 py-2.5 rounded-l-sm border-l-2 border-[#b89355]/60`,
+- Onglets : `w-36 px-3 py-2.5 rounded-l-sm border-l-2 border-[#b89355]/60`,
   `font-serif text-[11px] tracking-widest uppercase` + **encre propre à chaque
   cuir** (havane `#ecd8b0`, lapis `#d6e3f0`, sauge `#d0e5d6`, cire `#f2e2be`,
   garance `#eed0d0`, noix de galle `#e0d2e8`) ; état actif
@@ -245,8 +250,8 @@ de l'onglet Organisation) et par `OrganizationView` (rangs romains des lignes).
 
 | Élément | Traitement |
 |---|---|
-| `ProgressBar.tsx` (pupitre) | `bg-[#141210] border-b border-[#382f22] text-[#e2dbce]` ; statut `text-[#9e9587]` + accent or `#d4af37` ; réglette `bg-[#1c1814] border-[#2e261b] h-3 rounded-xs` ; curseur `bg-linear-to-r from-[#8f6e2b] via-[#c5a059] to-[#8f6e2b]` ; tirets millimétriques tous les 10 % en filigrane. |
-| `LogPanel.tsx` (journal) | `bg-[#12100e] border-t border-[#382f22]` ; horodatage `text-[#786c59] font-mono text-[11px]` ; logs `text-[#bda888] font-serif text-xs` ; succès `text-[#c5a059]` ; avertissement `#c8a06a` ; erreur `text-[#a83232]` (aucun vert néon) ; témoin d'enregistrement = **sceau de laiton poli** `bg-[#d4af37] shadow-[0_0_6px_rgba(212,175,55,0.4)]`. |
+| `TopBar.tsx` (pupitre) | `bg-[#141210] border-b border-[#382f22] text-[#e2dbce]` ; statut `text-[#9e9587]` + accent or `#d4af37` ; réglette `bg-[#1c1814] border-[#2e261b] h-3 rounded-xs` ; curseur `bg-linear-to-r from-[#8f6e2b] via-[#c5a059] to-[#8f6e2b]` ; tirets millimétriques tous les 10 % en filigrane. Au repos (`running === false`) : devise `~ OFFICINA ALDINA · COMPOSITIO LIBRORUM ~` et graduations `opacity-30`. |
+| `StatusBar.tsx` (journal) | `bg-[#12100e] border-t border-[#382f22]` ; horodatage `text-[#786c59] font-mono text-[11px]` ; logs `text-[#bda888] font-serif text-xs` ; succès `text-[#c5a059]` ; avertissement `#c8a06a` ; erreur `text-[#a83232]` (aucun vert néon) ; témoin d'enregistrement = **sceau de laiton poli** `bg-[#d4af37] shadow-[0_0_6px_rgba(212,175,55,0.4)]`. **Au repos** : barre d'**une seule ligne** (`h-8`, ~32 px) — statut courant + dernier log tronqué ; **volet déroulant** (`absolute bottom-full z-40`, en surimpression) révélant l'historique complet (`h-40`) sans écraser l'établi. |
 
 ### 8.3 Module Couverture (Feuillets V & VI)
 
@@ -295,7 +300,7 @@ de l'onglet Organisation) et par `OrganizationView` (rangs romains des lignes).
   anomalies », et bascule `[ Relecture linguistique ]` conservant l'épreuve
   LanguageTool (`CorrectorView` — soulignements in-situ, sidebar, journal).
 - `onNotify(level, message)` (contexte) alimente le journal inférieur
-  (`LogPanel`) depuis n'importe quelle page.
+  (`StatusBar`) depuis n'importe quelle page.
 
 ---
 

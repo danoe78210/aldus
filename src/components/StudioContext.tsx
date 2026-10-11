@@ -131,6 +131,7 @@ const StudioContext = createContext<StudioContextValue | null>(null);
 export const StudioProvider = StudioContext.Provider;
 
 /** Accède à l'état applicatif (hors du fournisseur, lève une erreur explicite). */
+// eslint-disable-next-line react-refresh/only-export-components -- le fichier de contexte expose aussi son hook d'accès
 export const useStudio = (): StudioContextValue => {
   const value = useContext(StudioContext);
   if (!value) {

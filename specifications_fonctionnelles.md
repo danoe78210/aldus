@@ -67,11 +67,12 @@ Aucune rupture visuelle brute : le clic enclenche trois phases enchaînées.
 | **2. Voile d'encre & retrait** | 150 → 550 ms | Fondu sortant (`opacity-0 scale-[0.98]`, 400 ms, retard 150 ms) du **médaillon** (feuillet gauche) et du **creuset** (feuillet droit) — la structure du livre n'est pas déstabilisée. |
 | **3. Bascule & révélation** | 550 → 1000 ms | L'onglet **Informations** devient actif, `isAtelierOpen` est posé ; les deux feuillets se révèlent à l'**encre fraîche** (`inkReveal`, Feuillet II décalé de 90 ms). |
 
-Pendant le sas : la bande d'onglets est **atténuée et neutralisée**
-(`pointer-events-none opacity-60`) ; le ruban **« Quitter l'atelier »**
-reste actif. Après l'entrée, les onglets redeviennent interactifs
-(`transition-opacity duration-500`) et l'onglet Informations s'affiche avec
-son décroché `-translate-x-1.5` et sa bordure or.
+Pendant le sas : la bande d'onglets et le ruban **« Quitter l'atelier »** sont
+**strictement absents du DOM** (`{isAtelierOpen && …}`) — le frontispice de
+gauche demeure pur et vierge de toute navigation. Après l'entrée, les signets se
+révèlent (`animate-ink-reveal`) greffés sur la **tranche extérieure gauche**
+(`-translate-x-full`, hors de la surface d'écriture) et l'onglet Informations
+s'affiche avec son décroché `-translate-x-1.5` et sa bordure or.
 
 ---
 
@@ -152,7 +153,9 @@ fichier de projet (journalisation de l'opération).
   de l'opération en cours (parité tri-format).
 - **Journal des opérations** sous le livre : historique horodaté (`HH:MM`) des
   actions (imports, sauvegardes, exports, erreurs), état de sauvegarde et chemin
-  du fichier de projet.
+  du fichier de projet. **Au repos**, le journal se réduit à une **ligne discrète**
+  (statut + dernier message) ; un **volet déroulant** déploie l'historique complet
+  en surimpression, sans rogner l'espace du double-feuillet.
 
 ---
 

@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useRef, useState } from "react";
 import {
   DndContext,
   PointerSensor,
@@ -462,12 +462,6 @@ export const OrganizationView: React.FC<OrganizationViewProps> = ({
     activeId && !pageItems.some((item) => item.id === activeId)
       ? [...pageItems, ...items.filter((item) => item.id === activeId)]
       : pageItems;
-
-  useEffect(() => {
-    if (page > pageCount) {
-      setPage(pageCount);
-    }
-  }, [page, pageCount]);
 
   // Indentation calculée sur le tableau global (correcte d'une page à l'autre).
   const indentById = new Map<string, boolean>();

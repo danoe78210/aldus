@@ -1,7 +1,7 @@
 import React, { type ReactNode } from "react";
 import { convertFileSrc } from "@tauri-apps/api/core";
-import { ProgressBar } from "./ProgressBar";
-import { LogPanel } from "./LogPanel";
+import { TopBar } from "./TopBar";
+import { StatusBar } from "./StatusBar";
 import { MenuFlipBook } from "./MenuFlipBook";
 import { useStudio } from "./StudioContext";
 import type { LogEntry } from "../types";
@@ -69,25 +69,24 @@ export const Layout: React.FC<LayoutProps> = ({
 
   return (
     <div
-      className="relative flex h-screen w-full flex-col items-center gap-4 overflow-hidden bg-[#12100e] p-3"
+      className="relative flex h-screen w-screen flex-col overflow-hidden bg-[#0e0c0a] select-none"
       style={{
         backgroundImage:
-          "radial-gradient(circle at 50% 45%, #1b1613 0%, #12100e 62%)",
+          "radial-gradient(circle at 50% 45%, #1b1613 0%, #0e0c0a 62%)",
       }}
     >
-      {/* Colonne commune : la barre de progression, le livre et le journal
-          partagent EXACTEMENT la même emprise horizontale (largeur + position).
-          `pl-28` réserve une gouttière franche à gauche : les marque-pages du registre
-          se déploient intégralement, sans troncature (ils débordent de `-left-28`,
-          soit exactement 7 rem). `flex-1 min-h-0` fait tenir le tout dans la
-          global). Grand format : `w-[90vw] max-w-[1700px]`. */}
-      <div className="flex w-[90vw] min-h-0 max-w-[1700px] flex-1 flex-col items-center gap-4 pr-6 pl-28">
-        {/* Barre de progression — au-dessus du livre */}
-        <ProgressBar progress={progress} label={progressLabel} running={running} />
+      {/* 1. Pupitre supérieur — bandeau continu sur toute la largeur */}
+      <header className="relative z-30 w-full shrink-0 border-b border-[#2e261c] bg-[#141210]">
+        <TopBar progress={progress} label={progressLabel} running={running} />
+      </header>
+
+      {/* 2. Établi central portant le registre. `pl-40` réserve la gouttière
+          franche à gauche où se déploient les signets (débord `-translate-x-full`). */}
+      <main className="relative z-10 flex flex-1 items-center justify-center p-6 pl-40">
 
         {/* Le Registre — livre ancien : navigation à gauche, pages tournantes à droite.
             Perspective 3D (1400 px) : le volet droit se rabat vers la gauche à la fermeture. */}
-        <div className="relative flex w-full min-h-0 flex-1 [perspective:1400px]">
+        <div className="relative flex h-full max-h-[860px] w-full max-w-[1560px] [perspective:1400px] shadow-[0_20px_50px_rgba(0,0,0,0.9)]">
           {/* Halo lumineux d'ambiance (backdrop glow) — derrière le livre. */}
           <div
             aria-hidden
@@ -99,15 +98,22 @@ export const Layout: React.FC<LayoutProps> = ({
             }}
           />
 
-          <div className="relative flex h-full w-full min-h-0 rounded-md shadow-[0_20px_50px_rgba(0,0,0,0.6)]">
-            {/* Page de gauche : ombre interne simulant la courbure vers la reliure */}
-            <section className="relative h-full w-1/2 rounded-l-md border border-[#383126]/60 bg-[#181614] py-10 pr-10 pl-40 shadow-[inset_-30px_0_40px_-18px_rgba(0,0,0,0.85)]">
-              {leftContent}
-            </section>
+          {/* Page gauche : navigation & identité (les signets débordent sur la
+              tranche extérieure, hors de la surface d'écriture). */}
+          <section className="relative h-full w-1/2 rounded-l-sm border-y border-l border-[#3a3022] bg-[#181614] shadow-[inset_-30px_0_40px_-18px_rgba(0,0,0,0.85)]">
+            {leftContent}
+          </section>
+
+          {/* Gouttière centrale / Reliure cousue — strictement contenue dans le
+              livre (aucun débordement sur les pupitres haut et bas). */}
+          <div
+            aria-hidden
+            className="pointer-events-none absolute left-1/2 top-0 bottom-0 z-20 w-8 -translate-x-1/2 bg-linear-to-r from-black/80 via-black/40 to-black/80 shadow-[inset_0_0_12px_rgba(0,0,0,0.95)]"
+          />
 
             {/* Page de droite : volet qui pivote autour de la reliure (`left`). */}
             <section
-              className="relative flex h-full w-1/2 flex-col overflow-hidden rounded-r-md border border-[#383126]/60 bg-linear-to-b from-[#1c1a17] to-[#141210] shadow-[inset_30px_0_40px_-18px_rgba(0,0,0,0.85)]"
+              className="relative flex h-full w-1/2 flex-col overflow-hidden rounded-r-sm border-y border-r border-[#3a3022] bg-linear-to-b from-[#1c1a17] to-[#141210] shadow-[inset_30px_0_40px_-18px_rgba(0,0,0,0.85)]"
               style={{
                 transformOrigin: "left center",
                 transformStyle: "preserve-3d",
@@ -127,7 +133,7 @@ export const Layout: React.FC<LayoutProps> = ({
                   révélée pendant le rabat. */}
               <div
                 aria-hidden
-                className="absolute inset-0 flex overflow-hidden rounded-r-md bg-[#1c140e] shadow-[inset_20px_0_30px_rgba(0,0,0,0.6)]"
+                className="absolute inset-0 flex overflow-hidden rounded-r-sm bg-[#1c140e] shadow-[inset_20px_0_30px_rgba(0,0,0,0.6)]"
                 style={{ transform: "rotateY(180deg)", backfaceVisibility: "hidden" }}
               >
                 {/* Plat 4 (Verso) */}
@@ -169,7 +175,6 @@ export const Layout: React.FC<LayoutProps> = ({
                 />
               </div>
             </section>
-          </div>
 
           {/* Lueur de la reliure (seam glow) — s'intensifie au début de la rotation. */}
           <div
@@ -181,21 +186,17 @@ export const Layout: React.FC<LayoutProps> = ({
             }}
           />
         </div>
+      </main>
 
-        {/* Gouttière centrale — ombre portée de reliure cousue main (double page). */}
-        <div
-          aria-hidden
-          className="pointer-events-none absolute inset-y-0 left-1/2 z-10 w-24 -translate-x-1/2 shadow-[inset_0_0_40px_rgba(0,0,0,0.85)]"
-        />
-
-        {/* Terminal — journal des opérations, sous le livre */}
-        <LogPanel
+      {/* 3. Registre inférieur — bandeau continu indépendant */}
+      <footer className="relative z-30 w-full shrink-0 border-t border-[#2e261c] bg-[#12100e]">
+        <StatusBar
           logs={logs}
           saveState={saveState}
           projectFilePath={projectFilePath}
           onPickProjectFile={onPickProjectFile}
         />
-      </div>
+      </footer>
     </div>
   );
 };

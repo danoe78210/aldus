@@ -71,6 +71,14 @@ const CORNERS = [
   "bottom-1 right-1 border-b border-r",
 ];
 
+/** Écoinçons d'angle : losanges laiton fichés sur le filet intérieur. */
+const ECONS = [
+  "top-2 left-2",
+  "top-2 right-2",
+  "bottom-2 left-2",
+  "bottom-2 right-2",
+];
+
 /** Éclats lumineux projetés depuis la base, la traverse et le sommet du « A ». */
 const SPARKS: { left: string; top: string; dx: string; dy: string; delay: string }[] = [
   { left: "34%", top: "72%", dx: "-40px", dy: "-52px", delay: "0ms" },
@@ -101,11 +109,14 @@ const DROPS: { left: string; top: string; dx: string; dy: string; delay: string 
  */
 export const GoldCrucible: React.FC<GoldCrucibleProps> = ({ skip = false, onEnter }) => {
   const [phase, setPhase] = useState<CruciblePhase>("idle");
-  const [instant, setInstant] = useState(false);
   /** Pulsation thermique finale déclenchée par l'impulsion d'entrée. */
   const [flash, setFlash] = useState(false);
-  const active = phase === "filling";
-  const ready = phase === "ready";
+  // Court-circuit (clic n'importe où) : l'état « ready » est **dérivé** du prop
+  // `skip` — aucun effet de synchronisation, donc aucun rendu en cascade.
+  const instant = skip;
+  const effectivePhase: CruciblePhase = skip ? "ready" : phase;
+  const active = effectivePhase === "filling";
+  const ready = effectivePhase === "ready";
 
   // Démarrage automatique après un court répit de stabilisation.
   useEffect(() => {
@@ -123,14 +134,7 @@ export const GoldCrucible: React.FC<GoldCrucibleProps> = ({ skip = false, onEnte
     return () => window.clearTimeout(timer);
   }, [phase]);
 
-  // Court-circuit (clic n'importe où) : passage instantané à l'état « ready ».
-  useEffect(() => {
-    if (!skip) return;
-    setInstant(true);
-    setPhase("ready");
-  }, [skip]);
-
-  const filled = phase !== "idle";
+  const filled = effectivePhase !== "idle";
   const heatFilter = active
     ? "drop-shadow(0 0 18px rgba(255, 140, 0, 0.45))"
     : ready
@@ -139,7 +143,7 @@ export const GoldCrucible: React.FC<GoldCrucibleProps> = ({ skip = false, onEnte
 
   return (
     <div className="flex flex-col items-center">
-      <div className="relative flex h-[300px] w-[300px] items-center justify-center rounded-xs border-2 border-[#2b241c] bg-[#12100e] p-8 shadow-2xl">
+      <div className="relative flex h-[320px] w-[320px] items-center justify-center rounded-xs border-2 border-[#2b241c] bg-[#12100e] p-8 shadow-2xl">
       {/* Halo thermique pulsant (intensité croissante au fil du remplissage) */}
       {filled && (
         <div
@@ -148,13 +152,23 @@ export const GoldCrucible: React.FC<GoldCrucibleProps> = ({ skip = false, onEnte
         />
       )}
 
-      {/* Filet d'encadrement laiton + repères d'atelier aux angles */}
+      {/* Double filet d'encadrement laiton — deux filets gravés concentriques */}
       <div className="pointer-events-none absolute inset-2 rounded-xs border border-[#8f6e2b]/40" />
+      <div className="pointer-events-none absolute inset-4 rounded-xs border border-[#8f6e2b]/20" />
+      {/* Repères d'atelier aux angles (équerres) */}
       {CORNERS.map((position) => (
         <span
           key={position}
           aria-hidden
           className={`pointer-events-none absolute h-4 w-4 border-[#c5a059]/60 ${position}`}
+        />
+      ))}
+      {/* Écoinçons d'angle : losanges laiton fichés sur le filet intérieur */}
+      {ECONS.map((position) => (
+        <span
+          key={`econ-${position}`}
+          aria-hidden
+          className={`pointer-events-none absolute h-1.5 w-1.5 rotate-45 bg-[#c5a059]/45 ${position}`}
         />
       ))}
 
@@ -176,7 +190,7 @@ export const GoldCrucible: React.FC<GoldCrucibleProps> = ({ skip = false, onEnte
       {/* Matrice SVG de la lettrine */}
       <svg
         data-testid="gold-crucible"
-        data-phase={phase}
+        data-phase={effectivePhase}
         viewBox="0 -60 200 280"
         className="relative h-[220px] w-auto"
         style={{ filter: heatFilter }}
@@ -362,7 +376,7 @@ export const GoldCrucible: React.FC<GoldCrucibleProps> = ({ skip = false, onEnte
           onEnter?.();
         }}
         aria-hidden={!ready}
-        className={`mt-8 border border-[#997728]/50 bg-linear-to-b from-[#2e1d0f] to-[#170f07] px-8 py-2.5 font-serif text-xs uppercase tracking-[0.28em] text-[#eedcb8] shadow-lg transition-all duration-700 hover:scale-[1.01] hover:border-[#ffd700] hover:text-[#ffd700] hover:shadow-[0_0_24px_rgba(212,175,55,0.25)] active:scale-[0.99] ${
+        className={`mt-12 border border-[#997728]/50 bg-linear-to-b from-[#2e1d0f] to-[#170f07] px-8 py-2.5 font-serif text-xs uppercase tracking-[0.28em] text-[#eedcb8] shadow-lg transition-all duration-700 hover:scale-[1.01] hover:border-[#ffd700] hover:text-[#ffd700] hover:shadow-[0_0_24px_rgba(212,175,55,0.25)] active:scale-[0.99] ${
           ready
             ? "translate-y-0 opacity-100"
             : "pointer-events-none translate-y-3 opacity-0"

@@ -75,6 +75,8 @@ const Book3D: React.FC<Cover3DSceneProps> = ({
   const [rotH, setRotH] = useState(-28);
   const [rotV, setRotV] = useState(-6);
   const drag = useRef<{ x: number; y: number } | null>(null);
+  /** `true` pendant le glissement — état exposé au rendu (jamais de ref lue au rendu). */
+  const [dragging, setDragging] = useState(false);
 
   const scale = (heightPx ?? TARGET_HEIGHT_PX) / Math.max(trimHeightMm, 1);
   const w = trimWidthMm * scale;
@@ -91,6 +93,7 @@ const Book3D: React.FC<Cover3DSceneProps> = ({
 
   const onPointerDown = (event: React.PointerEvent<HTMLDivElement>) => {
     drag.current = { x: event.clientX, y: event.clientY };
+    setDragging(true);
     event.currentTarget.setPointerCapture(event.pointerId);
   };
 
@@ -105,6 +108,7 @@ const Book3D: React.FC<Cover3DSceneProps> = ({
 
   const onPointerUp = (event: React.PointerEvent<HTMLDivElement>) => {
     drag.current = null;
+    setDragging(false);
     event.currentTarget.releasePointerCapture(event.pointerId);
   };
 
@@ -136,7 +140,7 @@ const Book3D: React.FC<Cover3DSceneProps> = ({
           height: h,
           transformStyle: "preserve-3d",
           transform: `rotateX(${rotV}deg) rotateY(${rotH}deg)`,
-          transition: drag.current ? "none" : "transform 120ms ease-out",
+          transition: dragging ? "none" : "transform 120ms ease-out",
         }}
       >
         {/* Plat 1 (couverture) — texture réelle ou cuir par défaut */}

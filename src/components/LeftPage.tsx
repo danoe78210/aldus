@@ -117,9 +117,6 @@ export const LeftPage: React.FC<LeftPageProps> = ({
     onImportIntoFolder,
     cover,
   } = useStudio();
-  /** Onglets verrouillés tant que l'atelier n'est pas ouvert (sas d'accueil). */
-  const tabsLocked = !isAtelierOpen;
-
   /** Folio composé de chaque élément (points de conduite du Feuillet III). */
   const folioById = useMemo(() => {
     const map = new Map<string, number>();
@@ -130,18 +127,12 @@ export const LeftPage: React.FC<LeftPageProps> = ({
   }, [structure, cover.pageCount]);
 
   return (
-    <div className="relative flex h-full flex-col items-center justify-center text-center">
-      {/* Signets de reliure **intégrés à la matière** : colonne latérale du registre,
-     bords biseautés, aucun déport hors cadre ni rognage. Pendant le sas
-     d'accueil : bande atténuée (ébène discret) et neutralisée ; le ruban
-     « Quitter l'atelier » reste actif. */}
-      <nav className="absolute top-8 left-0 flex h-[calc(100%-4rem)] flex-col justify-start gap-1">
-        <div
-          aria-hidden={tabsLocked}
-          className={`flex flex-col gap-1 transition-opacity duration-500 ${
-            tabsLocked ? "pointer-events-none opacity-60 saturate-50" : "opacity-100"
-          }`}
-        >
+    <div className="relative h-full w-full">
+      {/* Signets de reliure — greffés sur la tranche extérieure gauche, en débord
+          du feuillet (aucune morsure sur la surface d'écriture). **Strictement
+          absents du DOM** tant que l'atelier n'est pas ouvert (sas d'accueil). */}
+      {isAtelierOpen && (
+        <nav className="absolute top-8 left-0 z-20 flex h-[calc(100%-4rem)] w-36 -translate-x-full flex-col gap-1.5 animate-ink-reveal">
           {tabs.map((tab) => {
             const Icon = tab.icon;
             const active = activeMenu === tab.id;
@@ -149,11 +140,9 @@ export const LeftPage: React.FC<LeftPageProps> = ({
               <button
                 key={tab.id}
                 type="button"
-                disabled={tabsLocked}
-                aria-disabled={tabsLocked}
                 onClick={() => setActiveMenu(tab.id)}
                 aria-current={active ? "page" : undefined}
-                className={`flex w-36 min-w-[7.5rem] items-center gap-2.5 rounded-l-sm border-y border-l-2 border-r border-y-[#2c2414] border-r-[#2c2414] px-3 py-2.5 text-left font-serif text-[11px] tracking-widest uppercase shadow-[-4px_2px_8px_rgba(0,0,0,0.6)] transition-all duration-150 ${tab.color} ${tab.text} ${
+                className={`flex w-full items-center gap-2.5 rounded-l-sm border-y border-l-2 border-r border-y-[#2c2414] border-r-[#2c2414] px-3 py-2.5 text-left font-serif text-[11px] tracking-widest uppercase shadow-[-4px_2px_8px_rgba(0,0,0,0.6)] transition-all duration-150 ${tab.color} ${tab.text} ${
                   active
                     ? "-translate-x-1.5 border-l-[#ffd700] text-[#ffd700] shadow-[-4px_0_12px_rgba(184,147,85,0.25)]"
                     : "border-l-[#b89355]/60 opacity-90 hover:-translate-x-1 hover:opacity-100"
@@ -164,21 +153,24 @@ export const LeftPage: React.FC<LeftPageProps> = ({
               </button>
             );
           })}
-        </div>
 
-        {/* Action permanente dédiée : sortie de l'atelier depuis tout écran. */}
-        <div className="mt-4 border-t border-stone-400/20 pt-2">
+          {/* Marque d'attache discrète : la sortie de l'atelier siége au bas de la
+              tranche, sans jamais flotter sur la feuille. */}
           <button
             type="button"
             onClick={onExitApp}
             title="Fermer Aldus"
-            className="flex w-32 min-w-[7.5rem] items-center gap-2.5 rounded-l-sm border border-[#383125] bg-[#121110] px-3 py-2.5 text-left font-serif text-[11px] uppercase tracking-widest text-[#bda888] shadow-[-4px_2px_8px_rgba(0,0,0,0.6)] transition-all duration-150 hover:-translate-x-1 hover:text-[#d4af37]"
+            className="mt-auto flex w-full items-center gap-2.5 rounded-l-sm border-y border-l-2 border-r border-y-[#2c2414] border-r-[#2c2414] border-l-[#8f6e2b]/50 bg-linear-to-r from-[#1a120a] to-[#0f0a06] px-3 py-2 text-left font-serif text-[10px] uppercase tracking-widest text-[#bda888]/80 shadow-[-4px_2px_8px_rgba(0,0,0,0.6)] transition-all duration-150 hover:-translate-x-1 hover:text-[#d4af37]"
           >
-            <LogOut size={16} strokeWidth={1.75} />
+            <LogOut size={14} strokeWidth={1.75} />
             <span className="tracking-wide">Quitter l&rsquo;atelier</span>
           </button>
-        </div>
-      </nav>
+        </nav>
+      )}
+
+      {/* Feuillet d'écriture — recentré royalement (padding symétrique) dès lors
+          que les signets sont absents, ou laissé vierge de tout élément parasite. */}
+      <div className="flex h-full w-full flex-col items-center justify-center px-10 py-10 text-center">
 
       {activeMenu === "infos" ? (
         <InfoIdentityPanel />
@@ -221,6 +213,7 @@ export const LeftPage: React.FC<LeftPageProps> = ({
       ) : (
         <Frontispice leaving={isTransitioning} />
       )}
+      </div>
     </div>
   );
 };

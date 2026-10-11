@@ -119,7 +119,16 @@ export const CoverCalibration: React.FC = () => {
       /* sélecteur indisponible (SPA) : aucun chemin à mémoriser */
     } finally {
       setPicking(false);
-<Section index={1} title="Matière & Finitions">
+    }
+  };
+
+  return (
+    <div className="animate-ink-reveal mx-auto flex h-full w-full max-w-2xl flex-col overflow-y-auto px-2 pr-1">
+      <h2 className="mb-6 text-center font-serif text-lg tracking-[0.25em] text-[#d4af37] uppercase">
+        VI. Calibrage du Volume &amp; Reliure
+      </h2>
+
+      <Section index={1} title="Matière & Finitions">
         <div className="mb-4">
           <label className={labelClass}>Pagination déclarée</label>
           <input
@@ -259,15 +268,8 @@ export const CoverCalibration: React.FC = () => {
           Dégradé de tranche entre les deux plats
         </label>
       </Section>
-    }
-  };
 
-  return (
-    <div className="animate-ink-reveal mx-auto flex h-full w-full max-w-2xl flex-col overflow-y-auto px-2 pr-1">
-      <h2 className="mb-6 text-center font-serif text-lg tracking-[0.25em] text-[#d4af37] uppercase">
-        VI. Calibrage du Volume &amp; Reliure
-      </h2>
-<Section index={2} title="Métriques de la Forme Complète">
+      <Section index={2} title="Métriques de la Forme Complète">
         <Row label="Format de coupe" value={trim ? trim.label : manuscriptConfig.trimSize} />
         <Row
           label="Formule du dos : pages × coefficient"

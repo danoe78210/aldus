@@ -198,7 +198,7 @@ const App: React.FC = () => {
     createLog('success', 'Projet « Les Schattenjägers » chargé.'),
   ]);
   const [progress, setProgress] = useState(0);
-  const [progressLabel, setProgressLabel] = useState('Aucune opération en cours');
+  const [progressLabel, setProgressLabel] = useState('~ OFFICINA ALDINA · COMPOSITIO LIBRORUM ~');
   const [running, setRunning] = useState(false);
   const [toast, setToast] = useState<ToastMessage | null>(null);
   const [manuscriptConfig, setManuscriptConfig] =
@@ -489,7 +489,7 @@ const App: React.FC = () => {
         } finally {
           window.setTimeout(() => {
             setProgress(0);
-            setProgressLabel('Aucune opération en cours');
+            setProgressLabel('~ OFFICINA ALDINA · COMPOSITIO LIBRORUM ~');
             setRunning(false);
           }, 1600);
         }
@@ -519,7 +519,7 @@ const App: React.FC = () => {
 
           window.setTimeout(() => {
             setProgress(0);
-            setProgressLabel('Aucune opération en cours');
+            setProgressLabel('~ OFFICINA ALDINA · COMPOSITIO LIBRORUM ~');
           }, 1600);
         }
       }, 180);

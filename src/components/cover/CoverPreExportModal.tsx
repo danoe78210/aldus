@@ -34,6 +34,7 @@ export const CoverPreExportModal: React.FC<CoverPreExportModalProps> = ({
   // Réinitialise les cases manuelles à chaque ouverture.
   useEffect(() => {
     if (open) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- réinitialisation à l'ouverture (dialogue bloquant)
       setCutChecked(false);
       setSpineChecked(false);
     }
