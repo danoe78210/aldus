@@ -1,6 +1,6 @@
 [package]
 name = "aldus"
-version = "1.0.0"
+version = "1.2.0"
 description = "Aldus — Atelier du Livre Moderne (composition & reliure humaniste, export KDP Word / PDF / EPUB)"
 authors = ["Danoë"]
 edition = "2021"
