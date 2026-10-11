@@ -1,4 +1,9 @@
 # Registre des Évolutions — Aldus
+## [1.2.0] - Clôture Correcteur, Export & Ex-Libris
+### Livré & testé
+- Correcteur en deux diptyques synchronisés (VII — Indice de Pureté / VIII — Le Banc d'Épreuve) : bascule partagée via `StudioContext`, grille des règles en colonne unique paginée (3 × 6), « Conseils de l'Imprimeur », `[ ⌖ Localiser ]` et mode `[ ✍ Retouche ]`.
+- Export & Tirage : dossier de fabrication en tête du Feuillet IX, forme **Word DOCX** réintégrée, bouton `[ OUVRIR LE DOSSIER DES ÉPREUVES ]` natif, sceau de presse à disparition automatique (30 s).
+- Identité : icône officielle vénitienne (Tauri + favicons) et **Ex-Libris Dragon Danoë** (`danoeecrivain.net`).
 
 ## [1.0.0] - Édition Vénitienne
 ### Ajouté

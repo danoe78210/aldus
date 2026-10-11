@@ -277,6 +277,33 @@ de l'onglet Organisation) et par `OrganizationView` (rangs romains des lignes).
 - `src/utils/typographyEngine.ts` — moteur **Usage Aldin** pur et testé
   (`src/utils/__tests__/typographyEngine.test.ts`) : 18 règles du *Code
   typographique* et du *Lexique de l'Imprimerie nationale*, réparties en 5
+## 9. Évolutions v1.2.0 — Commandes, état partagé & styles
+
+### 9.1 Commandes Rust (Tauri v2)
+
+| Commande | Comportement |
+|---|---|
+| `open_proofs_directory(app, path)` | Crée le dossier s'il n'existe pas (`std::fs::create_dir_all`) puis l'ouvre dans le gestionnaire natif (« explorer » / « open » / « xdg-open »). Destinataire : bouton `[ OUVRIR LE DOSSIER DES ÉPREUVES ]` (Feuillet X). |
+| `open_author_website()` | Lance le navigateur du système vers `https://danoeecrivain.net/` (`rundll32 url.dll,FileProtocolHandler` / « open » / « xdg-open »). Destinataire : **Ex-Libris de l'Auteur** (tranche gauche). |
+
+### 9.2 État partagé — `StudioContext`
+
+Centralisation de l'état des diptyques du Correcteur et de l'Export :
+`proofTab`, `proofEnabledRules`, `proofChapter`, `proofText`, `proofPage`,
+`proofOnlyAnomalies`, `activeAnomalyId` (commande « Localiser »), `pressDone`
+(sceau d'achevé d'imprimer) et `exportDirectory` (dossier de fabrication) —
+synchronisation **bidirectionnelle** entre la page gauche et la page droite du
+livre (les feuillets de droite lisent le même contexte que la page gauche).
+
+### 9.3 Styles & performance
+
+- Classes utilitaires intégrées : `.font-cinzel` (Cinzel éditoriale),
+  `.proof-scroll-dark` / `.proof-scroll-light` (ascenseurs feutrés sombre et
+  clair), `.animate-fade-in` + `.animate-ping` (sceau de presse).
+- **Nettoyage des overflow** : chaque page tient en hauteur sans barre de
+  défilement blanche parasite (`overflow-hidden` / `overflow-y-auto` stylisé) ;
+  colonne unique paginée des règles du Feuillet VII et compactage du Feuillet IX
+  pour un rendu responsive fluide.
   familles — ponctuation haute (insécable `U+00A0` avant `:`, fine `U+202F` avant
   `; ! ?`, ellipse `U+2026`), guillemets & dialogues (guillemets français,
   anglais courbes en citation imbriquée, cadratin de réplique `^[-–]\s+`,

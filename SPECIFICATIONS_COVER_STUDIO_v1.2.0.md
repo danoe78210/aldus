@@ -6,6 +6,8 @@ Complète `specifications_fonctionnelles.md` et `specifications_techniques.md`.
 > **v1.2.0 — correctifs de recette :** syntaxe Typst (`rgb("#ffffff")`, jamais `#rrggbb`), signature de
 > dérive robuste (volume textuel), ordre officiel des onglets, jauge de tranche inline (`SpineGauge`),
 > couverture appliquée au **livre fermé** lors du rituel de sortie (« Quitter l'atelier »).
+> **Clôture v1.2.0 —** tous les jalons du registre — Correcteur (diptyques VII & VIII), Export & Tirage
+> (Feuillets IX & X), Ex-Libris de l'Auteur — sont **livrés & testés** (voir §9).
 
 ---
 
@@ -232,6 +234,20 @@ interface CoverStudioState {
   spineText: string;
   spineColorFront: string | null;
   spineColorBack: string | null;
+## 9. Clôture v1.2.0 — Changelog
+
+Les jalons suivants sont **livrés & testés** à la version `v1.2.0` :
+
+| Jalon | État | Détail |
+|---|---|---|
+| **Correcteur — Diptyque VII (Indice de Pureté)** | ✅ Livré & testé | Sélecteur de chapitre en tête, plancher ≥ 11 px, « Les Règles Analysées » en colonne unique paginée (3 feuillets × 6 règles), règles activables partagées. |
+| **Correcteur — Diptyque VIII (Banc d'Épreuve)** | ✅ Livré & testé | « Conseils de l'Imprimeur », `[ ⌖ Localiser ]` (surbrillance d'or + recentrage), mode `[ ✍ Retouche ]` avec réglet Markdown/typographique. |
+| **Export — Feuillet IX** | ✅ Livré & testé | Dossier de fabrication en tête, forme DOCX réintégrée, compactage sans scrollbar blanche. |
+| **Export — Feuillet X** | ✅ Livré & testé | Ouverture native du dossier des épreuves, sceau de presse officiel à disparition automatique (30 s). |
+| **Identité & Ex-Libris** | ✅ Livré & testé | Icône vénitienne en bronze multiplateforme, Ex-Libris Dragon Danoë → `danoeecrivain.net`. |
+
+Enregistrement des commandes associées dans `lib.rs` (`generate_handler!`) :
+`open_proofs_directory`, `open_author_website` (module `commands`).
   gradient: boolean;
   pageCountSnapshot: number;
   structureSignature: string;

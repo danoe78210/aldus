@@ -146,6 +146,49 @@ fichier de projet (journalisation de l'opération).
 | **Couverture** | **V. Calibrage de la Reliure** — pagination déclarée, papier (crème 0,0635 / blanc 0,0572 / couleur 0,0596 mm), **pelliculage** (mat velouté / brillant éclatant), visuels des plats + inspection DPI, texte de tranche et dégradé, **métriques temps réel** (dos = pages × coefficient, largeur dépliée = 2 × plat + dos + 2 × fond perdu, hauteur = plat + 2 × fond perdu), **plat IV** : prière d'insérer + contrôle d'absence de texte dans la **zone code-barres** (50,8 × 30,5 mm, marge 6,4 mm). | **VI. Le Marbre de Montage** — ardoise veinée `#121316`, filet fer patiné `#2a2c33`, **bascule d'épreuve** `[ Planche Dépliée 2D ]` / `[ Volume Relié 3D ]` (repères de coupe, bleed, réserve code-barres, ombre de reliure), plus la bannière de dérive et le dialogue de conformité pré-export. |
 | **Correcteur** | **VII. Examen Typographique Aldin** — vérifications automatiques : insécables avant `: ; ! ?` et dans les guillemets `« »`, cadratins des incises, doubles espaces et blancs de tête, césures orphelines, lignes veuves. Annotations en marge : **rouge carmin** (fautes critiques) / **bistre** (conseils de style). | **VIII. Épreuves & Annotations Marginales** — éditeur décoré in-situ par le correcteur linguistique (soulignements colorés par catégorie), suggestions, localisation, journal de session, et **`[ Justifier selon l'Usage Aldin › ]`** : application en un clic des règles typographiques au chapitre courant, relance de l'analyse et sauvegarde.
 ---
+## 5. Évolutions livrées — v1.2.0
+
+### 5.1 Navigation & Sas d'accueil
+- L'entrée dans l'atelier (`[ Entrer dans l'atelier › ]`) dirige désormais **par
+  défaut vers le menu Réglages** (premier signet de la tranche) —
+  `enterAtelier` réassigne `activeMenu = 'reglages'` après le voile d'encre.
+
+### 5.2 Correcteur — Diptyques VII & VIII synchronisés
+La bascule d'en-tête `[ VII. Indice de Pureté ] | [ VIII. Le Banc d'Épreuve ]`
+est partagée entre les deux pages du livre via `StudioContext` (état
+`proofTab`, chapitre, texte, pagination, règles actives).
+
+- **Feuillet VII — Indice de Pureté :**
+  - sélecteur de chapitre actif en tête (synchronisé avec le Banc d'Épreuve) ;
+  - plancher typographique **≥ 11 px** sur tout le module ;
+  - « Les Règles Analysées » en **colonne unique pleine largeur**, paginées sur
+    **3 feuillets de 6 règles** (`RULES_PER_PAGE = 6`).
+- **Feuillet VIII — Le Banc d'Épreuve :**
+  - « Gloses de l'Imprimeur » remplacées par les **« Conseils de l'Imprimeur »** ;
+  - bouton `[ ⌖ Localiser ]` : surbrillance d'or animée (`ring` +
+    `animate-pulse`) et recentrage automatique (`scrollIntoView`) ;
+  - mode `[ ✍ Retouche ]` : vélin éditable + **réglet d'atelier** (gras,
+    italique, guillemets français avec insécables, tirets cadratins, espaces
+    insécables, notes de bas de page) et consignation (`Ctrl+S` / `Cmd+S`).
+
+### 5.3 Export & Tirage — Feuillets IX & X
+- **Dossier de fabrication placé en tête** (section [1]) du Feuillet IX, avant
+  la sélection des formes d'édition ;
+- nouvelle forme **« Manuscrit Révisé & Typographié (DOCX) »** (4 formes au
+  total) ;
+- `[ OUVRIR LE DOSSIER DES ÉPREUVES ]` ouvre le dossier cible dans l'explorateur
+  natif (commande Rust `open_proofs_directory`) ; sans dossier retenu,
+  l'utilisateur est invité à en désigner un ;
+- **sceau de presse officiel** (Feuillet X) : frappe solennelle de l'emblème à
+  l'achèvement du tirage, puis disparition automatique **en fondu après 30 s**.
+
+### 5.4 Identité & Ex-Libris
+- Icône de l'application remplacée par l'**emblème vénitien en bronze**
+  (`npx @tauri-apps/cli icon docs/aldus-emblem.png`, jeu d'icônes
+  multiplateforme + favicons web) ;
+- **Ex-Libris de l'Auteur** (Dragon Danoë) gravé en bas de la tranche gauche,
+  ouverture de `https://danoeecrivain.net/` via le navigateur par défaut
+  (commande Rust `open_author_website`).
 
 ## 5. Instruments du registre
 
