@@ -475,6 +475,78 @@ pub fn finalize_exit(app: tauri::AppHandle) {
     app.exit(0);
 }
 
+/// Ouvre le **gestionnaire de fichiers natif** sur le dossier des épreuves.
+///
+/// Le dossier cible est **créé s'il n'existe pas encore sur le disque**
+/// (`create_dir_all`) : un OS ne peut pas ouvrir un dossier fantôme. Si `path`
+/// est `None`, le dossier par défaut `~/Documents/Aldus/Export` est utilisé.
+#[tauri::command]
+pub fn open_proofs_directory(app: tauri::AppHandle, path: Option<String>) -> Result<(), String> {
+    println!("──────── open_proofs_directory ────────");
+    let target_dir = match path {
+        Some(p) => std::path::PathBuf::from(&p),
+        None => app
+            .path()
+            .document_dir()
+            .map_err(|e| {
+                format!("Dossier des documents introuvable : {e}")
+            })?
+            .join("Aldus")
+            .join("Export"),
+    };
+
+    // 1. Le dossier doit exister physiquement avant une ouverture native.
+    if !target_dir.is_dir() {
+        std::fs::create_dir_all(&target_dir).map_err(|e| {
+            format!(
+                "Impossible de créer le dossier d'épreuves « {} » : {e}",
+                target_dir.display()
+            )
+        })?;
+    }
+
+    // 2. Ouverture native selon la plateforme.
+    #[cfg(target_os = "windows")]
+    {
+        std::process::Command::new("explorer")
+            .arg(&target_dir)
+            .spawn()
+            .map_err(|e| {
+                format!(
+                    "Erreur lors de l'ouverture de l'explorateur « {} » : {e}",
+                    target_dir.display()
+                )
+            })?;
+    }
+    #[cfg(target_os = "macos")]
+    {
+        std::process::Command::new("open")
+            .arg(&target_dir)
+            .spawn()
+            .map_err(|e| {
+                format!(
+                    "Erreur lors de l'ouverture du Finder « {} » : {e}",
+                    target_dir.display()
+                )
+            })?;
+    }
+    #[cfg(target_os = "linux")]
+    {
+        std::process::Command::new("xdg-open")
+            .arg(&target_dir)
+            .spawn()
+            .map_err(|e| {
+                format!(
+                    "Erreur lors de l'ouverture du gestionnaire de fichiers « {} » : {e}",
+                    target_dir.display()
+                )
+            })?;
+    }
+
+    println!("dossier des épreuves ouvert : {}", target_dir.display());
+    Ok(())
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

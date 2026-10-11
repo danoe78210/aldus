@@ -914,16 +914,36 @@ const App: React.FC = () => {
 
   /** Ouvre le dossier des épreuves dans le gestionnaire de fichiers du système. */
   const handleOpenExportDirectory = useCallback(async () => {
-    if (!exportDirectory) {
-      addLog('warning', "Aucun dossier de fabrication n'est encore retenu.");
-      return;
+    // Chemin préféré : dossier de fabrication retenu, sinon la commande native
+    // crée/ouvre le dossier par défaut (`~/Documents/Aldus/Export`).
+    if (isInvokeAvailable()) {
+      try {
+        await invokeCommand("open_proofs_directory", exportDirectory ? { path: exportDirectory } : {});
+        addLog(
+          "success",
+          exportDirectory
+            ? `Dossier des épreuves ouvert : ${exportDirectory}`
+            : "Dossier des épreuves ouvert (dossier par défaut).",
+        );
+        return;
+      } catch (cause) {
+        addLog("error", `Ouverture du dossier des épreuves impossible : ${String(cause)}`);
+        return;
+      }
     }
-    const opened = await openPathExternal(exportDirectory);
+    // Repli hors Tauri (SPA Vite) : API shell si disponible.
+    if (exportDirectory) {
+      const opened = await openPathExternal(exportDirectory);
+      if (opened) {
+        addLog("success", `Dossier des épreuves ouvert : ${exportDirectory}`);
+        return;
+      }
+    }
     addLog(
-      opened ? 'success' : 'warning',
-      opened
-        ? `Cabinet des épreuves ouvert : ${exportDirectory}`
-        : "Ouverture du dossier impossible hors application de bureau.",
+      exportDirectory ? "warning" : "info",
+      exportDirectory
+        ? "Ouverture du dossier impossible hors application de bureau."
+        : "Aucun dossier d'épreuves retenu pour l'instant.",
     );
   }, [addLog, exportDirectory]);
 
@@ -1050,6 +1070,30 @@ const App: React.FC = () => {
     }
   }, [proofChapter, proofText, addLog]);
 
+  /** **Consignation des retouches du vélin** (Feuillet VIII) : met à jour le texte
+      partagé (l'analyse des anomalies est relancée, compteurs de droite recalculés)
+      puis écrit le chapitre sur le disque. */
+  const handleSaveProofRevisions = useCallback(
+    async (next: string) => {
+      if (next === proofText) {
+        return; // aucune retouche : rien à consigner
+      }
+      if (proofChapter === "") {
+        setProofText(next); // repli mémoire sans fichier
+        addLog("warning", "Aucun chapitre sélectionné : retouches gardées en mémoire.");
+        return;
+      }
+      try {
+        await writeChapterFile(proofChapter, next);
+        setProofText(next);
+        addLog("success", `Retouches consignées dans ${proofChapter} — analyse relancée.`);
+      } catch (cause) {
+        addLog("error", `Consignation impossible : ${String(cause)}`);
+      }
+    },
+    [proofChapter, proofText, addLog],
+  );
+
   /** **Correctif unitaire** : une seule occurrence, depuis les conseils de l'Imprimeur. */
   const handleApplyProofAnomaly = useCallback(
     (anomaly: TypographyAnomaly) => {
@@ -1097,6 +1141,7 @@ const App: React.FC = () => {
     setActiveAnomalyId,
     imposeProofUsage: handleImposeProofUsage,
     persistProofChapter: () => handlePersistProofChapter(),
+    saveProofRevisions: (next: string) => handleSaveProofRevisions(next),
     isAtelierOpen,
     isTransitioning,
     onEnterAtelier: enterAtelier,

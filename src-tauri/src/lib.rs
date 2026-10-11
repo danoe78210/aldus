@@ -426,6 +426,7 @@ pub fn run() {
             commands::read_chapter_file,
             commands::write_chapter_file,
             commands::finalize_exit,
+            commands::open_proofs_directory,
             cover::calculate_cover_geometry,
             cover::inspect_cover_images,
             cover::extract_spine_color,

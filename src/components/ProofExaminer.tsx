@@ -49,6 +49,7 @@ export const ProofExaminer: React.FC = () => {
     setProofOnlyAnomalies,
     imposeProofUsage,
     persistProofChapter,
+    saveProofRevisions,
     activeAnomalyId,
   } = useStudio();
 
@@ -295,6 +296,7 @@ export const ProofExaminer: React.FC = () => {
             currentLines={folio.currentLines}
             hovered={hovered}
             activeAnomalyId={activeAnomalyId}
+            onSave={saveProofRevisions}
             onHover={setHovered}
           />
         </>

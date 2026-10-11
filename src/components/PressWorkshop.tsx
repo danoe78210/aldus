@@ -136,10 +136,10 @@ export const PressWorkshop: React.FC = () => {
         type="button"
         onClick={onOpenExportDirectory}
         disabled={isPressing}
-        className="mt-3 w-full border border-[#3a3022] py-2.5 font-serif text-[11px] tracking-widest text-[#9e9587] uppercase transition-colors hover:border-[#8f6e2b] hover:text-[#c5a059] disabled:opacity-40"
+        className="mt-3 w-full rounded-xs border border-[#382f22] bg-[#141210] py-2.5 font-cinzel text-xs uppercase tracking-widest text-[#c9bea9] hover:border-[#8f6e2b] hover:text-[#d4af37] flex items-center justify-center gap-2 transition-all cursor-pointer shadow-xs disabled:opacity-40"
       >
-        <FolderOpen size={12} className="mr-2 inline" />
-        [ Ouvrir le cabinet des épreuves ]
+        <FolderOpen size={15} className="shrink-0" />
+        [ OUVRIR LE DOSSIER DES ÉPREUVES ]
       </button>
 
       <button

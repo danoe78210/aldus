@@ -373,3 +373,19 @@ body {
   background: transparent;
 }
 
+/* Zone de retouche du vélin (Feuillet VIII) : ascenseur clair discret sur papier. */
+.proof-scroll-light {
+  scrollbar-width: thin;
+  scrollbar-color: #b09a63 #eee6d2;
+}
+.proof-scroll-light::-webkit-scrollbar {
+  width: 10px;
+}
+.proof-scroll-light::-webkit-scrollbar-thumb {
+  background: #b09a63;
+  border-radius: 5px;
+}
+.proof-scroll-light::-webkit-scrollbar-track {
+  background: #eee6d2;
+}
+
