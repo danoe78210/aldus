@@ -41,18 +41,13 @@ export const PressSealAnimation: React.FC<PressSealAnimationProps> = ({ status }
         {/* Halo d'impact doré (onde du coup de presse) */}
         <div className="pointer-events-none absolute h-28 w-28 rounded-full bg-[#d4af37]/15 opacity-60 blur-xl animate-ping" />
 
-        {/* Cercle de cire / bronze gravé */}
-        <div className="relative flex h-20 w-20 items-center justify-center rounded-full border-2 border-[#d4af37] bg-linear-to-b from-[#241c13] to-[#120f0c] shadow-[0_0_25px_rgba(212,175,55,0.4)] transition-transform duration-700 ease-out hover:scale-105">
+        {/* Cercle de cire / bronze gravé parfaitement centré */}
+        <div className="relative flex h-20 w-20 items-center justify-center overflow-hidden rounded-full border-2 border-[#d4af37] bg-linear-to-b from-[#241c13] to-[#120f0c] shadow-[0_0_25px_rgba(212,175,55,0.4)] transition-transform duration-700 ease-out hover:scale-105">
           <img
             src={aldusEmblem}
             alt="Marque d'Alde Manuce"
-            className="h-16 w-16 rounded-full object-contain drop-shadow-md"
-            onError={(event) => {
-              // Repli typographique si l'emblème n'est pas encore lié.
-              (event.target as HTMLElement).style.display = "none";
-            }}
+            className="h-full w-full rounded-full object-cover drop-shadow-md select-none"
           />
-          <span className="font-cinzel text-2xl text-[#d4af37] select-none">❦</span>
         </div>
       </div>
 
