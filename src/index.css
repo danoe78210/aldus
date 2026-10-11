@@ -349,3 +349,27 @@ body {
   }
 }
 
+/* ── Correcteur — titres des page droites (Feuillets VII & VIII) ──────────── */
+/* Titre de section de la Cinzel éditoriale (« Les Règles Analysées »,
+   « Conseils de l'Imprimeur »), demandé par les bascules des feuillets. */
+.font-cinzel {
+  font-family: Cinzel, "Cormorant Garamond", Georgia, serif;
+}
+
+/* Liste des conseils de l'Imprimeur : barre de défilement sombre discrète
+   (au lieu de l'ascenseur blanc parasite) — galet #382f22 sur piste transparente. */
+.proof-scroll-dark {
+  scrollbar-width: thin;
+  scrollbar-color: #382f22 transparent;
+}
+.proof-scroll-dark::-webkit-scrollbar {
+  width: 8px;
+}
+.proof-scroll-dark::-webkit-scrollbar-thumb {
+  background: #382f22;
+  border-radius: 4px;
+}
+.proof-scroll-dark::-webkit-scrollbar-track {
+  background: transparent;
+}
+

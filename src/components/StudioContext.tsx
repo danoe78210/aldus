@@ -13,6 +13,10 @@ import type {
 } from "../types";
 import type { FsDirectoryHandle } from "../utils/directory";
 import type { ExportFormId } from "../utils/exportEngine";
+import type { TypographyAnomaly, TypographyRuleId } from "../utils/typographyEngine";
+
+/** Feuillet du Correcteur déployé par la bascule d'en-tête (VII / VIII). */
+export type ProofTab = "purete" | "banc";
 
 /**
  * État applicatif exposé aux **pages du livre virtuel** (vue de droite).
@@ -138,6 +142,39 @@ export interface StudioContextValue {
   onPress: () => void;
   /** Ouvre le dossier des épreuves dans le gestionnaire de fichiers. */
   onOpenExportDirectory: () => void;
+
+  // --- Correcteur (Feuillets VII & VIII) ---
+  /** Feuillet du Correcteur déployé par la bascule d'en-tête (partagée entre les deux pages du livre). */
+  proofTab: ProofTab;
+  /** Bascule le diptyque du Correcteur (VII — Indice de Pureté / VIII — Banc d'Épreuve). */
+  onProofTabChange: (tab: ProofTab) => void;
+  /** Règles aldines activées : l'analyse (page gauche) suit la grille « Les Règles Analysées » (page droite). */
+  proofEnabledRules: TypographyRuleId[];
+  /** Active ou désactive une règle depuis « Les Règles Analysées ». */
+  onToggleProofRule: (ruleId: TypographyRuleId) => void;
+  /** Chapitre en épreuve (partagé entre le pupitre de lecture et les conseils de l'Imprimeur). */
+  proofChapter: string;
+  /** Texte brut du chapitre en épreuve : toute correction (ordres ou unitaires) se répercute sur les deux pages. */
+  proofText: string;
+  /** `true` pendant la lecture native du fichier. */
+  proofLoading: boolean;
+  /** Erreur de lecture du chapitre, ou `null`. */
+  proofError: string | null;
+  /** Charge un chapitre dans le Correcteur (lecture native du fichier). */
+  loadProofChapter: (file: string) => Promise<void>;
+  /** Feuillet de lecture courant du Banc d'Épreuve. */
+  proofPage: number;
+  /** Tourne d'un feuillet (borné à la pagination courante du chapitre). */
+  setProofPage: (page: number) => void;
+  /** Filtre « Afficher uniquement les feuillets contenant des anomalies ». */
+  proofOnlyAnomalies: boolean;
+  setProofOnlyAnomalies: (value: boolean) => void;
+  /** Corrige une seule occurrence depuis les conseils de l'Imprimeur (Feuillet VIII). */
+  applyProofAnomaly: (anomaly: TypographyAnomaly) => void;
+  /** Ordre majeur : impose l'Usage typographique aldin sur tout le chapitre (Feuillet VII). */
+  imposeProofUsage: () => void;
+  /** Consigne le chapitre justifié dans son fichier (écriture atomique). */
+  persistProofChapter: () => Promise<void>;
 }
 
 const StudioContext = createContext<StudioContextValue | null>(null);

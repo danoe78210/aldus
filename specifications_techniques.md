@@ -288,17 +288,26 @@ de l'onglet Organisation) et par `OrganizationView` (rangs romains des lignes).
   (offset/longueur/ligne/gravité/replacement) + indice de pureté,
   `applyAldineUsage` (ordre majeur, substitutions de la fin vers le début),
   `applyAnomaly` (occurrence isolée).
-- `src/components/ProofExaminer.tsx` (Feuillet VII) : sceau d'intégrité
-  (indice de pureté), cartouches d'inventaire par famille, **basse-cour** des
-  règles (interrupteurs), `[ Imposer l'Usage Typographique Aldin › ]` (correction
-  en mémoire + notification `onNotify`) et consignation du chapitre.
-- `src/components/ProofWorkbench.tsx` (Feuillet VIII) : feuillet type en vélin
-  `#dcd8cf` (justifié, alinéa `1.5em`), anomalies soulignées (ondulé carmin /
-  pointillé or), **gloses marginales** (ligne, signe de correcteur, libellé,
-  `avant → après`), clic = correctif d'une occurrence (`animate-ink-reveal`),
-  navigation `‹ Feuillet précédent | Feuillet suivant ›`, filtre « feuillets à
-  anomalies », et bascule `[ Relecture linguistique ]` conservant l'épreuve
-  LanguageTool (`CorrectorView` — soulignements in-situ, sidebar, journal).
+- `src/components/ProofExaminer.tsx` (page gauche du Correcteur) : porte la
+  **bascule d'en-tête** `[ VII. Indice de Pureté ] | [ VIII. Le Banc d'Épreuve ]`
+  (état `proofTab` partagé avec la page droite) et déploie le Feuillet VII
+  (jauge circulaire d'indice de pureté, synthèse mots/anomalies/gravités,
+  cartouches d'inventaire par famille, `[ Imposer l'Usage Typographique Aldin › ]`
+  et consignation au registre) ou le Feuillet VIII (pupitre de lecture : sélecteur
+  de chapitre, `[ Recharger ]`, pagination, filtre « feuillets à anomalies » et
+  **grand feuillet vélin** — `proof/ProofReader.tsx`, Garamond 16 px aéré).
+- `src/components/ProofWorkbench.tsx` (page droite du Correcteur) : même bascule
+  d'en-tête, puis la page droite du diptyque actif — « Les Règles Analysées »
+  (grille aérée à deux colonnes des règles activables, coche or/ébène/bistre,
+  filtre partagé `proofEnabledRules`) ou « Conseils de l'Imprimeur » (liste
+  défilante sombre des signalements du feuillet actif, `[ Corriger ]`,
+  explication `[ Règle ]`, bascule `[ Relecture linguistique ]` vers
+  `CorrectorView`).
+- `src/utils/proofLayout.ts` : gabarit du banc (découpe des feuillets,
+  pagination, filtre « feuillets à anomalies », rendu des espaces) partagé entre
+  les deux pages du diptyque.
+- `src/components/proof/ProofTabToggle.tsx` : commutateur d'en-tête des
+  diptyques VII & VIII (modèle du marbre de couverture).
 - `onNotify(level, message)` (contexte) alimente le journal inférieur
   (`StatusBar`) depuis n'importe quelle page.
 

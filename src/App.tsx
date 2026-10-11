@@ -4,7 +4,7 @@ import { Layout } from "./components/Layout";
 import { LeftPage } from "./components/LeftPage";
 import { MenuPage } from "./components/MenuPage";
 import { PreviewFlipbook } from "./components/PreviewFlipbook";
-import { StudioProvider, type StudioContextValue } from "./components/StudioContext";
+import { StudioProvider, type ProofTab, type StudioContextValue } from "./components/StudioContext";
 import { Toast, type ToastMessage } from "./components/Toast";
 import type { ActiveMenu, BookInfoConfig, CoverStudioState, ErrorLogConfig, ImageColorMode, LogDiagnosticLevel, LogEntry, LogLevel, ManuscriptLayoutConfig, SourcesConfig, SpecialPageRole, StructureItem } from "./types";
 import { findTrimPreset } from "./data/trimSizes";
@@ -32,6 +32,16 @@ import {
 import { isImageFile, splitSourceFiles } from "./utils/sources";
 import { finalizeExit, onCloseRequested } from "./utils/shutdown";
 import { EXPORT_FORMS, PRESS_STAGES, PRESS_TOTAL_MS, type ExportFormId } from "./utils/exportEngine";
+import { readChapterFile, writeChapterFile } from "./utils/projectApi";
+import { showSpaces } from "./utils/proofLayout";
+import {
+  ALL_RULES,
+  analyzeTypography,
+  applyAldineUsage,
+  applyAnomaly,
+  type TypographyAnomaly,
+  type TypographyRuleId,
+} from "./utils/typographyEngine";
 
 /** Charge utile de l'événement `export-progress` émis par le moteur Rust. */
 interface ExportProgressPayload {
@@ -198,6 +208,19 @@ const App: React.FC = () => {
   const [coverExportRequest, setCoverExportRequest] = useState(0);
   const [pressStage, setPressStage] = useState(-1);
   const [isPressing, setIsPressing] = useState(false);
+  // Correcteur (Feuillets VII & VIII) : la bascule d'en-tête, les règles actives,
+  // le chapitre/texte en épreuve et la pagination du banc sont **partagés** entre
+  // la page gauche et la page droite du livre (les deux volets du diptyque).
+  const [proofTab, setProofTab] = useState<ProofTab>("purete");
+  const [proofEnabledRules, setProofEnabledRules] = useState<TypographyRuleId[]>(
+    ALL_RULES.map((rule) => rule.id),
+  );
+  const [proofChapter, setProofChapter] = useState("");
+  const [proofText, setProofText] = useState("");
+  const [proofLoading, setProofLoading] = useState(false);
+  const [proofError, setProofError] = useState<string | null>(null);
+  const [proofPage, setProofPage] = useState(1);
+  const [proofOnlyAnomalies, setProofOnlyAnomalies] = useState(false);
   const [logs, setLogs] = useState<LogEntry[]>(() => [
     createLog('info', 'Studio initialisé. Prêt à écrire.'),
     createLog('success', 'Projet « Les Schattenjägers » chargé.'),
@@ -928,6 +951,95 @@ const App: React.FC = () => {
     };
   }, []);
 
+  // ───────────────── Correcteur (Feuillets VII & VIII) ─────────────────────
+  // L'état partagé vit ici afin que les deux pages du livre (gauche & droite)
+  // basculent de concert et travaillent sur le même chapitre.
+
+  /** Charge (ou recharge) un chapitre dans le Correcteur — lecture native du fichier. */
+  const handleLoadProofChapter = useCallback(async (file: string) => {
+    setProofChapter(file);
+    setProofError(null);
+    setProofPage(1);
+    if (!file) {
+      setProofText("");
+      return;
+    }
+    setProofLoading(true);
+    try {
+      setProofText(await readChapterFile(file));
+    } catch (cause) {
+      setProofText("");
+      setProofError(cause instanceof Error ? cause.message : String(cause));
+    } finally {
+      setProofLoading(false);
+    }
+  }, []);
+
+  /** Bascule le diptyque du Correcteur (VII — Indice de Pureté / VIII — Banc d'Épreuve). */
+  const handleProofTabChange = useCallback((tab: ProofTab) => setProofTab(tab), []);
+
+  /** Active / désactive une règle depuis « Les Règles Analysées » (page droite du Feuillet VII). */
+  const handleToggleProofRule = useCallback((ruleId: TypographyRuleId) => {
+    setProofEnabledRules((current) =>
+      current.includes(ruleId) ? current.filter((id) => id !== ruleId) : [...current, ruleId],
+    );
+  }, []);
+
+  // Auto-sélection du premier chapitre disponible (pupitre de lecture du banc).
+  useEffect(() => {
+    if (proofChapter === "" && chapterFiles.length > 0) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- auto-sélection du premier chapitre (chargement initial)
+      void handleLoadProofChapter(chapterFiles[0]);
+    }
+  }, [proofChapter, chapterFiles, handleLoadProofChapter]);
+
+  /** **Ordre majeur** : impose l'Usage aldin à tout le chapitre et notifie le registre. */
+  const handleImposeProofUsage = useCallback(() => {
+    if (proofText === "") {
+      return;
+    }
+    const report = analyzeTypography(proofText, proofEnabledRules);
+    const before = report.total;
+    const { text: next, applied } = applyAldineUsage(proofText, report.anomalies);
+    if (applied === 0) {
+      addLog("info", "Usage aldin : aucune correction nécessaire.");
+      return;
+    }
+    setProofText(next);
+    addLog(
+      "success",
+      `Usage aldin imposé : ${applied} correction${applied > 1 ? "s" : ""} sur ${
+        before > applied ? `${before} anomalies relevées` : "le chapitre"
+      }${proofChapter ? ` — ${proofChapter}` : ""}.`,
+    );
+  }, [proofText, proofEnabledRules, proofChapter, addLog]);
+
+  /** **Consignation au registre** : écriture atomique du chapitre justifié. */
+  const handlePersistProofChapter = useCallback(async () => {
+    if (!proofChapter) {
+      addLog("warning", "Aucun chapitre sélectionné : rien à consigner.");
+      return;
+    }
+    try {
+      await writeChapterFile(proofChapter, proofText);
+      addLog("success", `Chapitre consigné au registre : ${proofChapter}.`);
+    } catch (cause) {
+      addLog("error", `Consignation impossible : ${String(cause)}`);
+    }
+  }, [proofChapter, proofText, addLog]);
+
+  /** **Correctif unitaire** : une seule occurrence, depuis les conseils de l'Imprimeur. */
+  const handleApplyProofAnomaly = useCallback(
+    (anomaly: TypographyAnomaly) => {
+      setProofText((current) => applyAnomaly(current, anomaly));
+      addLog(
+        "success",
+        `Usage aldin imposé (ligne ${anomaly.line}) : ${showSpaces(anomaly.found)} → ${showSpaces(anomaly.replacement)}.`,
+      );
+    },
+    [addLog],
+  );
+
   // État applicatif exposé aux pages du livre virtuel (via `StudioContext`).
   const studioValue: StudioContextValue = {
     exportForms,
@@ -945,6 +1057,22 @@ const App: React.FC = () => {
     onOpenExportDirectory: () => {
       void handleOpenExportDirectory();
     },
+    proofTab,
+    onProofTabChange: handleProofTabChange,
+    proofEnabledRules,
+    onToggleProofRule: handleToggleProofRule,
+    proofChapter,
+    proofText,
+    proofLoading,
+    proofError,
+    loadProofChapter: (file: string) => handleLoadProofChapter(file),
+    proofPage,
+    setProofPage,
+    proofOnlyAnomalies,
+    setProofOnlyAnomalies,
+    applyProofAnomaly: handleApplyProofAnomaly,
+    imposeProofUsage: handleImposeProofUsage,
+    persistProofChapter: () => handlePersistProofChapter(),
     isAtelierOpen,
     isTransitioning,
     onEnterAtelier: enterAtelier,
