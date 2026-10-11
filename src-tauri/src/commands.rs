@@ -547,6 +547,40 @@ pub fn open_proofs_directory(app: tauri::AppHandle, path: Option<String>) -> Res
     Ok(())
 }
 
+/// Ouvre le site officiel de l'auteur (`https://danoeecrivain.net/`) dans le
+/// navigateur par défaut du système — commande native garantie (aucune
+/// permission de plugin frontend requise).
+#[tauri::command]
+pub fn open_author_website() -> Result<(), String> {
+    println!("──────── open_author_website ────────");
+    let url = "https://danoeecrivain.net/";
+
+    #[cfg(target_os = "windows")]
+    {
+        std::process::Command::new("rundll32")
+            .arg("url.dll,FileProtocolHandler")
+            .arg(url)
+            .spawn()
+            .map_err(|e| format!("Erreur lors de l'ouverture du navigateur : {e}"))?;
+    }
+    #[cfg(target_os = "macos")]
+    {
+        std::process::Command::new("open")
+            .arg(url)
+            .spawn()
+            .map_err(|e| format!("Erreur lors de l'ouverture du navigateur : {e}"))?;
+    }
+    #[cfg(target_os = "linux")]
+    {
+        std::process::Command::new("xdg-open")
+            .arg(url)
+            .spawn()
+            .map_err(|e| format!("Erreur lors de l'ouverture du navigateur : {e}"))?;
+    }
+
+    Ok(())
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

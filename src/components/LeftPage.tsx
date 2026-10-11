@@ -14,6 +14,7 @@ import { OrganizationView } from "./OrganizationView";
 import { CoverPlate } from "./cover/CoverPlate";
 import { PressInspection } from "./PressInspection";
 import { ProofExaminer } from "./ProofExaminer";
+import { ExLibrisBadge } from "./navigation/ExLibrisBadge";
 import { useStudio } from "./StudioContext";
 import { placeChapters } from "../data/imposition";
 import type { ActiveMenu } from "../types";
@@ -155,17 +156,23 @@ export const LeftPage: React.FC<LeftPageProps> = ({
             );
           })}
 
-          {/* Marque d'attache discrète : la sortie de l'atelier siége au bas de la
-              tranche, sans jamais flotter sur la feuille. */}
-          <button
-            type="button"
-            onClick={onExitApp}
-            title="Fermer Aldus"
-            className="mt-auto flex w-full items-center gap-2.5 rounded-l-sm border-y border-l-2 border-r border-y-[#2c2414] border-r-[#2c2414] border-l-[#8f6e2b]/50 bg-linear-to-r from-[#1a120a] to-[#0f0a06] px-3 py-2 text-left font-serif text-[10px] uppercase tracking-widest text-[#bda888]/80 shadow-[-4px_2px_8px_rgba(0,0,0,0.6)] transition-all duration-150 hover:-translate-x-1 hover:text-[#d4af37]"
-          >
-            <LogOut size={14} strokeWidth={1.75} />
-            <span className="tracking-wide">Quitter l&rsquo;atelier</span>
-          </button>
+          {/* Bas de tranche : Ex-Libris de l'auteur, puis sortie de l'atelier */}
+          <div className="mt-auto flex w-full flex-col items-center">
+            {/* L'Ex-Libris de Danoë — emblème du Dragon, ouvre danoeecrivain.net */}
+            <ExLibrisBadge />
+
+            {/* Marque d'attache discrète : la sortie de l'atelier siége au bas de la
+                tranche, sans jamais flotter sur la feuille. */}
+            <button
+              type="button"
+              onClick={onExitApp}
+              title="Fermer Aldus"
+              className="flex w-full items-center gap-2.5 rounded-l-sm border-y border-l-2 border-r border-y-[#2c2414] border-r-[#2c2414] border-l-[#8f6e2b]/50 bg-linear-to-r from-[#1a120a] to-[#0f0a06] px-3 py-2 text-left font-serif text-[11px] uppercase tracking-widest text-[#bda888]/80 shadow-[-4px_2px_8px_rgba(0,0,0,0.6)] transition-all duration-150 hover:-translate-x-1 hover:text-[#d4af37]"
+            >
+              <LogOut size={14} strokeWidth={1.75} />
+              <span className="tracking-wide">Quitter l&rsquo;atelier</span>
+            </button>
+          </div>
         </nav>
       )}
 

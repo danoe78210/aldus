@@ -427,6 +427,7 @@ pub fn run() {
             commands::write_chapter_file,
             commands::finalize_exit,
             commands::open_proofs_directory,
+            commands::open_author_website,
             cover::calculate_cover_geometry,
             cover::inspect_cover_images,
             cover::extract_spine_color,
