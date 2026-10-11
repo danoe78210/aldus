@@ -2,6 +2,11 @@ import React, { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { convertFileSrc } from "@tauri-apps/api/core";
 import type { CoverGeometry, SpineColorSuggestion } from "../../utils/coverApi";
+import {
+  BRASS_BUTTON,
+  BRASS_BUTTON_EXPORT,
+  BRASS_BUTTON_PRIMARY,
+} from "./coverButtons";
 
 /** Propriétés de la page « Planche technique 2D ». */
 export interface CoverCanvas2DProps {
@@ -39,10 +44,10 @@ const assetUrl = (path: string): string => {
 type GuideId = "bleed" | "fold" | "safety" | "barcode";
 
 const TOGGLES: { id: GuideId; label: string; activeClass: string }[] = [
-  { id: "bleed", label: "Fond perdu (3,2 mm)", activeClass: "text-red-600" },
-  { id: "fold", label: "Lignes de pliure", activeClass: "text-sky-600" },
-  { id: "safety", label: "Zone de sécurité", activeClass: "text-emerald-600" },
-  { id: "barcode", label: "Réserve code-barres", activeClass: "text-stone-800" },
+  { id: "bleed", label: "Fond perdu (3,2 mm)", activeClass: "text-[#a83232]" },
+  { id: "fold", label: "Lignes de pliure", activeClass: "text-[#4a6b82]" },
+  { id: "safety", label: "Zone de sécurité", activeClass: "text-[#8c824a]" },
+  { id: "barcode", label: "Réserve code-barres", activeClass: "text-[#d4af37]" },
 ];
 
 /** Marge de sécurité interne des repères KDP (mm). */
@@ -96,7 +101,7 @@ export const CoverCanvas2D: React.FC<CoverCanvas2DProps> = ({
     <div className="flex h-full min-h-0 flex-col">
       {/* Barre d'outils — repères KDP + loupe */}
       <div className="mb-2 flex flex-wrap items-center gap-2 border-b border-stone-400/30 pb-2">
-        <span className="font-mono text-[10px] uppercase tracking-widest text-stone-500">
+        <span className="font-serif text-xs uppercase tracking-widest text-[#9e9587]">
           Repères
         </span>
         {TOGGLES.map((item) => {
@@ -106,10 +111,10 @@ export const CoverCanvas2D: React.FC<CoverCanvas2DProps> = ({
               key={item.id}
               type="button"
               onClick={() => toggleGuide(item.id)}
-              className={`rounded-sm border px-2 py-1 font-mono text-[10px] uppercase tracking-widest transition-colors ${
+              className={`rounded-xs border px-2 py-1 font-serif text-xs uppercase tracking-widest transition-colors ${
                 active
-                  ? `border-stone-400/60 bg-stone-500/10 ${item.activeClass}`
-                  : "border-stone-400/30 bg-transparent text-stone-400"
+                  ? `border-[#5a4f3f] bg-[#1e1913] ${item.activeClass}`
+                  : "border-[#3a3022] bg-transparent text-[#9e9587] hover:border-[#8f6e2b] hover:text-[#c5a059]"
               }`}
             >
               {item.label}
@@ -120,14 +125,24 @@ export const CoverCanvas2D: React.FC<CoverCanvas2DProps> = ({
           type="button"
           onClick={() => setLoupe(true)}
           disabled={!geometry}
-          className="ml-auto rounded-sm border border-brass/50 bg-linear-to-b from-copper to-[#8a5426] px-3 py-1.5 font-mono text-[10px] uppercase tracking-widest text-amber-50 shadow-[inset_0_1px_0_rgba(255,255,255,0.3),0_2px_4px_rgba(0,0,0,0.5)] transition-all hover:brightness-110 active:translate-y-px disabled:cursor-not-allowed disabled:opacity-50"
+          className={`ml-auto ${BRASS_BUTTON}`}
         >
           [ ⛶ Plein écran ]
         </button>
       </div>
 
-      {/* Planche SVG (pleine surface) */}
-      <div className="flex min-h-0 flex-1 items-center justify-center rounded-sm border border-brass/30 bg-parchment-dark/40 p-3 shadow-[inset_0_0_30px_rgba(0,0,0,0.2)]">
+      {/* Marbre d'épreuve — surface d'ardoise sombre découpée au gabarit KDP.
+          Seule cette table porte la grille millimétrique (filigrane laiton),
+          jamais le titre ni les commandes supérieures. */}
+      <div className="relative flex min-h-0 flex-1 items-center justify-center overflow-hidden rounded-xs border border-[#382f22] bg-[#141210] p-3 shadow-[inset_0_0_30px_rgba(0,0,0,0.6)]">
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-0 opacity-15"
+          style={{
+            backgroundImage:
+              "repeating-linear-gradient(0deg, #382f22 0 1px, transparent 1px 10px), repeating-linear-gradient(90deg, #382f22 0 1px, transparent 1px 10px)",
+          }}
+        />
         {geometry ? (
           <CoverSvg
             geometry={geometry}
@@ -150,15 +165,8 @@ export const CoverCanvas2D: React.FC<CoverCanvas2DProps> = ({
 
       {/* Pied de page — navigation + export */}
       <div className="mt-3 flex shrink-0 items-center justify-between gap-3">
-        <button
-          type="button"
-          onClick={onBack}
-          className="rounded-sm border border-stone-400/50 bg-stone-500/5 px-4 py-2 font-mono text-[11px] uppercase tracking-widest text-stone-600 transition-colors hover:bg-stone-500/10"
-        >
-          ‹ Réglages
-        </button>
         <span
-          className="min-w-0 flex-1 truncate text-center font-mono text-[10px] text-stone-500"
+          className="min-w-0 flex-1 truncate text-center font-mono text-[10px] text-[#9e9587]"
           title={message ?? undefined}
         >
           {message}
@@ -167,7 +175,7 @@ export const CoverCanvas2D: React.FC<CoverCanvas2DProps> = ({
           type="button"
           onClick={onExport}
           disabled={!canExport || busy}
-          className="rounded-sm border border-brass/50 bg-linear-to-b from-copper to-[#8a5426] px-4 py-2 font-mono text-[11px] uppercase tracking-[0.2em] text-amber-50 shadow-[inset_0_1px_0_rgba(255,255,255,0.3),0_2px_6px_rgba(0,0,0,0.5)] transition-all hover:brightness-110 active:translate-y-px disabled:cursor-not-allowed disabled:opacity-50"
+          className={BRASS_BUTTON_EXPORT}
         >
           [ {busy ? "Génération…" : "Exporter la couverture KDP (.pdf)"} &rsaquo; ]
         </button>
@@ -182,7 +190,7 @@ export const CoverCanvas2D: React.FC<CoverCanvas2DProps> = ({
               <span className="font-serif text-lg uppercase tracking-[0.2em] text-parchment">
                 Planche technique KDP — Plein écran
               </span>
-              <span className="ml-3 font-mono text-[10px] uppercase tracking-widest text-stone-400">
+              <span className="ml-3 font-serif text-xs uppercase tracking-widest text-[#9e9587]">
                 Repères
               </span>
               {TOGGLES.map((item) => {
@@ -192,10 +200,10 @@ export const CoverCanvas2D: React.FC<CoverCanvas2DProps> = ({
                     key={item.id}
                     type="button"
                     onClick={() => toggleGuide(item.id)}
-                    className={`rounded-sm border px-2 py-1 font-mono text-[10px] uppercase tracking-widest transition-colors ${
+                    className={`rounded-xs border px-2 py-1 font-serif text-xs uppercase tracking-widest transition-colors ${
                       active
-                        ? `border-stone-400/60 bg-stone-500/20 ${item.activeClass}`
-                        : "border-stone-400/30 bg-transparent text-stone-500"
+                        ? `border-[#5a4f3f] bg-[#1e1913] ${item.activeClass}`
+                        : "border-[#3a3022] bg-transparent text-[#9e9587] hover:border-[#8f6e2b] hover:text-[#c5a059]"
                     }`}
                   >
                     {item.label}
@@ -208,7 +216,7 @@ export const CoverCanvas2D: React.FC<CoverCanvas2DProps> = ({
                   setLoupe(false);
                   onBack();
                 }}
-                className="ml-auto rounded-sm border border-brass/50 bg-linear-to-b from-copper to-[#8a5426] px-4 py-2 font-mono text-[11px] uppercase tracking-widest text-amber-50"
+                className={`ml-auto ${BRASS_BUTTON_PRIMARY}`}
               >
                 [ Fermer ✕ ]
               </button>
@@ -339,7 +347,7 @@ const CoverSvg: React.FC<{
 
       {/* Calques de repères KDP (au-dessus des textures, non interactifs) */}
       <g className="pointer-events-none">
-      {/* Fond perdu (3,2 mm) — pointillés rouges */}
+      {/* Fond perdu (3,2 mm) — vermillon carmin d'encre ancienne, points fins */}
       {guides.bleed && (
         <rect
           x={b}
@@ -347,14 +355,14 @@ const CoverSvg: React.FC<{
           width={Math.max(w - 2 * b, 0)}
           height={Math.max(h - 2 * b, 0)}
           fill="none"
-          stroke="#dc2626"
-          strokeWidth={guide}
-          strokeDasharray="6 4"
+          stroke="#a83232"
+          strokeWidth={1}
+          strokeDasharray="4 4"
           vectorEffect="non-scaling-stroke"
         />
       )}
 
-      {/* Lignes de pliure — pointillés bleus */}
+      {/* Lignes de pliure (mors & dos) — bleu de Prusse d'atelier, tirets fins */}
       {guides.fold && (
         <>
           <line
@@ -362,9 +370,9 @@ const CoverSvg: React.FC<{
             y1={0}
             x2={spineX}
             y2={h}
-            stroke="#0284c7"
-            strokeWidth={guide}
-            strokeDasharray="6 4"
+            stroke="#4a6b82"
+            strokeWidth={1}
+            strokeDasharray="4 4"
             vectorEffect="non-scaling-stroke"
           />
           <line
@@ -372,15 +380,15 @@ const CoverSvg: React.FC<{
             y1={0}
             x2={plat1X}
             y2={h}
-            stroke="#0284c7"
-            strokeWidth={guide}
-            strokeDasharray="6 4"
+            stroke="#4a6b82"
+            strokeWidth={1}
+            strokeDasharray="4 4"
             vectorEffect="non-scaling-stroke"
           />
         </>
       )}
 
-      {/* Zone de sécurité — cadre vert */}
+      {/* Zone de sécurité KDP — or olive discret, filet continu de 1 px */}
       {guides.safety && (
         <rect
           x={safetyInset}
@@ -388,22 +396,22 @@ const CoverSvg: React.FC<{
           width={Math.max(w - 2 * safetyInset, 0)}
           height={Math.max(h - 2 * safetyInset, 0)}
           fill="none"
-          stroke="#16a34a"
-          strokeWidth={guide}
+          stroke="#8c824a"
+          strokeWidth={1}
           vectorEffect="non-scaling-stroke"
         />
       )}
 
-      {/* Réserve code-barres (coin inférieur droit du plat 4) */}
+      {/* Réserve code-barres (coin inférieur droit du plat 4) — parchemin discret */}
       {guides.barcode && (
         <rect
           x={barcode.xMm}
           y={barcode.yMm}
           width={barcode.widthMm}
           height={barcode.heightMm}
-          fill="#ffffff"
-          stroke="#57534e"
-          strokeWidth={guide}
+          fill="#f4efe6"
+          stroke="#5a4f3f"
+          strokeWidth={1}
           vectorEffect="non-scaling-stroke"
         />
       )}
@@ -462,16 +470,16 @@ const CoverSvg: React.FC<{
             y={barcode.yMm}
             width={barcode.widthMm}
             height={barcode.heightMm}
-            fill="rgba(212,175,55,0.08)"
-            stroke="#d4af37"
-            strokeWidth={guide}
-            strokeDasharray="6 4"
+            fill="#f4efe6"
+            stroke="#5a4f3f"
+            strokeWidth={1}
+            strokeDasharray="4 4"
             vectorEffect="non-scaling-stroke"
           />
           <text
             x={barcode.xMm + barcode.widthMm / 2}
             y={barcode.yMm + barcode.heightMm / 2}
-            fill="#b89355"
+            fill="#5a4f3f"
             fontSize={fontSize * 0.8}
             textAnchor="middle"
             dominantBaseline="middle"
@@ -481,16 +489,30 @@ const CoverSvg: React.FC<{
         </g>
       )}
 
-      {/* Libellés des plats */}
-      <text x={plat4W / 2} y={h * 0.05} fill="#78716c" fontSize={fontSize} textAnchor="middle">
+      {/* Libellés des plats — bistre chaud discret, dans la marge de fond perdu */}
+      <text
+        x={plat4W / 2}
+        y={b / 2}
+        fill="#a89f91"
+        fillOpacity={0.75}
+        fontSize={Math.max(b * 0.6, 2.2)}
+        fontFamily="serif"
+        letterSpacing={0.6}
+        textAnchor="middle"
+        dominantBaseline="middle"
+      >
         Plat 4 · Verso
       </text>
       <text
         x={plat1X + plat1W / 2}
-        y={h * 0.05}
-        fill="#78716c"
-        fontSize={fontSize}
+        y={b / 2}
+        fill="#a89f91"
+        fillOpacity={0.75}
+        fontSize={Math.max(b * 0.6, 2.2)}
+        fontFamily="serif"
+        letterSpacing={0.6}
         textAnchor="middle"
+        dominantBaseline="middle"
       >
         Plat 1 · Recto
       </text>

@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { ShieldCheck, AlertTriangle } from "lucide-react";
+import { BRASS_BUTTON_PRIMARY } from "./coverButtons";
 
 /** Résultat d'un contrôle automatique de conformité KDP. */
 export interface PreExportCheck {
@@ -64,7 +65,7 @@ export const CoverPreExportModal: React.FC<CoverPreExportModalProps> = ({
           <ul className="mb-4 space-y-1">
             {checks.map((check) => (
               <li key={check.label} className="flex items-start gap-2 text-[12px]">
-                <span className={check.ok ? "text-emerald-600" : "text-red-600"}>
+                <span className={check.ok ? "text-[#8c824a]" : "text-[#a83232]"}>
                   {check.ok ? "✓" : "✗"}
                 </span>
                 <span className="flex-1">
@@ -121,7 +122,7 @@ export const CoverPreExportModal: React.FC<CoverPreExportModalProps> = ({
             type="button"
             onClick={onConfirm}
             disabled={!canConfirm}
-            className="rounded-sm border border-brass/50 bg-linear-to-b from-copper to-[#8a5426] px-4 py-2 font-mono text-[11px] uppercase tracking-widest text-amber-50 shadow-[inset_0_1px_0_rgba(255,255,255,0.3),0_2px_6px_rgba(0,0,0,0.5)] transition-all hover:brightness-110 active:translate-y-px disabled:cursor-not-allowed disabled:opacity-50"
+            className={BRASS_BUTTON_PRIMARY}
           >
             [ {busy ? "Génération…" : "Confirmer & Enregistrer le PDF"} &rsaquo; ]
           </button>

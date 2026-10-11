@@ -120,7 +120,7 @@ export const SpineGauge: React.FC<SpineGaugeProps> = ({
       {overflow && (
         <p
           data-testid="spine-gauge-warning"
-          className="mt-1 text-[10px] italic text-red-700"
+          className="mt-1 text-[10px] italic text-[#a83232]"
         >
           Risque de débordement du texte sur les mors.
         </p>

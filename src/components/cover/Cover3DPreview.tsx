@@ -1,6 +1,12 @@
 import React, { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { convertFileSrc } from "@tauri-apps/api/core";
+import {
+  BRASS_BUTTON,
+  BRASS_BUTTON_EXPORT,
+  BRASS_BUTTON_GHOST,
+  BRASS_BUTTON_PRIMARY,
+} from "./coverButtons";
 
 /** Propriétés de la scène 3D (rendu pur). */
 export interface Cover3DSceneProps {
@@ -266,30 +272,26 @@ export const Cover3DPreview: React.FC<Cover3DPreviewProps> = (props) => {
 
   return (
     <div className="flex h-full min-h-0 flex-col">
-      <div className="relative min-h-0 flex-1 overflow-hidden rounded-sm border border-brass/30 bg-parchment-dark/40 shadow-[inset_0_0_40px_rgba(0,0,0,0.25)]">
+      <div className="relative min-h-0 flex-1 overflow-hidden rounded-xs border border-[#382f22] bg-[#141210] shadow-[inset_0_0_40px_rgba(0,0,0,0.7)]">
         <Book3D {...scene} />
         <button
           type="button"
           onClick={() => setImmersive(true)}
-          className="absolute top-2 right-2 rounded-sm border border-brass/50 bg-linear-to-b from-copper to-[#8a5426] px-3 py-1.5 font-mono text-[10px] uppercase tracking-widest text-amber-50 shadow-[inset_0_1px_0_rgba(255,255,255,0.3),0_2px_4px_rgba(0,0,0,0.5)] transition-all hover:brightness-110 active:translate-y-px"
+          className={`absolute top-2 right-2 ${BRASS_BUTTON}`}
         >
           [ ⛶ Vue immersive ]
         </button>
       </div>
 
       <div className="mt-3 flex shrink-0 items-center justify-between gap-3">
-        <button
-          type="button"
-          onClick={onBack}
-          className="rounded-sm border border-stone-400/50 bg-stone-500/5 px-4 py-2 font-mono text-[11px] uppercase tracking-widest text-stone-600 transition-colors hover:bg-stone-500/10"
-        >
+        <button type="button" onClick={onBack} className={BRASS_BUTTON_GHOST}>
           ‹ Planche 2D
         </button>
         <button
           type="button"
           onClick={onExport}
           disabled={!canExport || busy}
-          className="rounded-sm border border-brass/50 bg-linear-to-b from-copper to-[#8a5426] px-4 py-2 font-mono text-[11px] uppercase tracking-[0.2em] text-amber-50 shadow-[inset_0_1px_0_rgba(255,255,255,0.3),0_2px_6px_rgba(0,0,0,0.5)] transition-all hover:brightness-110 active:translate-y-px disabled:cursor-not-allowed disabled:opacity-50"
+          className={BRASS_BUTTON_EXPORT}
         >
           [ {busy ? "Génération…" : "Exporter la couverture KDP (.pdf)"} &rsaquo; ]
         </button>
@@ -309,7 +311,7 @@ export const Cover3DPreview: React.FC<Cover3DPreviewProps> = (props) => {
                   setImmersive(false);
                   onBackToSettings();
                 }}
-                className="rounded-sm border border-brass/50 bg-linear-to-b from-copper to-[#8a5426] px-4 py-2 font-mono text-[11px] uppercase tracking-widest text-amber-50"
+                className={`ml-auto ${BRASS_BUTTON_PRIMARY}`}
               >
                 [ Fermer ✕ ]
               </button>

@@ -16,6 +16,7 @@ import { CoverCanvas2D } from "./CoverCanvas2D";
 import { Cover3DPreview } from "./Cover3DPreview";
 import { CoverPreExportModal, type PreExportCheck } from "./CoverPreExportModal";
 import { openNativeFile } from "../../utils/nativeDialog";
+import { BRASS_BUTTON } from "./coverButtons";
 
 /** Extensions acceptées pour les visuels de couverture (plats et logo). */
 const COVER_IMAGE_EXTENSIONS = ["png", "jpg", "jpeg", "tif", "tiff"];
@@ -241,19 +242,10 @@ export const CoverPlate: React.FC = () => {
   const canExport = Boolean(frontPath && backPath && geometry) && !busy;
 
   return (
-    /* **Feuillet V — Le Marbre de Montage** : table d'encrage en ardoise sombre,
-       grille millimétrique en filigrane ; aucun carton gris ni bordure blanche. */
+    /* **Feuillet V — Le Marbre de Montage** : table d'encrage en ardoise sombre ;
+       la grille millimétrique n'existe qu'à l'intérieur du marbre d'épreuve
+       (cf. `CoverCanvas2D`), jamais derrière le titre ni les commandes. */
     <div className="relative flex h-full min-h-0 flex-col gap-3 rounded-xs border-2 border-[#382f22] bg-[#1a1815] p-6 shadow-2xl">
-      {/* Grille de composition millimétrique (filigrane discret) */}
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-0 rounded-xs"
-        style={{
-          backgroundImage:
-            "repeating-linear-gradient(0deg, rgba(44,36,25,0.55) 0 1px, transparent 1px 10px), repeating-linear-gradient(90deg, rgba(44,36,25,0.55) 0 1px, transparent 1px 10px)",
-        }}
-      />
-
       <h2 className="relative shrink-0 text-center font-serif text-lg tracking-[0.25em] text-[#d4af37] uppercase">
         V. Le Marbre de Montage
       </h2>
@@ -290,7 +282,7 @@ export const CoverPlate: React.FC = () => {
           <button
             type="button"
             onClick={handleRecalcSpine}
-            className="shrink-0 rounded-sm border border-brass/50 bg-linear-to-b from-copper to-[#8a5426] px-3 py-1.5 font-mono text-[10px] uppercase tracking-widest text-amber-50 shadow-[inset_0_1px_0_rgba(255,255,255,0.3),0_2px_4px_rgba(0,0,0,0.5)] transition-all hover:brightness-110 active:translate-y-px"
+            className={`shrink-0 ${BRASS_BUTTON}`}
           >
             [ Recalculer la tranche ]
           </button>
