@@ -1,6 +1,7 @@
 import React, { useMemo } from "react";
 import { FolderOpen, Loader2, Stamp } from "lucide-react";
 import { useStudio } from "./StudioContext";
+import { PressSealAnimation } from "./export/PressSealAnimation";
 import { PRESS_STAGES, buildColophon, todayInFrench } from "../utils/exportEngine";
 import { findTrimPreset } from "../data/trimSizes";
 import { sheetsOf } from "../data/imposition";
@@ -16,6 +17,7 @@ export const PressWorkshop: React.FC = () => {
   const {
     pressStage,
     isPressing,
+    pressDone,
     onPress,
     onOpenExportDirectory,
     onPreview,
@@ -157,6 +159,11 @@ export const PressWorkshop: React.FC = () => {
         fabrication : inspection (Feuillet IX) puis pressage, sans jamais modifier le
         manuscrit vérifié.
       </p>
+
+      {/* Achèvement du tirage — estampe en veilleuse / presse / sceau frappé */}
+      <PressSealAnimation
+        status={isPressing ? "pressing" : pressDone ? "completed" : "idle"}
+      />
     </div>
   );
 };

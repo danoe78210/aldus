@@ -209,6 +209,7 @@ const App: React.FC = () => {
   const [coverExportRequest, setCoverExportRequest] = useState(0);
   const [pressStage, setPressStage] = useState(-1);
   const [isPressing, setIsPressing] = useState(false);
+  const [pressDone, setPressDone] = useState(false);
   // Correcteur (Feuillets VII & VIII) : la bascule d'en-tête, les règles actives,
   // le chapitre/texte en épreuve et la pagination du banc sont **partagés** entre
   // la page gauche et la page droite du livre (les deux volets du diptyque).
@@ -874,6 +875,7 @@ const App: React.FC = () => {
     }
     pressingRef.current = true;
     setIsPressing(true);
+    setPressDone(false); // nouveau tirage : le sceau d'achevé d'imprimer n'est pas frappé
     addLog('info', "Presse actionnée : encrage des formes au noir d'os.");
 
     PRESS_STAGES.forEach((_stage, index) => {
@@ -894,6 +896,7 @@ const App: React.FC = () => {
 
     setPressStage(-1);
     setIsPressing(false);
+    setPressDone(true); // tirage achevé : frappe solennelle de l'emblème
     pressingRef.current = false;
     addLog(
       'success',
@@ -1119,6 +1122,7 @@ const App: React.FC = () => {
     },
     pressStage,
     isPressing,
+    pressDone,
     onPress: () => {
       void handlePress();
     },

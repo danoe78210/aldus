@@ -138,6 +138,8 @@ export interface StudioContextValue {
   pressStage: number;
   /** `true` pendant la cinématique de tirage. */
   isPressing: boolean;
+  /** `true` lorsque le dernier tirage s'est achevé (sceau d'achevé d'imprimer frappé). */
+  pressDone: boolean;
   /** Actionne la presse : cinématique cadencée puis export des formes retenues. */
   onPress: () => void;
   /** Ouvre le dossier des épreuves dans le gestionnaire de fichiers. */
