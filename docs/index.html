@@ -115,57 +115,102 @@
       </a>
     </div>
 
-    <!-- Section Philosophie -->
-    <section id="philosophie" class="pt-32 text-left">
-      <div class="text-center mb-16">
-        <span class="text-atelier-gold text-xl">❦</span>
-        <h2 class="font-cinzel text-2xl sm:text-3xl tracking-[0.2em] uppercase text-atelier-ivory mt-2">L'Esprit Dark Atelier</h2>
-        <p class="text-atelier-muted text-sm mt-1 uppercase tracking-widest">Une rupture franche avec les outils bureautiques aseptisés</p>
+    <!-- Section Interactive : Le Grand Pupitre d'Épreuve -->
+<section id="philosophie" class="pt-28 pb-16 text-center max-w-6xl mx-auto px-4">
+
+  <div class="mb-12">
+    <span class="text-atelier-gold text-2xl">❦</span>
+    <h2 class="font-cinzel text-3xl sm:text-4xl tracking-[0.2em] uppercase text-atelier-ivory mt-2">
+      Le Pupitre d'Épreuve
+    </h2>
+    <div class="h-px w-24 bg-gradient-to-r from-transparent via-atelier-brass to-transparent mx-auto mt-3"></div>
+    <p class="text-atelier-muted text-xs sm:text-sm mt-3 uppercase tracking-widest">
+      Explorez les piliers d'Aldus à travers les estampes de l'Atelier
+    </p>
+  </div>
+
+  <!-- Barre de Sélection des Feuillets (Commandes d'Atelier) -->
+  <div class="flex flex-wrap justify-center gap-3 sm:gap-4 mb-8">
+    <button
+      onclick="selectPlate(0)"
+      id="tab-btn-0"
+      class="tab-btn active px-5 py-3 rounded-xs border font-cinzel text-xs uppercase tracking-widest transition-all duration-300 flex items-center gap-2 cursor-pointer border-atelier-gold bg-[#221b14] text-atelier-goldhover shadow-[0_0_20px_rgba(212,175,55,0.18)]"
+    >
+      <span class="text-atelier-gold">✦</span>
+      <span>I. Ébène & Cuir</span>
+    </button>
+
+    <button
+      onclick="selectPlate(1)"
+      id="tab-btn-1"
+      class="tab-btn px-5 py-3 rounded-xs border font-cinzel text-xs uppercase tracking-widest transition-all duration-300 flex items-center gap-2 cursor-pointer border-atelier-border bg-atelier-card text-atelier-bistre hover:border-atelier-brass hover:text-atelier-ivory"
+    >
+      <span class="text-atelier-muted">✦</span>
+      <span>II. Règles Humanistes</span>
+    </button>
+
+    <button
+      onclick="selectPlate(2)"
+      id="tab-btn-2"
+      class="tab-btn px-5 py-3 rounded-xs border font-cinzel text-xs uppercase tracking-widest transition-all duration-300 flex items-center gap-2 cursor-pointer border-atelier-border bg-atelier-card text-atelier-bistre hover:border-atelier-brass hover:text-atelier-ivory"
+    >
+      <span class="text-atelier-muted">✦</span>
+      <span>III. Rigueur KDP</span>
+    </button>
+  </div>
+
+  <!-- Grand Marbre Panoramique -->
+  <div class="relative rounded-xs border-2 border-atelier-brass/60 bg-[#120f0c] p-2 sm:p-3 shadow-[0_15px_50px_rgba(0,0,0,0.9)] max-w-5xl mx-auto overflow-hidden">
+
+    <!-- Image active avec conteneur à ratio d'aspect -->
+    <div id="plate-stage" class="relative w-full aspect-[16/9] sm:aspect-[16/9] bg-[#0a0907] rounded-xs overflow-hidden flex items-center justify-center cursor-zoom-in group" onclick="openLightbox()">
+
+      <img
+        id="plate-image"
+        src="Aldus001.png"
+        alt="Estampe d'atelier active"
+        class="w-full h-full object-contain transition-all duration-500 ease-out transform group-hover:scale-[1.02]"
+      />
+
+      <!-- Badge de survol « Agrandir » -->
+      <div class="absolute bottom-3 right-3 px-3 py-1 bg-atelier-ebony/90 border border-atelier-brass/60 rounded-xs text-[10px] font-cinzel uppercase tracking-widest text-atelier-gold opacity-0 group-hover:opacity-100 transition-opacity">
+        ⤢ Examiner en grand format
+      </div>
+    </div>
+
+    <!-- Plaque Descriptive Dynamique -->
+    <div class="mt-4 p-5 sm:p-6 bg-[#161310] border border-atelier-border/80 rounded-xs text-left transition-all duration-300">
+      <div class="flex flex-col sm:flex-row justify-between sm:items-center gap-2 mb-3">
+        <h3 id="plate-title" class="font-cinzel text-xl sm:text-2xl text-atelier-ivory tracking-wide">
+          I. Ébène &amp; Cuir — L'Immersion de l'Atelier
+        </h3>
+        <span id="plate-subtitle" class="font-cinzel text-xs uppercase tracking-widest text-atelier-gold/90 border border-atelier-brass/40 px-3 py-1 rounded-xs inline-block self-start sm:self-auto">
+          Planche I · Sas &amp; Creuset
+        </span>
       </div>
 
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div class="p-8 rounded-xs bg-atelier-card brass-border flex flex-col justify-between transition-all">
-          <div>
-            <div class="text-atelier-gold text-2xl mb-4 font-cinzel">I.</div>
-            <h3 class="font-cinzel text-lg text-atelier-ivory tracking-wider mb-2">Ébène & Cuir</h3>
-            <p class="text-atelier-bistre text-base leading-relaxed mb-6">
-              Une interface feutrée pensée pour éliminer la fatigue visuelle des longues veilles d'écriture et redonner au créateur la sérénité d'un pupitre relié.
-            </p>
-          </div>
+      <p id="plate-desc" class="text-atelier-bistre font-serif text-base sm:text-lg leading-relaxed mb-4">
+        Une interface feutrée conçue pour éliminer la fatigue visuelle des longues veilles d'écriture. Le creuset de fonderie accueille l'écrivain dans un univers chaleureux d'or et de matières nobles, loin de la froideur des traitements de texte modernes.
+      </p>
 
-          <!-- Estampe / Capture d'Atelier -->
-          <div class="mt-2 overflow-hidden rounded-xs border border-atelier-border/80 shadow-lg bg-atelier-ebony group">
-            <img
-              src="Aldus001.png"
-              alt="Aldus — Écran d'accueil et Creuset de Fonderie"
-              class="w-full h-auto object-cover rounded-xs transition-transform duration-500 ease-out group-hover:scale-105"
-              loading="lazy"
-            />
-            <div class="p-2 border-t border-atelier-border/40 text-center bg-[#110e0c]">
-              <span class="font-cinzel text-[10px] uppercase tracking-widest text-atelier-muted">
-                Le Creuset & Le Sas d'Entrée
-              </span>
-            </div>
-          </div>
-        </div>
-
-        <div class="p-8 rounded-xs bg-atelier-card brass-border transition-all">
-          <div class="text-atelier-gold text-2xl mb-4 font-cinzel">II.</div>
-          <h3 class="font-cinzel text-lg text-atelier-ivory tracking-wider mb-2">Règles Humanistes</h3>
-          <p class="text-atelier-bistre text-base leading-relaxed">
-            Application scrupuleuse des préceptes de l'Imprimerie nationale : espaces insécables, tirets cadratins, apostrophes courbes et majuscules accentuées.
-          </p>
-        </div>
-
-        <div class="p-8 rounded-xs bg-atelier-card brass-border transition-all">
-          <div class="text-atelier-gold text-2xl mb-4 font-cinzel">III.</div>
-          <h3 class="font-cinzel text-lg text-atelier-ivory tracking-wider mb-2">Rigueur KDP</h3>
-          <p class="text-atelier-bistre text-base leading-relaxed">
-            Calibrage millimétrique instantané du dos selon le grammage et papier (blanc ou crème), repères de coupe et fond perdu KDP de 3,2 mm.
-          </p>
-        </div>
+      <div id="plate-features" class="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-3 border-t border-atelier-border/50 text-xs text-atelier-muted font-serif">
+        <div class="flex items-center gap-2"><span class="text-atelier-brass">✦</span> Creuset d'or et sas immersif</div>
+        <div class="flex items-center gap-2"><span class="text-atelier-brass">✦</span> Suppression de l'éblouissement</div>
+        <div class="flex items-center gap-2"><span class="text-atelier-brass">✦</span> Pupitre à reliure centrale</div>
       </div>
-    </section>
+    </div>
+
+  </div>
+
+</section>
+
+<!-- Modal Lightbox (Zoom Plein Écran) -->
+<div id="lightbox" class="fixed inset-0 z-50 bg-black/95 backdrop-blur-md hidden items-center justify-center p-4 cursor-zoom-out" onclick="closeLightbox()">
+  <div class="relative max-w-7xl max-h-[90vh] flex flex-col items-center">
+    <img id="lightbox-img" src="" alt="Agrandissement" class="max-w-full max-h-[85vh] object-contain rounded-xs border border-atelier-brass shadow-2xl" />
+    <p class="font-cinzel text-xs uppercase tracking-widest text-atelier-muted mt-3">Cliquez n'importe où pour refermer l'épreuve</p>
+  </div>
+</div>
 
     <!-- Section Modules -->
     <section id="modules" class="pt-32 text-left">
@@ -332,6 +377,116 @@
       </div>
     </div>
   </footer>
+
+<script>
+  // Données dynamiques des trois planches
+  const plates = [
+    {
+      title: "I. Ébène & Cuir — L'Immersion de l'Atelier",
+      subtitle: "Planche I · Sas & Creuset",
+      image: "Aldus001.png",
+      desc: "Une interface feutrée conçue pour éliminer la fatigue visuelle des longues veilles d'écriture. Le creuset de fonderie accueille l'écrivain dans un univers chaleureux d'or et de matières nobles, loin de la froideur des traitements de texte modernes.",
+      features: [
+        "Creuset d'or et sas immersif",
+        "Suppression de l'éblouissement",
+        "Pupitre à reliure centrale"
+      ]
+    },
+    {
+      title: "II. Règles Humanistes — L'Excellence Typographique",
+      subtitle: "Planche II · Code & Correcteur",
+      image: "Aldus002.png",
+      desc: "Application rigoureuse des préceptes de l'Imprimerie nationale. Aldus traque automatiquement les hérésies numériques pour garantir un texte digne des plus grands ateliers vénitiens.",
+      features: [
+        "Espaces insécables automatiques",
+        "Tirets cadratins de dialogue (—)",
+        "Ligatures (œ, æ) et majuscules accentuées"
+      ]
+    },
+    {
+      title: "III. Rigueur KDP — L'Ingénierie Éditoriale",
+      subtitle: "Planche III · Marbre & Reliure 3D",
+      image: "Aldus003.png",
+      desc: "Calibrage millimétrique instantané du dos selon le nombre de pages et le papier (blanc ou crème). Gabarits avec fonds perdus stricts de 3,2 mm et simulation reliée en trois dimensions.",
+      features: [
+        "Calibreur de tranche KDP dynamique",
+        "Fonds perdus et repères de coupe",
+        "Simulation 3D du volume relié"
+      ]
+    }
+  ];
+
+  let currentIndex = 0;
+
+  function selectPlate(index) {
+    currentIndex = index;
+    const data = plates[index];
+
+    // 1. Mise à jour des boutons
+    for (let i = 0; i < plates.length; i++) {
+      const btn = document.getElementById(`tab-btn-${i}`);
+      if (i === index) {
+        btn.className = "tab-btn active px-5 py-3 rounded-xs border font-cinzel text-xs uppercase tracking-widest transition-all duration-300 flex items-center gap-2 cursor-pointer border-atelier-gold bg-[#221b14] text-atelier-goldhover shadow-[0_0_20px_rgba(212,175,55,0.18)]";
+        btn.querySelector("span").className = "text-atelier-gold";
+      } else {
+        btn.className = "tab-btn px-5 py-3 rounded-xs border font-cinzel text-xs uppercase tracking-widest transition-all duration-300 flex items-center gap-2 cursor-pointer border-atelier-border bg-atelier-card text-atelier-bistre hover:border-atelier-brass hover:text-atelier-ivory";
+        btn.querySelector("span").className = "text-atelier-muted";
+      }
+    }
+
+    // 2. Transition de l'image
+    const img = document.getElementById("plate-image");
+    img.style.opacity = "0";
+    img.style.transform = "scale(0.98)";
+
+    setTimeout(() => {
+      img.src = data.image;
+      img.onerror = () => {
+        // En cas d'image non encore présente
+        img.src = "Aldus001.png";
+      };
+      img.style.opacity = "1";
+      img.style.transform = "scale(1)";
+    }, 200);
+
+    // 3. Mise à jour des textes
+    document.getElementById("plate-title").innerText = data.title;
+    document.getElementById("plate-subtitle").innerText = data.subtitle;
+    document.getElementById("plate-desc").innerText = data.desc;
+
+    // 4. Puces techniques
+    const featContainer = document.getElementById("plate-features");
+    featContainer.innerHTML = data.features
+      .map(f => `<div class="flex items-center gap-2"><span class="text-atelier-brass">✦</span> ${f}</div>`)
+      .join("");
+  }
+
+  // Fonctions Lightbox Plein Écran
+  function openLightbox() {
+    const box = document.getElementById("lightbox");
+    const img = document.getElementById("lightbox-img");
+    img.src = document.getElementById("plate-image").src;
+    box.classList.remove("hidden");
+    box.classList.add("flex");
+  }
+
+  function closeLightbox() {
+    const box = document.getElementById("lightbox");
+    box.classList.add("hidden");
+    box.classList.remove("flex");
+  }
+
+  // Navigation pratique au clavier (flèches droite/gauche & Échap)
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "ArrowRight") {
+      selectPlate((currentIndex + 1) % plates.length);
+    } else if (e.key === "ArrowLeft") {
+      selectPlate((currentIndex - 1 + plates.length) % plates.length);
+    } else if (e.key === "Escape") {
+      closeLightbox();
+    }
+  });
+</script>
 
 </body>
 </html>
