@@ -1,15 +1,12 @@
 import React, { useEffect, useRef, useState } from "react";
 import { ChevronDown, ChevronUp, FolderOpen } from "lucide-react";
 import type { LogEntry, LogLevel } from "../types";
+import { useStudio } from "./StudioContext";
 
 interface StatusBarProps {
   logs: LogEntry[];
   /** État de sauvegarde automatique du projet. */
   saveState?: 'idle' | 'saving' | 'saved';
-  /** Chemin du fichier de projet (null si non défini). */
-  projectFilePath?: string | null;
-  /** Choisit l'emplacement du fichier de projet. */
-  onPickProjectFile?: () => void;
 }
 
 const levelStyles: Record<LogLevel, string> = {
@@ -38,9 +35,8 @@ const levelPrefix: Record<LogLevel, string> = {
 export const StatusBar: React.FC<StatusBarProps> = ({
   logs,
   saveState = 'idle',
-  projectFilePath = null,
-  onPickProjectFile,
 }) => {
+  const { projectDirectory, onPickProjectDirectory } = useStudio();
   const [open, setOpen] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
 
@@ -53,9 +49,10 @@ export const StatusBar: React.FC<StatusBarProps> = ({
   }, [logs, open]);
 
   const lastLog = logs.length > 0 ? logs[logs.length - 1] : null;
-  const fileLabel = projectFilePath
-    ? projectFilePath.split(/[\\/]/).pop()
-    : "Dossier du projet";
+  /** Nom court du dossier de travail (dernier segment du chemin). */
+  const projectFolderLabel = projectDirectory
+    ? projectDirectory.split(/[\\/]/).filter(Boolean).pop() ?? projectDirectory
+    : "non associé";
 
   return (
     <div className="relative mx-auto w-full max-w-6xl">
@@ -74,17 +71,15 @@ export const StatusBar: React.FC<StatusBarProps> = ({
                   Consign&eacute;
                 </span>
               )}
-              {/* Emplacement du fichier de projet */}
+              {/* Dossier de travail du projet — sélecteur natif */}
               <button
                 type="button"
-                onClick={onPickProjectFile}
-                title={
-                  projectFilePath ?? "Choisir l'emplacement du fichier de projet"
-                }
-                className="flex items-center gap-1 font-mono text-[10px] tracking-widest text-[#bda888] uppercase transition-colors hover:text-[#d4af37]"
+                onClick={onPickProjectDirectory}
+                title={projectDirectory ?? "Associer le dossier de travail du projet"}
+                className="flex cursor-pointer items-center gap-1 font-mono text-[10px] tracking-widest text-[#bda888] uppercase transition-colors hover:text-[#d4af37]"
               >
                 <FolderOpen size={12} />
-                {fileLabel}
+                Dossier du projet · {projectFolderLabel}
               </button>
             </span>
           </div>
@@ -157,15 +152,16 @@ export const StatusBar: React.FC<StatusBarProps> = ({
           </span>
         )}
 
-        {/* Emplacement du fichier de projet */}
+        {/* Dossier de travail du projet — intitulé interactif (sélecteur natif) */}
         <button
           type="button"
-          onClick={onPickProjectFile}
-          title={projectFilePath ?? "Choisir l'emplacement du fichier de projet"}
-          className="flex shrink-0 items-center gap-1 font-mono text-[10px] tracking-widest text-[#bda888] uppercase transition-colors hover:text-[#d4af37]"
+          onClick={onPickProjectDirectory}
+          title={projectDirectory ?? "Associer le dossier de travail du projet"}
+          className="flex shrink-0 cursor-pointer items-center gap-1.5 rounded-xs border border-transparent px-1.5 py-0.5 font-mono text-[10px] tracking-widest text-[#bda888] uppercase transition-colors hover:border-[#8f6e2b]/50 hover:text-[#d4af37]"
         >
-          <FolderOpen size={12} />
-          {fileLabel}
+          <FolderOpen size={12} className="text-[#8f6e2b]" />
+          <span className="text-[#c9bea9]">Dossier du projet</span>
+          <span className="text-[#bda888]/70">· {projectFolderLabel}</span>
         </button>
       </div>
     </div>

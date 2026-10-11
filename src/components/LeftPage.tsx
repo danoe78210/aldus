@@ -115,6 +115,7 @@ export const LeftPage: React.FC<LeftPageProps> = ({
     onStructureReorder,
     onPickSourcesDirectory,
     onImportIntoFolder,
+    onImportChapters,
     cover,
   } = useStudio();
   /** Folio composé de chaque élément (points de conduite du Feuillet III). */
@@ -198,6 +199,7 @@ export const LeftPage: React.FC<LeftPageProps> = ({
             onImportChapterSource={onImportIntoFolder}
             onImportImageSource={onImportIntoFolder}
             onImportSpecialSource={onImportIntoFolder}
+            onImportChapters={onImportChapters}
             folioById={folioById}
           />
         </div>

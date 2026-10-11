@@ -15,6 +15,10 @@ import {
 import { CoverCanvas2D } from "./CoverCanvas2D";
 import { Cover3DPreview } from "./Cover3DPreview";
 import { CoverPreExportModal, type PreExportCheck } from "./CoverPreExportModal";
+import { openNativeFile } from "../../utils/nativeDialog";
+
+/** Extensions acceptées pour les visuels de couverture (plats et logo). */
+const COVER_IMAGE_EXTENSIONS = ["png", "jpg", "jpeg", "tif", "tiff"];
 
 /** Bascule d'épreuve du marbre de montage (Feuillet V). */
 const SUB_TABS = [
@@ -129,6 +133,28 @@ export const CoverPlate: React.FC = () => {
 
   const handleRecalcSpine = () => {
     onCoverChange({ pageCountSnapshot: pageCount, structureSignature });
+  };
+
+  /** Sélecteur natif — illustration de couverture (plat 1). */
+  const handlePickFrontCover = async () => {
+    const path = await openNativeFile(
+      COVER_IMAGE_EXTENSIONS,
+      "Choisir l'illustration de couverture",
+    );
+    if (path) {
+      onCoverChange({ frontPath: path });
+    }
+  };
+
+  /** Sélecteur natif — logo d'éditeur / code-barres ISBN (plat 4). */
+  const handlePickBackLogo = async () => {
+    const path = await openNativeFile(
+      COVER_IMAGE_EXTENSIONS,
+      "Choisir un logo ou un code-barres",
+    );
+    if (path) {
+      onCoverChange({ backLogoPath: path });
+    }
   };
 
   // Contrôles automatiques du dialogue de pré-export (§9).
@@ -285,6 +311,9 @@ export const CoverPlate: React.FC = () => {
             onBack={() => setActiveSubTab("preview3d")}
             frontPath={frontPath}
             backPath={backPath}
+            backLogoPath={cover.backLogoPath ?? null}
+            onPickFront={() => void handlePickFrontCover()}
+            onPickBackLogo={() => void handlePickBackLogo()}
           />
         )}
 

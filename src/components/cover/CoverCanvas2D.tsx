@@ -19,6 +19,12 @@ export interface CoverCanvas2DProps {
   frontPath: string | null;
   /** Chemin du plat 4 (Verso) — texture réelle sur la planche 2D. */
   backPath: string | null;
+  /** Logo d'éditeur / code-barres ISBN du plat 4 (chemin image), ou `null`. */
+  backLogoPath?: string | null;
+  /** Ouvre le sélecteur natif de l'illustration de **couverture** (plat 1). */
+  onPickFront?: () => void;
+  /** Ouvre le sélecteur natif du **logo / code-barres** (plat 4). */
+  onPickBackLogo?: () => void;
 }
 
 /** Convertit un chemin local en URL `asset://` chargeable par la WebView. */
@@ -58,6 +64,9 @@ export const CoverCanvas2D: React.FC<CoverCanvas2DProps> = ({
   onBack,
   frontPath,
   backPath,
+  backLogoPath = null,
+  onPickFront,
+  onPickBackLogo,
 }) => {
   const [guides, setGuides] = useState<Record<GuideId, boolean>>({
     bleed: true,
@@ -128,6 +137,9 @@ export const CoverCanvas2D: React.FC<CoverCanvas2DProps> = ({
             guides={guides}
             frontPath={frontPath}
             backPath={backPath}
+            backLogoPath={backLogoPath}
+            onPickFront={onPickFront}
+            onPickBackLogo={onPickBackLogo}
           />
         ) : (
           <p className="font-mono text-[11px] italic text-stone-400">
@@ -211,6 +223,7 @@ export const CoverCanvas2D: React.FC<CoverCanvas2DProps> = ({
                   guides={guides}
                   frontPath={frontPath}
                   backPath={backPath}
+                  backLogoPath={backLogoPath}
                 />
               </div>
             </div>
@@ -230,7 +243,21 @@ const CoverSvg: React.FC<{
   guides: Record<GuideId, boolean>;
   frontPath: string | null;
   backPath: string | null;
-}> = ({ geometry, spineText, suggestion, useGradient, guides, frontPath, backPath }) => {
+  backLogoPath?: string | null;
+  onPickFront?: () => void;
+  onPickBackLogo?: () => void;
+}> = ({
+  geometry,
+  spineText,
+  suggestion,
+  useGradient,
+  guides,
+  frontPath,
+  backPath,
+  backLogoPath = null,
+  onPickFront,
+  onPickBackLogo,
+}) => {
   const b = geometry.bleedMm;
   const t = geometry.trimWidthMm;
   const w = geometry.totalWidthMm;
@@ -381,6 +408,78 @@ const CoverSvg: React.FC<{
         />
       )}
       </g>
+
+      {/* Illustration de couverture (plat 1) — encadré pointillé laiton si absente */}
+      {!frontPath && (
+        <g
+          data-testid="cover-svg-front-prompt"
+          style={{ cursor: onPickFront ? "pointer" : "default" }}
+          onClick={onPickFront}
+        >
+          <rect
+            x={plat1X}
+            y={b}
+            width={Math.max(t, 0)}
+            height={Math.max(h - 2 * b, 0)}
+            fill="rgba(212,175,55,0.08)"
+            stroke="#d4af37"
+            strokeWidth={guide}
+            strokeDasharray="8 5"
+            vectorEffect="non-scaling-stroke"
+          />
+          <text
+            x={plat1X + t / 2}
+            y={h / 2}
+            fill="#b89355"
+            fontSize={fontSize}
+            textAnchor="middle"
+            dominantBaseline="middle"
+          >
+            [ + Déposer ou choisir l&rsquo;illustration de couverture ]
+          </text>
+        </g>
+      )}
+
+      {/* Logo d'éditeur / code-barres ISBN (plat 4) — réserve cliquable si absent */}
+      {backLogoPath ? (
+        <image
+          data-testid="cover-svg-logo-image"
+          href={assetUrl(backLogoPath)}
+          x={barcode.xMm}
+          y={barcode.yMm}
+          width={barcode.widthMm}
+          height={barcode.heightMm}
+          preserveAspectRatio="xMidYMid meet"
+        />
+      ) : (
+        <g
+          data-testid="cover-svg-logo-prompt"
+          style={{ cursor: onPickBackLogo ? "pointer" : "default" }}
+          onClick={onPickBackLogo}
+        >
+          <rect
+            x={barcode.xMm}
+            y={barcode.yMm}
+            width={barcode.widthMm}
+            height={barcode.heightMm}
+            fill="rgba(212,175,55,0.08)"
+            stroke="#d4af37"
+            strokeWidth={guide}
+            strokeDasharray="6 4"
+            vectorEffect="non-scaling-stroke"
+          />
+          <text
+            x={barcode.xMm + barcode.widthMm / 2}
+            y={barcode.yMm + barcode.heightMm / 2}
+            fill="#b89355"
+            fontSize={fontSize * 0.8}
+            textAnchor="middle"
+            dominantBaseline="middle"
+          >
+            [ + Logo / code-barres ]
+          </text>
+        </g>
+      )}
 
       {/* Libellés des plats */}
       <text x={plat4W / 2} y={h * 0.05} fill="#78716c" fontSize={fontSize} textAnchor="middle">

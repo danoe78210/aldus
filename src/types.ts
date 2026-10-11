@@ -220,6 +220,11 @@ export interface CoverStudioState {
   blurb?: string;
   /** Pelliculage retenu (`mat` par défaut) — absent des anciens fichiers. */
   finish?: CoverFinish;
+  /**
+   * Plat IV — code-barres ISBN ou logo d'éditeur optionnel (chemin image),
+   * plaqué dans la réserve code-barres. Absent des anciens fichiers.
+   */
+  backLogoPath?: string | null;
 }
 
 /** Nœud hiérarchique d'un élément de structure (forme sérialisée). */

@@ -67,6 +67,8 @@ interface OrganizationViewProps {
   onImportImageSource: (id: string) => void;
   /** Importe un fichier externe pour une page spéciale donnée (id). */
   onImportSpecialSource: (id: string) => void;
+  /** Importe un ou plusieurs chapitres (sélecteur natif multi-fichiers). */
+  onImportChapters: (paths?: string[]) => void;
   /** Folio (première page composée) de chaque élément — points de conduite. */
   folioById?: Map<string, number>;
 }
@@ -99,18 +101,72 @@ const ToolbarButton: React.FC<ToolbarButtonProps> = ({
     onClick={onClick}
     disabled={disabled}
     title={title}
-    className="flex w-full items-center justify-center gap-1 whitespace-nowrap rounded-sm border border-brass/50 bg-linear-to-b from-copper to-[#8a5426] px-2 py-2 font-mono text-[10px] uppercase tracking-normal text-amber-50 shadow-[inset_0_1px_0_rgba(255,255,255,0.3),0_2px_4px_rgba(0,0,0,0.5)] transition-all hover:brightness-110 active:translate-y-px active:shadow-[inset_0_2px_4px_rgba(0,0,0,0.6)] disabled:cursor-not-allowed disabled:opacity-40"
+    className="flex w-full items-center justify-center gap-1.5 whitespace-nowrap rounded-xs border border-[#6b5327] bg-[#1a1612] px-3 py-2 font-serif text-xs uppercase tracking-widest text-[#d4af37] shadow-sm transition-all duration-150 hover:border-[#d4af37] hover:bg-[#251f18] hover:text-[#f3e5ab] active:translate-y-px disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:border-[#6b5327] disabled:hover:bg-[#1a1612] disabled:hover:text-[#d4af37]"
   >
     <Plus size={12} strokeWidth={2} />
     {label}
   </button>
 );
 
+/** Base commune des champs de saisie de titres — ébène feutré, encre ivoire,
+ *  filet laiton au repos, or vif au focus (charte « Dark Atelier »). */
 const inputClass =
-  "flex-1 bg-transparent border-b border-copper/40 font-serif text-sm text-stone-800 focus:border-copper focus:outline-none placeholder:italic placeholder:text-stone-400";
+  "min-w-0 flex-1 border-b border-[#4a3b2c] bg-transparent font-serif text-sm tracking-wide text-[#f5efe4] transition-colors placeholder:text-[#786c59] focus:border-[#d4af37] focus:outline-hidden disabled:cursor-not-allowed disabled:border-stone-300 disabled:text-stone-400 disabled:placeholder:text-stone-300";
 
+/** Sélecteurs de source — fond ébène, texte ivoire, filet laiton au focus. */
 const selectClass =
-  "shrink-0 rounded-sm border border-stone-400/40 bg-transparent font-mono text-xs text-stone-700 focus:border-copper focus:outline-none";
+  "shrink-0 rounded-sm border border-[#4a3b2c] bg-[#141210] font-serif text-xs text-[#e2dbce] transition-colors focus:border-[#d4af37] focus:outline-hidden";
+
+/** Classe des options déroulantes (ébène & ivoire, cohérente avec le registre). */
+const optionClass = "bg-[#141210] text-[#e2dbce]";
+
+interface TitleFieldProps {
+  /** Valeur courante (affichée dans l'ouvrage). */
+  value: string;
+  /** Valide la saisie (perte de focus ou touche Entrée). */
+  onCommit: (value: string) => void;
+  placeholder: string;
+  disabled?: boolean;
+  /** Classes additionnelles (ex. graisse). */
+  className?: string;
+}
+
+/**
+ * Champ de titre **contrôlé** (`value` / `onChange`) : un simple `<input>` net,
+ * sans label ni ombre superposés. La saisie est conservée localement puis
+ * **validée** à la perte de focus ou sur Entrée — aucun journal surchargé.
+ */
+const TitleField: React.FC<TitleFieldProps> = ({
+  value,
+  onCommit,
+  placeholder,
+  disabled = false,
+  className,
+}) => {
+  const [draft, setDraft] = useState(value);
+  return (
+    <input
+      type="text"
+      value={draft}
+      onChange={(event) => setDraft(event.target.value)}
+      onBlur={() => {
+        if (draft !== value) {
+          onCommit(draft);
+        }
+      }}
+      onKeyDown={(event) => {
+        if (event.key === "Enter") {
+          event.currentTarget.blur();
+        }
+      }}
+      placeholder={placeholder}
+      disabled={disabled}
+      spellCheck={false}
+      autoComplete="off"
+      className={`${inputClass} ${className ?? ""}`}
+    />
+  );
+};
 
 /** Nombre maximum d'éléments affichés par page (évite tout défilement). */
 const ITEMS_PER_PAGE = 8;
@@ -129,7 +185,7 @@ const PickButton: React.FC<{ onClick: () => void }> = ({ onClick }) => (
   <button
     type="button"
     onClick={onClick}
-    className="flex shrink-0 items-center gap-1 rounded-sm border border-stone-400/50 bg-stone-500/5 px-2 py-1 font-mono text-[10px] uppercase tracking-widest text-stone-600 transition-colors hover:bg-stone-500/10 hover:text-copper"
+    className="flex shrink-0 items-center gap-1 rounded-xs border border-[#5a4f3f] bg-[#1a1612] px-3 py-1 font-serif text-xs uppercase tracking-wider text-[#d4af37] transition-colors hover:border-[#d4af37] hover:bg-[#251f18] hover:text-[#f3e5ab]"
   >
     <FolderOpen size={12} />
     Parcourir…
@@ -142,7 +198,7 @@ const ImportButton: React.FC<{ onClick: () => void }> = ({ onClick }) => (
     type="button"
     onClick={onClick}
     title="Importer un fichier externe dans le dossier du projet"
-    className="flex shrink-0 items-center gap-1 rounded-sm border border-brass/50 bg-linear-to-b from-copper to-[#8a5426] px-2 py-1 font-mono text-[10px] uppercase tracking-widest text-amber-50 shadow-[inset_0_1px_0_rgba(255,255,255,0.3),0_2px_4px_rgba(0,0,0,0.5)] transition-all hover:brightness-110 active:translate-y-px active:shadow-[inset_0_2px_4px_rgba(0,0,0,0.6)]"
+    className="flex shrink-0 items-center gap-1 rounded-xs border border-[#7a5e2c] bg-[#1e1913] px-3 py-1 font-serif text-xs uppercase tracking-wider text-[#d4af37] transition-colors hover:border-[#d4af37] hover:bg-[#2a2219]"
   >
     <Upload size={12} />
     Importer
@@ -233,11 +289,11 @@ const SortableRow: React.FC<SortableRowProps> = ({
           <span className="w-12 shrink-0 font-mono text-[10px] font-bold uppercase tracking-widest text-copper">
             [ACTE]
           </span>
-          <input
-            defaultValue={item.displayName ?? ""}
-            onBlur={(event) => onRename(item.id, event.target.value)}
+          <TitleField
+            value={item.displayName ?? ""}
+            onCommit={(value) => onRename(item.id, value)}
             placeholder="ex: ACTE I — La Découverte"
-            className={`${inputClass} font-semibold`}
+            className="font-semibold"
           />
           <button
             type="button"
@@ -262,12 +318,12 @@ const SortableRow: React.FC<SortableRowProps> = ({
             >
               {(sourceOptions(chapterFiles, item.sourceFileName).length === 0 ||
                 !item.sourceFileName) && (
-                <option value="">
+                <option className={optionClass} value="">
                   — Sélectionner ou importer un fichier source —
                 </option>
               )}
               {sourceOptions(chapterFiles, item.sourceFileName).map((file) => (
-                <option key={file} value={file}>
+                <option className={optionClass} key={file} value={file}>
                   {file}
                 </option>
               ))}
@@ -290,11 +346,10 @@ const SortableRow: React.FC<SortableRowProps> = ({
             <span className="shrink-0 font-mono text-[10px] uppercase tracking-widest text-copper">
               Nom dans le livre :
             </span>
-            <input
-              defaultValue={item.displayName ?? ""}
-              onBlur={(event) => onRename(item.id, event.target.value)}
-              placeholder="Saisissez le titre du chapitre tel qu'il apparaîtra..."
-              className={inputClass}
+            <TitleField
+              value={item.displayName ?? ""}
+              onCommit={(value) => onRename(item.id, value)}
+              placeholder="Titre affiché dans l'ouvrage"
             />
           </div>
         </div>
@@ -306,14 +361,14 @@ const SortableRow: React.FC<SortableRowProps> = ({
           <select
             value={item.sourceFileName ?? ""}
             onChange={(event) => onSourceChange(item.id, event.target.value)}
-            className="min-w-0 flex-1 rounded-sm border border-stone-400/40 bg-transparent font-mono text-xs text-stone-700 focus:border-copper focus:outline-none"
+            className={`${selectClass} min-w-0 flex-1`}
           >
             {(sourceOptions(imageFiles, item.sourceFileName).length === 0 ||
               !item.sourceFileName) && (
-              <option value="">— Sélectionner une image —</option>
+              <option className={optionClass} value="">— Sélectionner une image —</option>
             )}
             {sourceOptions(imageFiles, item.sourceFileName).map((file) => (
-              <option key={file} value={file}>
+              <option className={optionClass} key={file} value={file}>
                 {file}
               </option>
             ))}
@@ -346,7 +401,7 @@ const SortableRow: React.FC<SortableRowProps> = ({
               className={`${selectClass} w-36`}
             >
               {SPECIAL_PAGE_ROLES.map((option) => (
-                <option key={option.id} value={option.id}>
+                <option className={optionClass} key={option.id} value={option.id}>
                   {option.label}
                 </option>
               ))}
@@ -363,13 +418,13 @@ const SortableRow: React.FC<SortableRowProps> = ({
                   {(sourceOptions(chapterFiles, item.sourceFileName).length ===
                     0 ||
                     !item.sourceFileName) && (
-                    <option value="">
+                    <option className={optionClass} value="">
                       — Sélectionner ou importer un fichier source —
                     </option>
                   )}
                   {sourceOptions(chapterFiles, item.sourceFileName).map(
                     (file) => (
-                      <option key={file} value={file}>
+                      <option className={optionClass} key={file} value={file}>
                         {file}
                       </option>
                     ),
@@ -401,16 +456,15 @@ const SortableRow: React.FC<SortableRowProps> = ({
             >
               Titre dans le livre :
             </span>
-            <input
-              defaultValue={item.displayName ?? ""}
-              onBlur={(event) => onRename(item.id, event.target.value)}
+            <TitleField
+              value={item.displayName ?? ""}
+              onCommit={(value) => onRename(item.id, value)}
               disabled={!specialRoleHasTitle(item.role ?? DEFAULT_SPECIAL_ROLE)}
               placeholder={
                 specialRoleHasTitle(item.role ?? DEFAULT_SPECIAL_ROLE)
-                  ? "Saisissez le titre tel qu'il apparaîtra..."
+                  ? "Titre affiché dans l'ouvrage"
                   : "Sans objet pour ce rôle"
               }
-              className={`${inputClass} disabled:cursor-not-allowed disabled:border-stone-300 disabled:text-stone-400 disabled:placeholder:text-stone-300`}
             />
           </div>
         </div>
@@ -438,6 +492,7 @@ export const OrganizationView: React.FC<OrganizationViewProps> = ({
   onImportChapterSource,
   onImportImageSource,
   onImportSpecialSource,
+  onImportChapters,
   folioById,
 }) => {
   const sensors = useSensors(
@@ -545,6 +600,20 @@ export const OrganizationView: React.FC<OrganizationViewProps> = ({
     }
   };
 
+  /** Survol d'un glisser-déposer de fichiers (mise en évidence du feuillet). */
+  const [dropActive, setDropActive] = useState(false);
+
+  /** Dépôt de fichiers sur le feuillet → importés comme chapitres. */
+  const handleDrop = (event: React.DragEvent<HTMLDivElement>) => {
+    event.preventDefault();
+    setDropActive(false);
+    const files = Array.from(event.dataTransfer.files);
+    if (files.length === 0) {
+      return;
+    }
+    onImportChapters(files.map((file) => file.name));
+  };
+
   const missing: string[] = [];
   if (!sourcesConfigured) {
     missing.push("Mes sources");
@@ -556,8 +625,24 @@ export const OrganizationView: React.FC<OrganizationViewProps> = ({
         Organisation
       </h2>
 
-      {/* Zone de contenu — s'étire (flex-1) pour plaquer la pagination en bas */}
-      <div className="flex flex-1 flex-col">
+      {/* Zone de contenu — s'étire (flex-1) pour plaquer la pagination en bas.
+          Le feuillet est aussi une **zone de dépôt** : y glisser des fichiers
+          (.md, .docx, .txt, .typ) les importe comme chapitres. */}
+      <div
+        className={`flex flex-1 flex-col rounded-xs transition-all ${
+          dropActive
+            ? "ring-2 ring-[#d4af37]/70 ring-offset-2 ring-offset-[#181614]"
+            : ""
+        }`}
+        onDragOver={(event) => {
+          event.preventDefault();
+          if (!dropActive) {
+            setDropActive(true);
+          }
+        }}
+        onDragLeave={() => setDropActive(false)}
+        onDrop={handleDrop}
+      >
         {/* Barre d'outils d'ajout — 4 colonnes, sur une seule ligne */}
         <div className="mb-3 grid w-full grid-cols-4 gap-3">
           <ToolbarButton label="Ajouter un Acte" onClick={onAddAct} />
@@ -591,6 +676,20 @@ export const OrganizationView: React.FC<OrganizationViewProps> = ({
                 : undefined
             }
           />
+        </div>
+
+        {/* Import de chapitres — sélecteur natif multi-fichiers + glisser-déposer */}
+        <div className="mb-3 flex flex-wrap items-center gap-2">
+          <button
+            type="button"
+            onClick={() => onImportChapters()}
+            className="cursor-pointer rounded-xs border border-[#7a5e2c] bg-[#1e1913] px-3 py-1.5 font-serif text-xs uppercase tracking-wider text-[#d4af37] transition-colors hover:border-[#d4af37] hover:bg-[#2a2219] hover:text-[#f3e5ab]"
+          >
+            [ + Importer des chapitres… ]
+          </button>
+          <span className="font-serif text-[11px] italic text-[#9e9587]/80">
+            …ou déposez vos fichiers (.md, .docx, .txt, .typ) sur ce feuillet.
+          </span>
         </div>
 
         {missing.length > 0 && (

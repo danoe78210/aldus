@@ -36,10 +36,6 @@ interface LayoutProps {
   logs: LogEntry[];
   /** État de sauvegarde automatique du projet. */
   saveState: 'idle' | 'saving' | 'saved';
-  /** Chemin du fichier de projet (null si non défini). */
-  projectFilePath: string | null;
-  /** Choisit l'emplacement du fichier de projet. */
-  onPickProjectFile: () => void;
   /** Cinématique de fermeture du livre en cours (volet 3D + glow). */
   closing?: boolean;
 }
@@ -53,8 +49,6 @@ export const Layout: React.FC<LayoutProps> = ({
   running,
   logs,
   saveState,
-  projectFilePath,
-  onPickProjectFile,
   closing = false,
 }) => {
   // Couverture personnalisée (module Cover Studio) appliquée au livre fermé.
@@ -190,12 +184,7 @@ export const Layout: React.FC<LayoutProps> = ({
 
       {/* 3. Registre inférieur — bandeau continu indépendant */}
       <footer className="relative z-30 w-full shrink-0 border-t border-[#2e261c] bg-[#12100e]">
-        <StatusBar
-          logs={logs}
-          saveState={saveState}
-          projectFilePath={projectFilePath}
-          onPickProjectFile={onPickProjectFile}
-        />
+        <StatusBar logs={logs} saveState={saveState} />
       </footer>
     </div>
   );

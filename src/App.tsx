@@ -20,6 +20,7 @@ import {
   pickDirectoryWithFiles,
   type FsDirectoryHandle,
 } from "./utils/directory";
+import { openNativeDirectory, openNativeFiles } from "./utils/nativeDialog";
 import {
   PROJECT_FILE_NAME,
   buildProjectFile,
@@ -40,6 +41,9 @@ interface ExportProgressPayload {
 
 /** Délai (ms) du voile d'encre avant la bascule d'état du sas d'accueil. */
 const ATELIER_TRANSITION_MS = 450;
+
+/** Extensions acceptées à l'import des chapitres (Feuillet III). */
+const CHAPTER_EXTENSIONS = ["md", "docx", "txt", "typ"];
 
 const currentTime = () =>
   new Date().toLocaleTimeString("fr-FR", { hour12: false });
@@ -136,6 +140,7 @@ const DEFAULT_COVER: CoverStudioState = {
   gradient: false,
   pageCountSnapshot: 120,
   structureSignature: "",
+  backLogoPath: null,
 };
 
 // Ordre des pages du livre virtuel de droite (identique à l'ordre du ruban gauche).
@@ -712,12 +717,47 @@ const App: React.FC = () => {
     [addLog],
   );
 
-  const handlePickProjectFile = useCallback(async () => {
-    const directory = await pickDirectory();
-    if (directory) {
-      setProjectFilePath(`${directory}/${PROJECT_FILE_NAME}`);
-      addLog('info', `Fichier de projet défini dans : ${directory}`);
+  /** Associe le **dossier de travail** du projet (racine) via le sélecteur natif. */
+  const handlePickProjectDirectory = useCallback(async () => {
+    const directory = await openNativeDirectory("Choisir le dossier du projet");
+    if (!directory) {
+      return;
     }
+    const name = directory.split(/[\\/]/).filter(Boolean).pop() ?? directory;
+    sourceHandleRef.current = null;
+    setSourceConfig((previous) => ({ ...previous, directory }));
+    setProjectFilePath(`${directory}/${PROJECT_FILE_NAME}`);
+    const files = await listDirectoryFiles(directory);
+    const { chapters, images } = splitSourceFiles(files);
+    setChapterFiles(chapters);
+    setImageFiles(images);
+    addLog('success', `Dossier de travail associé : ${name}`);
+  }, [addLog]);
+
+  /** Importe des chapitres (sélecteur natif multi-fichiers, ou glisser-déposer). */
+  const handleImportChapters = useCallback(async (paths?: string[]) => {
+    const picked =
+      paths && paths.length > 0
+        ? paths
+        : await openNativeFiles(CHAPTER_EXTENSIONS, "Importer des chapitres");
+    if (picked.length === 0) {
+      return;
+    }
+    const items: StructureItem[] = picked.map((path) => {
+      const base = path.split(/[\\/]/).pop() ?? path;
+      const title = base.replace(/\.[^.]+$/, "");
+      return {
+        id: nextStructureId("chapter"),
+        type: "chapter" as const,
+        displayName: title || base,
+        sourceFileName: base,
+      };
+    });
+    setStructure((previous) => [...previous, ...items]);
+    addLog(
+      'success',
+      `${items.length} chapitre(s) importé(s) dans la table des feuillets.`,
+    );
   }, [addLog]);
 
   const pickSourcesDirectory = useCallback(async () => {
@@ -947,6 +987,13 @@ const App: React.FC = () => {
     onRequestCoverExport: () => setCoverExportRequest((current) => current + 1),
     isExporting: running,
     onQuit: handleQuit,
+    projectDirectory: sourceConfig.directory,
+    onPickProjectDirectory: () => {
+      void handlePickProjectDirectory();
+    },
+    onImportChapters: (paths?: string[]) => {
+      void handleImportChapters(paths);
+    },
   };
 
   const activeIndex = Math.max(0, MENU_ORDER.indexOf(activeMenu));
@@ -969,8 +1016,6 @@ const App: React.FC = () => {
           running={running}
           logs={logs}
           saveState={saveState}
-          projectFilePath={projectFilePath}
-          onPickProjectFile={handlePickProjectFile}
           closing={isClosing}
         />
       </StudioProvider>

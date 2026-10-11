@@ -91,6 +91,21 @@ export interface StudioContextValue {
   /** Ferme proprement l'application (cinématique 3D du livre + purge des caches). */
   onQuit: () => void;
 
+  // --- Dossiers & sélecteurs natifs (bandeau inférieur) ---
+  /** Dossier de travail du projet (racine des sources), ou `null`. */
+  projectDirectory: string | null;
+  /**
+   * Ouvre le sélecteur de dossier **natif** et associe le dossier de travail du
+   * projet (racine des sources + emplacement du fichier `.danoe`).
+   */
+  onPickProjectDirectory: () => void;
+  /**
+   * Importe un ou plusieurs **chapitres** dans la table des feuillets.
+   * Sans argument : ouvre le sélecteur natif multi-fichiers (`.md`, `.docx`,
+   * `.txt`, `.typ`). Avec `paths` : importe ces fichiers (glisser-déposer).
+   */
+  onImportChapters: (paths?: string[]) => void;
+
   // --- Sas d'accueil → Atelier (transition cinématique d'entrée) ---
   /** `true` dès que l'utilisateur est entré : le sas d'accueil est démonté. */
   isAtelierOpen: boolean;
