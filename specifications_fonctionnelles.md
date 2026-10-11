@@ -65,13 +65,13 @@ Aucune rupture visuelle brute : le clic enclenche trois phases enchaînées.
 |---|---|---|
 | **1. Impulsion & enfoncement** | 0 → 150 ms | Compression du bouton (`active:scale-[0.99]`) + **pulsation thermique finale** du creuset (surge ambrée de 320 ms). |
 | **2. Voile d'encre & retrait** | 150 → 550 ms | Fondu sortant (`opacity-0 scale-[0.98]`, 400 ms, retard 150 ms) du **médaillon** (feuillet gauche) et du **creuset** (feuillet droit) — la structure du livre n'est pas déstabilisée. |
-| **3. Bascule & révélation** | 550 → 1000 ms | L'onglet **Informations** devient actif, `isAtelierOpen` est posé ; les deux feuillets se révèlent à l'**encre fraîche** (`inkReveal`, Feuillet II décalé de 90 ms). |
+| **3. Bascule & révélation** | 550 → 1000 ms | L'onglet **Réglages** devient actif, `isAtelierOpen` est posé ; les deux feuillets se révèlent à l'**encre fraîche** (`inkReveal`, Feuillet II décalé de 90 ms). |
 
 Pendant le sas : la bande d'onglets et le ruban **« Quitter l'atelier »** sont
 **strictement absents du DOM** (`{isAtelierOpen && …}`) — le frontispice de
 gauche demeure pur et vierge de toute navigation. Après l'entrée, les signets se
 révèlent (`animate-ink-reveal`) greffés sur la **tranche extérieure gauche**
-(`-translate-x-full`, hors de la surface d'écriture) et l'onglet Informations
+(`-translate-x-full`, hors de la surface d'écriture) et l'onglet Réglages
 s'affiche avec son décroché `-translate-x-1.5` et sa bordure or.
 
 ---

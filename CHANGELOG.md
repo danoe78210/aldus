@@ -10,6 +10,9 @@
 - Correcteur typographique appliquant les règles de l'Imprimerie nationale.
 - Pressoir d'exportation pour PDF d'impression et ePub 3.
 
+## [1.0.2] - Accueil & Navigation
+### Modifié
+- L'entrée dans l'atelier (`[ Entrer dans l'atelier › ]`) ouvre désormais le pupitre **Réglages** (premier signet de la tranche) au lieu d'Informations — `enterAtelier` réassigne explicitement `activeMenu = 'reglages'`.
 ## [1.0.1] - Double-Feuillets du Correcteur
 ### Modifié
 - Correcteur restructuré en **deux diptyques in-folio autonomes** avec bascule d'en-tête synchronisée sur les deux pages du livre : `[ VII. Indice de Pureté ]` / `[ VIII. Le Banc d'Épreuve ]`.

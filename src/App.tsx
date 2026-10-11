@@ -844,8 +844,9 @@ const App: React.FC = () => {
    * 2. voile d'encre : `isTransitioning` fait disparaître en fondu le médaillon
    *    (page gauche) et le creuset (page droite) sans toucher à la structure du
    *    livre (150–550 ms) ;
-   * 3. bascule d'état : onglet **Informations** activé, `isAtelierOpen` posé,
-   *    les deux feuillets se révèlent (`animate-ink-reveal`, 550–1000 ms).
+   * 3. bascule d'état : onglet **Réglages** activé (premier signet de la tranche),
+   *    `isAtelierOpen` posé, les deux feuillets se révèlent (`animate-ink-reveal`,
+   *    550–1000 ms).
    */
   const enterAtelier = useCallback(() => {
     if (enteringRef.current) return;
@@ -855,7 +856,7 @@ const App: React.FC = () => {
     window.setTimeout(() => {
       enteringRef.current = false;
       setIsAtelierOpen(true);
-      setActiveMenu('infos');
+      setActiveMenu('reglages');
       setIsTransitioning(false);
     }, ATELIER_TRANSITION_MS);
   }, []);

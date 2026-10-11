@@ -191,7 +191,7 @@ et pilotés par `App.tsx` :
   sortant dure 400 ms, `duration-400`).
 - `enterAtelier()` : `isTransitioning = true` → garde `enteringRef` (anti double
   déclenchement) → après 550 ms : `isAtelierOpen = true`,
-  `activeMenu = 'infos'`, `isTransitioning = false`.
+  `activeMenu = 'reglages'`, `isTransitioning = false`.
 - Styles associés : `transition-all duration-400 ease-out delay-150` (retrait du
   sas), `animate-finale-pulse` (impulsion du creuset), `animate-ink-reveal`
   (révélation des feuillets).

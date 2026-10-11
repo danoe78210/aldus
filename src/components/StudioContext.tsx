@@ -117,7 +117,7 @@ export interface StudioContextValue {
   isTransitioning: boolean;
   /**
    * Déclenche la transition cinématique d'entrée : impulsion, voile d'encre puis
-   * bascule d'état vers l'onglet **Informations** (Feuillets I & II).
+   * bascule d'état vers l'onglet **Réglages** (premier signet de la tranche).
    */
   onEnterAtelier: () => void;
 
