@@ -913,39 +913,40 @@ const App: React.FC = () => {
     addLog('success', `Dossier de fabrication retenu : ${path}`);
   }, [addLog]);
 
-  /** Ouvre le dossier des épreuves dans le gestionnaire de fichiers du système. */
+  /** Ouvre le **dossier des épreuves** (Feuillet X) dans le gestionnaire natif.
+      La cible est le dossier de fabrication retenu au Feuillet IX ; sans dossier,
+      invite l'utilisateur à en désigner un, puis l'ouvre via la commande Rust
+      `open_proofs_directory`. */
   const handleOpenExportDirectory = useCallback(async () => {
-    // Chemin préféré : dossier de fabrication retenu, sinon la commande native
-    // crée/ouvre le dossier par défaut (`~/Documents/Aldus/Export`).
+    let targetPath: string = exportDirectory ?? "";
+
+    // 1. Aucun dossier retenu : inviter l'utilisateur à en choisir un (annulable).
+    if (targetPath === "") {
+      const selected = await pickDirectory();
+      if (!selected) {
+        return; // annulation
+      }
+      targetPath = selected;
+      setExportDirectory(selected);
+      addLog("success", `Dossier de fabrication retenu : ${selected}`);
+    }
+
+    // 2. Ouverture native (commande Rust dédiée), ou repli navigateur.
     if (isInvokeAvailable()) {
       try {
-        await invokeCommand("open_proofs_directory", exportDirectory ? { path: exportDirectory } : {});
-        addLog(
-          "success",
-          exportDirectory
-            ? `Dossier des épreuves ouvert : ${exportDirectory}`
-            : "Dossier des épreuves ouvert (dossier par défaut).",
-        );
+        await invokeCommand("open_proofs_directory", { path: targetPath });
+        addLog("success", `Dossier des épreuves ouvert : ${targetPath}`);
         return;
       } catch (cause) {
         addLog("error", `Ouverture du dossier des épreuves impossible : ${String(cause)}`);
         return;
       }
     }
-    // Repli hors Tauri (SPA Vite) : API shell si disponible.
-    if (exportDirectory) {
-      const opened = await openPathExternal(exportDirectory);
-      if (opened) {
-        addLog("success", `Dossier des épreuves ouvert : ${exportDirectory}`);
-        return;
-      }
+    if (await openPathExternal(targetPath)) {
+      addLog("success", `Dossier des épreuves ouvert : ${targetPath}`);
+      return;
     }
-    addLog(
-      exportDirectory ? "warning" : "info",
-      exportDirectory
-        ? "Ouverture du dossier impossible hors application de bureau."
-        : "Aucun dossier d'épreuves retenu pour l'instant.",
-    );
+    addLog("warning", "Ouverture du dossier impossible hors application de bureau.");
   }, [addLog, exportDirectory]);
 
   /**

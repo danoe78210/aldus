@@ -75,14 +75,30 @@ export const PressInspection: React.FC = () => {
         IX. Inspection Pré-Presse &amp; Formes
       </h2>
 
-      <Cartouche index={1} title="Formes d'édition">
-        <ul className="space-y-1.5">
+      {/* [1] Dossier de fabrication — destination des archives (définie en premier) */}
+      <Cartouche index={1} title="Dossier de fabrication">
+        <div className="flex items-center gap-2">
+          <span className="min-w-0 flex-1 truncate rounded-xs border border-[#3a3022] bg-[#0f0c0a] px-3 py-2 font-mono text-[11px] text-[#bda888]">
+            {exportDirectory ?? "Aucun dossier retenu pour les archives"}
+          </span>
+          <button
+            type="button"
+            onClick={onPickExportDirectory}
+            className="shrink-0 rounded-xs border border-[#997728]/50 bg-linear-to-b from-[#2e1d0f] to-[#170f07] px-3 py-2 font-serif text-[10px] tracking-widest text-[#eedcb8] uppercase transition-colors hover:border-[#ffd700] hover:text-[#ffd700]"
+          >
+            [ <FolderOpen size={12} className="mr-1 inline" /> | Parcourir les archives ]
+          </button>
+        </div>
+      </Cartouche>
+
+      <Cartouche index={2} title="Formes d'édition">
+        <ul className="flex flex-col gap-2.5">
           {EXPORT_FORMS.map((form) => {
             const checked = exportForms[form.id];
             return (
               <li key={form.id}>
                 <label
-                  className={`flex cursor-pointer items-start gap-2.5 rounded-xs border p-3.5 transition-colors ${
+                  className={`flex cursor-pointer items-start gap-2.5 rounded-xs border px-3.5 py-2.5 transition-colors ${
                     checked
                       ? "border-[#8f6e2b]/70 bg-[#1c1814]"
                       : "border-[#3a3022] bg-[#13110f] hover:border-[#8f6e2b]/50"
@@ -119,7 +135,7 @@ export const PressInspection: React.FC = () => {
           })}
         </ul>
       </Cartouche>
-<Cartouche index={2} title="Bilan d'intégrité KDP">
+<Cartouche index={3} title="Bilan d'intégrité KDP">
         <ul className="space-y-2">
           {checklist.map((item) => (
             <li key={item.id} className="flex items-start gap-2">
@@ -141,22 +157,6 @@ export const PressInspection: React.FC = () => {
             </li>
           ))}
         </ul>
-      </Cartouche>
-
-      <Cartouche index={3} title="Dossier de fabrication">
-        <div className="flex items-center gap-2">
-          <span className="min-w-0 flex-1 truncate rounded-xs border border-[#3a3022] bg-[#0f0c0a] px-3 py-2 font-mono text-[11px] text-[#bda888]">
-            {exportDirectory ?? "Aucun dossier retenu pour les archives"}
-          </span>
-          <button
-            type="button"
-            onClick={onPickExportDirectory}
-            className="shrink-0 rounded-xs border border-[#997728]/50 bg-linear-to-b from-[#2e1d0f] to-[#170f07] px-3 py-2 font-serif text-[10px] tracking-widest text-[#eedcb8] uppercase transition-colors hover:border-[#ffd700] hover:text-[#ffd700]"
-          >
-            <FolderOpen size={12} className="mr-1 inline" />
-            [ Parcourir les archives ]
-          </button>
-        </div>
       </Cartouche>
 
       {/* [4] Jauge d'encrage & de massicotage */}
