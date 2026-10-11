@@ -1,5 +1,4 @@
 import React, { useMemo, useState } from "react";
-import { Feather, Info } from "lucide-react";
 import { useStudio } from "./StudioContext";
 import { CorrectorView } from "./CorrectorView";
 import { anomaliesOfFolio, buildProofFolio, showSpaces } from "../utils/proofLayout";
@@ -55,6 +54,8 @@ export const ProofWorkbench: React.FC = () => {
     proofText,
     proofPage,
     applyProofAnomaly,
+    activeAnomalyId,
+    setActiveAnomalyId,
   } = useStudio();
 
   const [mode, setMode] = useState<"face" | "linguistic">("face");
@@ -240,25 +241,43 @@ export const ProofWorkbench: React.FC = () => {
                   <p className="mt-0.5 font-mono text-[11px] text-[#8f8373]">
                     {showSpaces(anomaly.found)} → {showSpaces(anomaly.replacement) || "∅"}
                   </p>
-                  <div className="mt-1.5 flex flex-wrap items-center gap-2">
+                  <div className="mt-3 flex items-center gap-2 pt-2 border-t border-[#2a241c]">
+                    {/* Bouton Localiser — surbrillance or vénitien dans le feuillet */}
+                    <button
+                      type="button"
+                      onClick={() => setActiveAnomalyId(activeAnomalyId === anomaly.id ? null : anomaly.id)}
+                      className={`px-2.5 py-1 rounded-xs border font-cinzel text-[11px] tracking-wider uppercase flex items-center gap-1.5 transition-all cursor-pointer ${
+                        activeAnomalyId === anomaly.id
+                          ? "border-[#d4af37] bg-[#2d2212] text-[#f3e5ab] shadow-[0_0_10px_rgba(212,175,55,0.3)]"
+                          : "border-[#382f22] bg-[#141210] text-[#c9bea9] hover:border-[#8f6e2b] hover:text-[#d4af37]"
+                      }`}
+                      title="Localiser et surligner l'anomalie dans le feuillet"
+                    >
+                      <span className="text-xs">⌖</span>
+                      <span>Localiser</span>
+                    </button>
+
+                    {/* Bouton Corriger — correctif unitaire */}
                     <button
                       type="button"
                       onClick={() => applyProofAnomaly(anomaly)}
+                      className="px-2.5 py-1 rounded-xs border border-[#382f22] bg-[#141210] font-cinzel text-[11px] tracking-wider uppercase text-[#c9bea9] hover:border-[#8f6e2b] hover:text-[#d4af37] flex items-center gap-1.5 transition-all cursor-pointer"
                       title="Imposer ce seul correctif"
-                      className="rounded-xs border border-[#3a3022] px-2 py-1 font-serif text-[11px] tracking-wider text-[#eedcb8] uppercase transition-colors hover:border-[#ffd700] hover:text-[#ffd700]"
                     >
-                      <Feather size={11} className="mr-1 inline" />
-                      Corriger
+                      <span className="text-xs">✒</span>
+                      <span>Corriger</span>
                     </button>
+
+                    {/* Bouton Règle — explication de l'Imprimerie nationale */}
                     <button
                       type="button"
                       onClick={() => setAdviceId(adviceId === anomaly.id ? null : anomaly.id)}
                       aria-expanded={adviceId === anomaly.id}
+                      className="px-2.5 py-1 rounded-xs border border-[#2a2218] bg-transparent font-cinzel text-[11px] tracking-wider uppercase text-[#8f8373] hover:text-[#c9bea9] flex items-center gap-1 transition-all cursor-pointer"
                       title="Règle de l'Imprimerie nationale"
-                      className="rounded-xs border border-[#3a3022] px-2 py-1 font-mono text-[11px] tracking-wider text-[#9e9587] uppercase transition-colors hover:text-[#c5a059]"
                     >
-                      <Info size={11} className="mr-1 inline" />
-                      Règle
+                      <span className="text-xs">ⓘ</span>
+                      <span>Règle</span>
                     </button>
                   </div>
                   {adviceId === anomaly.id && (

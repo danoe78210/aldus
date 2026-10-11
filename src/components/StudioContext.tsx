@@ -171,6 +171,10 @@ export interface StudioContextValue {
   setProofOnlyAnomalies: (value: boolean) => void;
   /** Corrige une seule occurrence depuis les conseils de l'Imprimeur (Feuillet VIII). */
   applyProofAnomaly: (anomaly: TypographyAnomaly) => void;
+  /** Anomalie ciblée par la commande « Localiser » (surbrillance or vénitien). */
+  activeAnomalyId: string | null;
+  /** Cible (ou oublie) l'anomalie à surligner dans le feuillet de lecture. */
+  setActiveAnomalyId: (id: string | null) => void;
   /** Ordre majeur : impose l'Usage typographique aldin sur tout le chapitre (Feuillet VII). */
   imposeProofUsage: () => void;
   /** Consigne le chapitre justifié dans son fichier (écriture atomique). */

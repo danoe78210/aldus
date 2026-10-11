@@ -221,6 +221,8 @@ const App: React.FC = () => {
   const [proofError, setProofError] = useState<string | null>(null);
   const [proofPage, setProofPage] = useState(1);
   const [proofOnlyAnomalies, setProofOnlyAnomalies] = useState(false);
+  // Commande « Localiser » (Feuillet VIII) : anomalie ciblée dans le feuillet de lecture.
+  const [activeAnomalyId, setActiveAnomalyId] = useState<string | null>(null);
   const [logs, setLogs] = useState<LogEntry[]>(() => [
     createLog('info', 'Studio initialisé. Prêt à écrire.'),
     createLog('success', 'Projet « Les Schattenjägers » chargé.'),
@@ -961,6 +963,7 @@ const App: React.FC = () => {
     setProofChapter(file);
     setProofError(null);
     setProofPage(1);
+    setActiveAnomalyId(null); // nouveau chapitre : la localisation s'efface
     if (!file) {
       setProofText("");
       return;
@@ -985,6 +988,24 @@ const App: React.FC = () => {
       current.includes(ruleId) ? current.filter((id) => id !== ruleId) : [...current, ruleId],
     );
   }, []);
+
+  /** Tourne d'un feuillet : la localisation en cours s'efface (nouveau feuillet). */
+  const handleProofPageChange = useCallback(
+    (page: number) => {
+      setActiveAnomalyId(null);
+      setProofPage(page);
+    },
+    [],
+  );
+
+  /** Bascule le filtre « feuillets à anomalies » : la localisation s'efface. */
+  const handleProofFilterChange = useCallback(
+    (value: boolean) => {
+      setActiveAnomalyId(null);
+      setProofOnlyAnomalies(value);
+    },
+    [],
+  );
 
   // Auto-sélection du premier chapitre disponible (pupitre de lecture du banc).
   useEffect(() => {
@@ -1068,10 +1089,12 @@ const App: React.FC = () => {
     proofError,
     loadProofChapter: (file: string) => handleLoadProofChapter(file),
     proofPage,
-    setProofPage,
+    setProofPage: handleProofPageChange,
     proofOnlyAnomalies,
-    setProofOnlyAnomalies,
+    setProofOnlyAnomalies: handleProofFilterChange,
     applyProofAnomaly: handleApplyProofAnomaly,
+    activeAnomalyId,
+    setActiveAnomalyId,
     imposeProofUsage: handleImposeProofUsage,
     persistProofChapter: () => handlePersistProofChapter(),
     isAtelierOpen,

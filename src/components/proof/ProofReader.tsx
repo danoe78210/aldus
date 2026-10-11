@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { SEVERITY_COLOR, type TypographyAnalysis } from "../../utils/typographyEngine";
 import type { ProofLine } from "../../utils/proofLayout";
 
@@ -13,6 +13,8 @@ interface ProofReaderProps {
   hovered: string | null;
   /** Anomalie en train de s'imprimer à l'encre (animation, facultatif). */
   inked?: string | null;
+  /** Anomalie ciblée par « Localiser » (surbrillance or vénitien, facultatif). */
+  activeAnomalyId?: string | null;
   /** Notifie le survol d'une anomalie depuis le feuillet. */
   onHover: (id: string | null) => void;
 }
@@ -30,8 +32,17 @@ export const ProofReader: React.FC<ProofReaderProps> = ({
   currentLines,
   hovered,
   inked = null,
+  activeAnomalyId = null,
   onHover,
-}) => (
+}) => {
+  // Commande « Localiser » : centre la vue sur l'anomalie ciblée (défilement doux).
+  useEffect(() => {
+    if (!activeAnomalyId) return;
+    const target = document.getElementById(`anomaly-target-${activeAnomalyId}`);
+    target?.scrollIntoView({ behavior: "smooth", block: "center" });
+  }, [activeAnomalyId]);
+
+  return (
   <div className="min-h-0 flex-1 overflow-hidden rounded-xs border border-[#8f6e2b]/40 bg-[#f4efe6] px-8 py-6 shadow-[inset_0_0_30px_rgba(0,0,0,0.12)]">
     <div
       className="mx-auto max-w-[36rem] font-serif text-[16px] leading-7 text-[#1e1913]"
@@ -60,18 +71,30 @@ export const ProofReader: React.FC<ProofReaderProps> = ({
               nodes.push(text.slice(cursor, anomaly.offset));
             }
             const active = hovered === anomaly.id || inked === anomaly.id;
+            const targeted = activeAnomalyId === anomaly.id;
             nodes.push(
               <mark
                 key={anomaly.id}
+                id={`anomaly-target-${anomaly.id}`}
                 onMouseEnter={() => onHover(anomaly.id)}
                 onMouseLeave={() => onHover(null)}
-                className={inked === anomaly.id ? "animate-ink-reveal" : undefined}
-                style={{
-                  textDecoration: "underline",
-                  textDecorationStyle: anomaly.severity === "critical" ? "wavy" : "dotted",
-                  textDecorationColor: SEVERITY_COLOR[anomaly.severity],
-                  backgroundColor: active ? "rgba(212,175,55,0.25)" : "transparent",
-                }}
+                className={
+                  targeted
+                    ? "bg-[#d4af37]/35 text-[#0e0c0a] px-1 py-0.5 rounded-xs ring-2 ring-[#d4af37] shadow-[0_0_12px_rgba(212,175,55,0.5)] font-semibold transition-all duration-300 animate-pulse"
+                    : inked === anomaly.id
+                      ? "animate-ink-reveal"
+                      : undefined
+                }
+                style={
+                  targeted
+                    ? undefined
+                    : {
+                        textDecoration: "underline",
+                        textDecorationStyle: anomaly.severity === "critical" ? "wavy" : "dotted",
+                        textDecorationColor: SEVERITY_COLOR[anomaly.severity],
+                        backgroundColor: active ? "rgba(212,175,55,0.25)" : "transparent",
+                      }
+                }
               >
                 {text.slice(anomaly.offset, anomaly.offset + anomaly.length)}
               </mark>,
@@ -89,4 +112,5 @@ export const ProofReader: React.FC<ProofReaderProps> = ({
       })}
     </div>
   </div>
-);
+  );
+};
