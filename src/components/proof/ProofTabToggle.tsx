@@ -35,7 +35,7 @@ export const ProofTabToggle: React.FC<ProofTabToggleProps> = ({ tab, onChange })
           type="button"
           onClick={() => onChange(id)}
           aria-current={active ? "page" : undefined}
-          className={`rounded-xs border px-2 py-2 text-center font-serif text-[10px] tracking-widest uppercase transition-colors ${
+          className={`rounded-xs border px-2 py-2 text-center font-serif text-[11px] tracking-widest uppercase transition-colors ${
             active
               ? "border-[#d4af37] bg-[#221b14] text-[#f3e5ab]"
               : "border-[#382f22] bg-[#0f0e0d] text-[#a89f91] hover:border-[#8f6e2b] hover:text-[#c5a059]"
