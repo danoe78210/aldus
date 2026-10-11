@@ -1,277 +1,316 @@
-<!doctype html>
-<html lang="fr">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Danoë Studio — Machine à romans</title>
-    <meta
-      name="description"
-      content="Danoë Studio : atelier d'écriture littéraire rétro. Organisation du manuscrit, correcteur linguistique, export KDP (Word, PDF, EPUB) et aperçu interactif."
-    />
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=JetBrains+Mono:wght@400;700&display=swap"
-      rel="stylesheet"
-    />
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-      tailwind.config = {
-        theme: {
-          extend: {
-            colors: {
-              desk: "#12161f",
-              "desk-light": "#1b212e",
-              parchment: "#f8f3e6",
-              "parchment-dark": "#efe6d0",
-              ink: "#2b2620",
-              copper: "#b87333",
-              brass: "#b08d57",
-              gold: "#c5a059",
-              atelier: "#3e5d78",
-              verdigris: "#5c8d7b",
-              "retro-violet": "#6b5b95",
-            },
-            fontFamily: {
-              display: ["Cinzel", "Georgia", "serif"],
-              serif: ['"Playfair Display"', "Georgia", "serif"],
-              mono: ['"JetBrains Mono"', "Consolas", "monospace"],
-            },
+<!DOCTYPE html>
+<html lang="fr" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ALDUS ❦ Atelier du Livre Moderne</title>
+  <meta name="description" content="Environnement d'artisanat littéraire et d'ingénierie éditoriale aux normes Amazon KDP. Inspiré par les maîtres imprimeurs de la Renaissance vénitienne.">
+
+  <!-- Polices Humanistes Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            serif: ['"Cormorant Garamond"', 'Georgia', 'serif'],
+            cinzel: ['"Cinzel"', 'serif'],
           },
-        },
-      };
-    </script>
-    <style>
-      /* Bureau feutré + lueur ambrée diffuse (effet Glow) */
-      body {
-        background-color: #12161f;
-        background-image:
-          radial-gradient(circle at 50% 18%, rgba(198, 134, 66, 0.26), transparent 58%),
-          radial-gradient(circle at 20% 15%, rgba(255, 255, 255, 0.035), transparent 45%),
-          radial-gradient(circle at 85% 90%, rgba(0, 0, 0, 0.5), transparent 55%),
-          repeating-linear-gradient(
-            45deg,
-            rgba(255, 255, 255, 0.012) 0 2px,
-            transparent 2px 7px
-          );
-        background-attachment: fixed;
+          colors: {
+            atelier: {
+              ebony: '#0e0c0a',
+              card: '#161310',
+              border: '#382f22',
+              brass: '#8f6e2b',
+              gold: '#d4af37',
+              goldhover: '#f3e5ab',
+              ivory: '#f5efe4',
+              bistre: '#a89f91',
+              muted: '#786c59',
+            }
+          }
+        }
       }
-      /* Lueur de reliure (seam glow) entre les deux volets du registre */
-      .seam-glow {
-        box-shadow: 0 0 25px 6px rgba(217, 119, 6, 0.55);
-      }
-      /* Vis de fixation des plaques techniques (fente cruciforme stylisée) */
-      .screw {
-        position: absolute;
-        height: 0.6rem;
-        width: 0.6rem;
-        border-radius: 9999px;
-        background-image: linear-gradient(135deg, #e3d2ab 0%, #a08b60 45%, #5b4a2c 100%);
-        box-shadow: 0 1px 1px rgba(0, 0, 0, 0.65), inset 0 0 2px rgba(0, 0, 0, 0.45);
-      }
-      .screw::after {
-        content: "";
-        position: absolute;
-        inset: 38% 12%;
-        background: rgba(0, 0, 0, 0.45);
-        transform: rotate(28deg);
-        border-radius: 1px;
-      }
-      .screw-tl { top: 0.5rem; left: 0.5rem; }
-      .screw-tr { top: 0.5rem; right: 0.5rem; }
-      .screw-bl { bottom: 0.5rem; left: 0.5rem; }
-      .screw-br { bottom: 0.5rem; right: 0.5rem; }
-      /* Bouton bakélite / cuivre : biseau + reflets internes */
-      .bakelite {
-        background-image: linear-gradient(to bottom, #c98342 0%, #a5622a 55%, #8a5426 100%);
-        border: 1px solid rgba(176, 141, 87, 0.6);
-        box-shadow:
-          inset 0 1px 0 rgba(255, 255, 255, 0.32),
-          inset 0 -2px 4px rgba(0, 0, 0, 0.35),
-          0 6px 16px rgba(0, 0, 0, 0.55);
-      }
-      .bakelite:hover {
-        filter: brightness(1.1);
-      }
-      .bakelite:active {
-        transform: translateY(1px);
-        box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.6);
-      }
-    </style>
-  </head>
+    }
+  </script>
+  <style>
+    body {
+      background-color: #0e0c0a;
+      color: #f5efe4;
+      background-image: radial-gradient(circle at 50% 20%, #1e1913 0%, #0e0c0a 75%);
+    }
+    .brass-border {
+      border: 1px solid #382f22;
+      box-shadow: inset 0 0 15px rgba(212, 175, 55, 0.03);
+    }
+    .brass-border:hover {
+      border-color: #8f6e2b;
+      box-shadow: inset 0 0 20px rgba(212, 175, 55, 0.08);
+    }
+  </style>
+</head>
+<body class="font-serif antialiased selection:bg-[#8f6e2b]/30 selection:text-[#f3e5ab]">
 
-  <body class="min-h-screen font-serif text-ink antialiased">
-    <main class="relative mx-auto w-full max-w-6xl px-6 py-12">
-      <!-- Bandeau d'ambiance -->
-      <header class="mb-8 text-center">
-        <p class="font-mono text-[11px] uppercase tracking-[0.5em] text-parchment/50">
-          Atelier d'écriture littéraire · MMXXVI
-        </p>
-      </header>
+  <!-- Bandeau Supérieur -->
+  <header class="border-b border-atelier-border bg-atelier-ebony/90 backdrop-blur-md sticky top-0 z-50">
+    <div class="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <span class="text-atelier-gold text-xl">❦</span>
+        <span class="font-cinzel text-lg tracking-[0.25em] text-atelier-ivory font-semibold">ALDUS</span>
+        <span class="text-xs uppercase tracking-widest text-atelier-muted hidden sm:inline-block">· Officina Aldina</span>
+      </div>
+      <nav class="flex items-center gap-6 text-sm tracking-widest uppercase">
+        <a href="#philosophie" class="text-atelier-bistre hover:text-atelier-gold transition-colors">L'Atelier</a>
+        <a href="#modules" class="text-atelier-bistre hover:text-atelier-gold transition-colors">Outils</a>
+        <a href="#telechargement" class="text-atelier-gold border border-atelier-brass px-3 py-1 rounded-xs hover:bg-[#221b14] hover:text-atelier-goldhover transition-all">Télécharger</a>
+      </nav>
+    </div>
+  </header>
 
-      <!-- Le Registre : double page rétro -->
-      <section
-        class="relative grid grid-cols-1 overflow-hidden rounded-md shadow-[0_20px_50px_rgba(0,0,0,0.65)] md:grid-cols-2"
-      >
-        <!-- Volet gauche : page de garde -->
-        <div
-          class="relative bg-parchment px-10 py-12 shadow-[inset_-25px_0_25px_-20px_rgba(0,0,0,0.18)]"
-        >
-          <div class="mb-8 flex h-24 w-24 items-center justify-center rounded-sm bg-gold shadow-[inset_0_4px_10px_rgba(0,0,0,0.35),inset_0_-2px_6px_rgba(255,255,255,0.15)]">
-            <span
-              class="font-display text-5xl font-bold leading-none text-parchment drop-shadow-[0_1px_1px_rgba(0,0,0,0.4)]"
-              >D</span
-            >
+  <!-- Hero Section -->
+  <main class="max-w-5xl mx-auto px-6 pt-24 pb-20 text-center">
+
+    <!-- Devise -->
+    <div class="inline-block mb-6">
+      <p class="font-cinzel text-xs uppercase tracking-[0.3em] text-atelier-gold">« Festina Lente » — Hâte-toi lentement</p>
+      <div class="h-px w-32 bg-gradient-to-r from-transparent via-atelier-brass to-transparent mx-auto mt-2"></div>
+    </div>
+
+    <!-- Titre Royal -->
+    <h1 class="font-cinzel text-4xl sm:text-6xl tracking-[0.15em] text-atelier-ivory mb-6 font-semibold">
+      L'Atelier du Livre Moderne
+    </h1>
+
+    <p class="text-lg sm:text-2xl text-atelier-bistre max-w-2xl mx-auto italic mb-10 leading-relaxed">
+      L'alliance de la typographie humaniste de la Renaissance vénitienne et de l'ingénierie éditoriale millimétrique pour Amazon KDP.
+    </p>
+
+    <!-- Lettrine & Médaillon central -->
+    <div class="my-12 flex justify-center">
+      <div class="relative w-44 h-44 rounded-full border-2 border-atelier-brass/60 flex items-center justify-center bg-gradient-to-b from-[#1c1813] to-[#120f0c] shadow-2xl">
+        <div class="absolute inset-2 rounded-full border border-atelier-brass/30"></div>
+        <span class="font-cinzel text-7xl text-atelier-gold drop-shadow-[0_2px_10px_rgba(212,175,55,0.4)]">A</span>
+        <div class="absolute -bottom-3 px-4 py-0.5 bg-atelier-ebony border border-atelier-brass rounded-xs text-[10px] tracking-widest uppercase text-atelier-gold">
+          Édition Vénitienne
+        </div>
+      </div>
+    </div>
+
+    <!-- CTA Principal -->
+    <div class="flex flex-col sm:flex-row items-center justify-center gap-4 mt-8">
+      <a href="#telechargement" class="w-full sm:w-auto px-8 py-3.5 bg-gradient-to-r from-[#221b14] via-[#2d241a] to-[#221b14] border border-atelier-brass text-atelier-ivory font-cinzel text-xs uppercase tracking-[0.2em] rounded-xs hover:border-atelier-gold hover:text-atelier-gold transition-all shadow-lg">
+        Obtenir Aldus v1.0.0 ›
+      </a>
+      <a href="https://github.com/danoe78210/aldus" target="_blank" rel="noopener noreferrer" class="w-full sm:w-auto px-8 py-3.5 border border-atelier-border text-atelier-bistre font-cinzel text-xs uppercase tracking-[0.2em] rounded-xs hover:border-atelier-brass hover:text-atelier-ivory transition-all">
+        Code Source GitHub ↗
+      </a>
+    </div>
+
+    <!-- Section Philosophie -->
+    <section id="philosophie" class="pt-32 text-left">
+      <div class="text-center mb-16">
+        <span class="text-atelier-gold text-xl">❦</span>
+        <h2 class="font-cinzel text-2xl sm:text-3xl tracking-[0.2em] uppercase text-atelier-ivory mt-2">L'Esprit Dark Atelier</h2>
+        <p class="text-atelier-muted text-sm mt-1 uppercase tracking-widest">Une rupture franche avec les outils bureautiques aseptisés</p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div class="p-8 rounded-xs bg-atelier-card brass-border transition-all">
+          <div class="text-atelier-gold text-2xl mb-4 font-cinzel">I.</div>
+          <h3 class="font-cinzel text-lg text-atelier-ivory tracking-wider mb-2">Ébène & Cuir</h3>
+          <p class="text-atelier-bistre text-base leading-relaxed">
+            Une interface feutrée pensée pour éliminer la fatigue visuelle des longues veilles d'écriture et redonner au créateur la sérénité d'un pupitre relié.
+          </p>
+        </div>
+
+        <div class="p-8 rounded-xs bg-atelier-card brass-border transition-all">
+          <div class="text-atelier-gold text-2xl mb-4 font-cinzel">II.</div>
+          <h3 class="font-cinzel text-lg text-atelier-ivory tracking-wider mb-2">Règles Humanistes</h3>
+          <p class="text-atelier-bistre text-base leading-relaxed">
+            Application scrupuleuse des préceptes de l'Imprimerie nationale : espaces insécables, tirets cadratins, apostrophes courbes et majuscules accentuées.
+          </p>
+        </div>
+
+        <div class="p-8 rounded-xs bg-atelier-card brass-border transition-all">
+          <div class="text-atelier-gold text-2xl mb-4 font-cinzel">III.</div>
+          <h3 class="font-cinzel text-lg text-atelier-ivory tracking-wider mb-2">Rigueur KDP</h3>
+          <p class="text-atelier-bistre text-base leading-relaxed">
+            Calibrage millimétrique instantané du dos selon le grammage et papier (blanc ou crème), repères de coupe et fond perdu KDP de 3,2 mm.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Section Modules -->
+    <section id="modules" class="pt-32 text-left">
+      <div class="text-center mb-16">
+        <span class="text-atelier-gold text-xl">✦</span>
+        <h2 class="font-cinzel text-2xl sm:text-3xl tracking-[0.2em] uppercase text-atelier-ivory mt-2">Les Feuillets de Composition</h2>
+        <p class="text-atelier-muted text-sm mt-1 uppercase tracking-widest">De la première ligne manuscrite au pressoir final</p>
+      </div>
+
+      <div class="space-y-6">
+        <div class="p-8 rounded-xs bg-atelier-card brass-border flex flex-col md:flex-row gap-6 items-start md:items-center justify-between">
+          <div>
+            <span class="text-xs font-cinzel uppercase tracking-widest text-atelier-gold">Feuillets I & II</span>
+            <h3 class="font-cinzel text-xl text-atelier-ivory mt-1">L'Identité & L'Achevé d'Imprimer</h3>
+            <p class="text-atelier-bistre text-base mt-2 max-w-xl">
+              Registre d'atelier recueillant le titre, tomaison, auteur, illustrateur, ISBN et mentions légales de l'ouvrage sur double page reliée.
+            </p>
           </div>
+          <span class="text-xs uppercase tracking-widest text-atelier-muted border border-atelier-border px-3 py-1">Métadonnées</span>
+        </div>
 
-          <h1 class="font-display text-4xl uppercase tracking-[0.35em] text-stone-800">
-            Danoë Studio
-          </h1>
-
-          <div class="mt-5 flex w-72 items-center gap-4">
-            <span class="h-px flex-1 bg-stone-400/60"></span>
-            <span class="whitespace-nowrap text-sm italic text-stone-500">Machine à romans</span>
-            <span class="h-px flex-1 bg-stone-400/60"></span>
+        <div class="p-8 rounded-xs bg-atelier-card brass-border flex flex-col md:flex-row gap-6 items-start md:items-center justify-between">
+          <div>
+            <span class="text-xs font-cinzel uppercase tracking-widest text-atelier-gold">Feuillets III & IV</span>
+            <h3 class="font-cinzel text-xl text-atelier-ivory mt-1">L'Organisation & L'Imposition</h3>
+            <p class="text-atelier-bistre text-base mt-2 max-w-xl">
+              Table des matières à points de conduite, glisser-déposer de chapitres (Markdown, Word, Typst) et découpage automatique en cahiers d'imprimerie.
+            </p>
           </div>
-
-          <p class="mt-8 max-w-md text-[15px] leading-relaxed text-stone-700">
-            Un grand registre ancien ouvert sur un bureau d'atelier : composez vos actes et vos
-            chapitres, laissez la machine veiller sur la langue, puis coulez votre manuscrit en un
-            livre prêt à paraître. Du brouillon à l'épreuve d'imprimeur, tout reste sur votre
-            bureau.
-          </p>
-
-          <ul class="mt-8 space-y-2 font-mono text-[11px] uppercase tracking-widest text-stone-500">
-            <li>· Manuscrit local, aucun compte</li>
-            <li>· Sortie conforme KDP broché</li>
-            <li>· Fonctionne hors ligne</li>
-          </ul>
+          <span class="text-xs uppercase tracking-widest text-atelier-muted border border-atelier-border px-3 py-1">Imposition</span>
         </div>
-        <!-- Lueur de reliure (seam glow) -->
-        <div
-          aria-hidden="true"
-          class="seam-glow pointer-events-none absolute inset-y-3 left-1/2 hidden w-[3px] -translate-x-1/2 rounded-full bg-amber-500/60 md:block"
-        ></div>
 
-        <!-- Volet droit : téléchargement + spécifications -->
-        <div
-          class="relative flex flex-col justify-center gap-6 bg-parchment-dark px-10 py-12 shadow-[inset_25px_0_25px_-20px_rgba(0,0,0,0.18)]"
-        >
-          <h2 class="font-display text-2xl uppercase tracking-[0.3em] text-stone-700">
-            Épreuve d'imprimeur
-          </h2>
-
-          <a
-            href="https://github.com/danoe78210/DanoeStudioII/releases/latest"
-            class="bakelite inline-flex flex-wrap items-center justify-center gap-3 rounded-sm px-6 py-4 text-center font-display text-sm uppercase tracking-[0.2em] text-amber-50"
-          >
-            Télécharger pour Windows
-            <span class="font-mono text-[11px] normal-case tracking-normal text-amber-100/80">
-              v0.1.0 · autonome
-            </span>
-          </a>
-
-          <p class="font-mono text-[11px] uppercase tracking-widest text-stone-500">
-            Windows 10/11 64-bit · Installateur autonome · Aucun prérequis
-          </p>
-
-          <p class="font-serif text-[13px] italic leading-relaxed text-stone-600">
-            L'installateur dépose l'atelier sur votre machine ; le manuscrit, lui, reste où vous
-            l'avez posé.
-          </p>
+        <div class="p-8 rounded-xs bg-atelier-card brass-border flex flex-col md:flex-row gap-6 items-start md:items-center justify-between">
+          <div>
+            <span class="text-xs font-cinzel uppercase tracking-widest text-atelier-gold">Feuillets V & VI</span>
+            <h3 class="font-cinzel text-xl text-atelier-ivory mt-1">Le Marbre de Couverture 2D & 3D</h3>
+            <p class="text-atelier-bistre text-base mt-2 max-w-xl">
+              Planche de montage d'ardoise avec cotes KDP exactes, réserve code-barres parchemin, calibreur de tranche dynamique et bascule en volume relié 3D.
+            </p>
+          </div>
+          <span class="text-xs uppercase tracking-widest text-atelier-muted border border-atelier-border px-3 py-1">Gabarits</span>
         </div>
-      </section>
 
-      <!-- Plaques techniques rétro -->
-      <section class="mt-10 grid grid-cols-1 gap-5 sm:grid-cols-2">
-        <article
-          class="relative rounded-sm border border-brass/40 bg-desk-light/80 px-6 py-6 shadow-[0_10px_30px_rgba(0,0,0,0.5)]"
-        >
-          <span class="screw screw-tl"></span><span class="screw screw-tr"></span>
-          <span class="screw screw-bl"></span><span class="screw screw-br"></span>
-          <h3 class="mb-2 font-display text-sm uppercase tracking-[0.25em] text-gold">
-            Organisation &amp; Chemin de fer
-          </h3>
-          <p class="font-serif text-[13px] leading-relaxed text-parchment/70">
-            Glisser-déposer des actes, chapitres et pages modulaires : le manuscrit s'ordonne
-            section par section, comme un plan de voies.
-          </p>
-        </article>
-
-        <article
-          class="relative rounded-sm border border-brass/40 bg-desk-light/80 px-6 py-6 shadow-[0_10px_30px_rgba(0,0,0,0.5)]"
-        >
-          <span class="screw screw-tl"></span><span class="screw screw-tr"></span>
-          <span class="screw screw-bl"></span><span class="screw screw-br"></span>
-          <h3 class="mb-2 font-display text-sm uppercase tracking-[0.25em] text-gold">
-            Correcteur linguistique
-          </h3>
-          <p class="font-serif text-[13px] leading-relaxed text-parchment/70">
-            LanguageTool au banc d'essai : syntaxe Markdown masquée (frontmatter Obsidian, appels de
-            notes), toponymes et noms propres mis de côté, fautes soulignées à l'encre rouge.
-          </p>
-        </article>
-
-        <article
-          class="relative rounded-sm border border-brass/40 bg-desk-light/80 px-6 py-6 shadow-[0_10px_30px_rgba(0,0,0,0.5)]"
-        >
-          <span class="screw screw-tl"></span><span class="screw screw-tr"></span>
-          <span class="screw screw-bl"></span><span class="screw screw-br"></span>
-          <h3 class="mb-2 font-display text-sm uppercase tracking-[0.25em] text-gold">
-            Moteur Typst &amp; KDP
-          </h3>
-          <p class="font-serif text-[13px] leading-relaxed text-parchment/70">
-            PDF broché prêt-à-imprimer (gouttières et marges calculées), Word .docx structuré et
-            EPUB 3, à partir d'un seul manuscrit.
-          </p>
-        </article>
-
-        <article
-          class="relative rounded-sm border border-brass/40 bg-desk-light/80 px-6 py-6 shadow-[0_10px_30px_rgba(0,0,0,0.5)]"
-        >
-          <span class="screw screw-tl"></span><span class="screw screw-tr"></span>
-          <span class="screw screw-bl"></span><span class="screw screw-br"></span>
-          <h3 class="mb-2 font-display text-sm uppercase tracking-[0.25em] text-gold">
-            Aperçu interactif
-          </h3>
-          <p class="font-serif text-[13px] leading-relaxed text-parchment/70">
-            Feuilletez le livre rendu : double page sur l'écran, reliure ombrée au centre,
-            chargement des pages à la demande.
-          </p>
-        </article>
-      </section>
-
-      <!-- Console inférieure -->
-      <section
-        class="mt-10 rounded-sm border border-brass/30 bg-black/50 px-6 py-5 shadow-[inset_0_2px_6px_rgba(0,0,0,0.6)]"
-      >
-        <div
-          class="mb-3 flex items-center justify-between gap-4 font-mono text-[10px] uppercase tracking-widest text-parchment/50"
-        >
-          <span>Journal des opérations</span>
-          <span class="text-verdigris">● Prêt pour l'édition</span>
+        <div class="p-8 rounded-xs bg-atelier-card brass-border flex flex-col md:flex-row gap-6 items-start md:items-center justify-between">
+          <div>
+            <span class="text-xs font-cinzel uppercase tracking-widest text-atelier-gold">Feuillets VII & VIII</span>
+            <h3 class="font-cinzel text-xl text-atelier-ivory mt-1">Le Correcteur Humaniste</h3>
+            <p class="text-atelier-bistre text-base mt-2 max-w-xl">
+              Examen rigoureux des règles typographiques françaises : ligatures (œ, æ), espaces fines insécables, contrôle des veuves et orphelines.
+            </p>
+          </div>
+          <span class="text-xs uppercase tracking-widest text-atelier-muted border border-atelier-border px-3 py-1">Orthotypographie</span>
         </div>
-        <div class="space-y-1 font-mono text-[11px] text-parchment/75">
-          <p><span class="text-parchment/40">[—]</span> Registre initialisé. Prêt à écrire.</p>
-          <p><span class="text-parchment/40">[—]</span> Moteur Typst armé — format de coupe 6×9 po.</p>
-          <p><span class="text-parchment/40">[—]</span> Correcteur linguistique en veille.</p>
-        </div>
-        <p class="mt-4 font-mono text-[11px] text-parchment/60">
-          Dépôt :
-          <a
-            href="https://github.com/danoe78210/DanoeStudioII"
-            class="text-copper underline decoration-dotted underline-offset-4 hover:text-gold"
-            >github.com/danoe78210/DanoeStudioII</a
-          >
-        </p>
-      </section>
 
-      <footer
-        class="mt-10 text-center font-mono text-[10px] uppercase tracking-[0.3em] text-parchment/35"
-      >
-        Danoë Studio · Machine à romans · Fait à la main
-      </footer>
-    </main>
-  </body>
+        <div class="p-8 rounded-xs bg-atelier-card brass-border flex flex-col md:flex-row gap-6 items-start md:items-center justify-between">
+          <div>
+            <span class="text-xs font-cinzel uppercase tracking-widest text-atelier-gold">Feuillets IX & X</span>
+            <h3 class="font-cinzel text-xl text-atelier-ivory mt-1">Le Pressoir & Tirage Final</h3>
+            <p class="text-atelier-bistre text-base mt-2 max-w-xl">
+              Presse typographique générant l'intérieur du livre au format d'impression haute fidélité, le gabarit vectoriel de couverture et le livre numérique ePub 3.
+            </p>
+          </div>
+          <span class="text-xs uppercase tracking-widest text-atelier-muted border border-atelier-border px-3 py-1">Presse</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Section Téléchargement -->
+    <section id="telechargement" class="pt-32 text-center">
+      <div class="mb-12">
+        <span class="text-atelier-gold text-xl">❦</span>
+        <h2 class="font-cinzel text-3xl sm:text-4xl tracking-[0.2em] uppercase text-atelier-ivory mt-2">Prendre Place dans l'Atelier</h2>
+        <p class="text-atelier-muted text-sm mt-1 uppercase tracking-widest">Version 1.0.0 — Édition Vénitienne</p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6 text-left max-w-4xl mx-auto">
+
+        <!-- Windows -->
+        <div class="p-6 rounded-xs bg-atelier-card brass-border flex flex-col justify-between">
+          <div>
+            <h3 class="font-cinzel text-lg text-atelier-ivory">Windows</h3>
+            <p class="text-xs text-atelier-muted mt-1">Windows 10 / 11 (64-bit)</p>
+            <div class="my-4 text-xs text-atelier-bistre space-y-1">
+              <p>• Installeur autonome complet</p>
+              <p>• Paquet MSI pour déploiement</p>
+            </div>
+          </div>
+          <div class="space-y-2 pt-4 border-t border-atelier-border/50">
+            <a href="https://github.com/danoe78210/aldus/releases/download/v1.0.0/Aldus_1.0.0_x64-setup.exe" class="block w-full py-2 text-center bg-[#1f1913] border border-atelier-brass text-atelier-ivory font-cinzel text-xs uppercase tracking-wider rounded-xs hover:border-atelier-gold hover:text-atelier-gold transition-colors">
+              Télécharger .EXE (13 Mo)
+            </a>
+            <a href="https://github.com/danoe78210/aldus/releases/download/v1.0.0/Aldus_1.0.0_x64_en-US.msi" class="block w-full py-1.5 text-center border border-atelier-border text-atelier-muted font-cinzel text-[11px] uppercase tracking-wider rounded-xs hover:border-atelier-brass hover:text-atelier-bistre transition-colors">
+              Paquet .MSI (17 Mo)
+            </a>
+          </div>
+        </div>
+
+        <!-- macOS -->
+        <div class="p-6 rounded-xs bg-atelier-card brass-border flex flex-col justify-between">
+          <div>
+            <h3 class="font-cinzel text-lg text-atelier-ivory">macOS</h3>
+            <p class="text-xs text-atelier-muted mt-1">Intel & Apple Silicon (M1/M2/M3/M4)</p>
+            <div class="my-4 text-xs text-atelier-bistre space-y-1">
+              <p>• Binaire universel optimisé</p>
+              <p>• Image disque DMG</p>
+            </div>
+          </div>
+          <div class="pt-4 border-t border-atelier-border/50">
+            <a href="https://github.com/danoe78210/aldus/releases/download/v1.0.0/Aldus_1.0.0_universal.dmg" class="block w-full py-2 text-center bg-[#1f1913] border border-atelier-brass text-atelier-ivory font-cinzel text-xs uppercase tracking-wider rounded-xs hover:border-atelier-gold hover:text-atelier-gold transition-colors">
+              Télécharger .DMG (34 Mo)
+            </a>
+          </div>
+        </div>
+
+        <!-- Linux -->
+        <div class="p-6 rounded-xs bg-atelier-card brass-border flex flex-col justify-between">
+          <div>
+            <h3 class="font-cinzel text-lg text-atelier-ivory">Linux</h3>
+            <p class="text-xs text-atelier-muted mt-1">Debian, Ubuntu, Fedora, Arch</p>
+            <div class="my-4 text-xs text-atelier-bistre space-y-1">
+              <p>• AppImage sans installation</p>
+              <p>• Paquets DEB et RPM</p>
+            </div>
+          </div>
+          <div class="space-y-2 pt-4 border-t border-atelier-border/50">
+            <a href="https://github.com/danoe78210/aldus/releases/download/v1.0.0/Aldus_1.0.0_amd64.AppImage" class="block w-full py-2 text-center bg-[#1f1913] border border-atelier-brass text-atelier-ivory font-cinzel text-xs uppercase tracking-wider rounded-xs hover:border-atelier-gold hover:text-atelier-gold transition-colors">
+              AppImage Portable (93 Mo)
+            </a>
+            <div class="grid grid-cols-2 gap-2">
+              <a href="https://github.com/danoe78210/aldus/releases/download/v1.0.0/Aldus_1.0.0_amd64.deb" class="py-1 text-center border border-atelier-border text-atelier-muted font-cinzel text-[10px] uppercase tracking-wider rounded-xs hover:border-atelier-brass hover:text-atelier-bistre transition-colors">
+                .DEB
+              </a>
+              <a href="https://github.com/danoe78210/aldus/releases/download/v1.0.0/Aldus-1.0.0-1.x86_64.rpm" class="py-1 text-center border border-atelier-border text-atelier-muted font-cinzel text-[10px] uppercase tracking-wider rounded-xs hover:border-atelier-brass hover:text-atelier-bistre transition-colors">
+                .RPM
+              </a>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <p class="text-xs text-atelier-muted mt-8">
+        Tous les installeurs sont compilés de manière reproductible via GitHub Actions. Consultez le
+        <a href="https://github.com/danoe78210/aldus/releases/tag/v1.0.0" class="text-atelier-gold underline hover:text-atelier-goldhover">journal de version complet</a>.
+      </p>
+    </section>
+
+  </main>
+
+  <!-- Pied de page Vénitien -->
+  <footer class="border-t border-atelier-border bg-atelier-ebony mt-32 py-12 text-center">
+    <div class="max-w-4xl mx-auto px-6">
+      <div class="text-atelier-gold text-2xl mb-3">❦</div>
+      <p class="font-cinzel text-sm uppercase tracking-[0.25em] text-atelier-ivory">Aldus — Officina Aldina</p>
+      <p class="text-xs text-atelier-muted mt-2 italic">
+        Conçu pour honorer les lettres et les livres. Distribué sous licence MIT.
+      </p>
+      <div class="flex justify-center gap-6 mt-6 text-xs uppercase tracking-widest text-atelier-bistre">
+        <a href="https://github.com/danoe78210/aldus" class="hover:text-atelier-gold">Dépôt GitHub</a>
+        <span>·</span>
+        <a href="https://github.com/danoe78210/aldus/releases" class="hover:text-atelier-gold">Notes de version</a>
+        <span>·</span>
+        <a href="https://github.com/danoe78210/aldus/blob/main/LICENSE" class="hover:text-atelier-gold">Licence</a>
+      </div>
+    </div>
+  </footer>
+
+</body>
 </html>
-
