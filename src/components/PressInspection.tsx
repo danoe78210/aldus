@@ -13,7 +13,7 @@ const Cartouche: React.FC<{ index: number; title: string; children: React.ReactN
   title,
   children,
 }) => (
-  <section className="mb-6 border border-[#3a3022]/70 bg-[#13110f]/60 p-4">
+  <section className="mb-4 border border-[#3a3022]/70 bg-[#13110f]/60 p-3.5">
     <h3 className="mb-3 flex items-center gap-2 border-b border-[#3a3022] pb-2 font-serif text-[11px] tracking-widest text-[#d4af37] uppercase">
       <span className="text-[#8f6e2b]">[{index}]</span>
       {title}
@@ -70,19 +70,19 @@ export const PressInspection: React.FC = () => {
   const selectedCount = EXPORT_FORMS.filter((form) => exportForms[form.id]).length;
 
   return (
-    <div className="animate-ink-reveal mx-auto flex h-full w-full max-w-2xl flex-col overflow-y-auto px-2 pr-1">
+    <div className="animate-ink-reveal mx-auto flex h-full w-full max-w-2xl flex-col overflow-y-auto proof-scroll-dark px-2 pr-1">
       <h2 className="mb-6 text-center font-serif text-lg tracking-[0.25em] text-[#d4af37] uppercase">
         IX. Inspection Pré-Presse &amp; Formes
       </h2>
 
       <Cartouche index={1} title="Formes d'édition">
-        <ul className="space-y-2">
+        <ul className="space-y-1.5">
           {EXPORT_FORMS.map((form) => {
             const checked = exportForms[form.id];
             return (
               <li key={form.id}>
                 <label
-                  className={`flex cursor-pointer items-start gap-3 rounded-xs border px-3 py-2 transition-colors ${
+                  className={`flex cursor-pointer items-start gap-2.5 rounded-xs border p-3.5 transition-colors ${
                     checked
                       ? "border-[#8f6e2b]/70 bg-[#1c1814]"
                       : "border-[#3a3022] bg-[#13110f] hover:border-[#8f6e2b]/50"
@@ -105,9 +105,9 @@ export const PressInspection: React.FC = () => {
                     <span className="mt-0.5 block font-mono text-[10px] text-[#9e9587]">
                       {form.engine}
                     </span>
-                    <ul className="mt-1 space-y-0.5">
+                    <ul className="mt-0.5 space-y-0.5">
                       {form.bullets.map((bullet) => (
-                        <li key={bullet} className="font-serif text-[11px] italic text-[#786c59]">
+                        <li key={bullet} className="font-serif text-[11px] italic leading-snug text-[#786c59]">
                           — {bullet}
                         </li>
                       ))}
@@ -160,7 +160,7 @@ export const PressInspection: React.FC = () => {
       </Cartouche>
 
       {/* [4] Jauge d'encrage & de massicotage */}
-      <section className="mb-2 border border-[#3a3022]/70 bg-[#13110f]/60 p-4">
+      <section className="mb-2 border border-[#3a3022]/70 bg-[#13110f]/60 p-3.5">
         <h3 className="mb-3 flex items-center gap-2 border-b border-[#3a3022] pb-2 font-serif text-[11px] tracking-widest text-[#d4af37] uppercase">
           <span className="text-[#8f6e2b]">[4]</span>
           Jauge d&rsquo;encrage &amp; de massicotage

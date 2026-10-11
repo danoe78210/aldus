@@ -9,7 +9,7 @@ import type { ChapterPlacement } from "../data/imposition";
  */
 
 /** Formes d'édition proposées à la presse. */
-export type ExportFormId = "pdf-x" | "epub32" | "cover-300";
+export type ExportFormId = "pdf-x" | "epub32" | "cover-300" | "docx-x";
 
 export interface ExportForm {
   id: ExportFormId;
@@ -55,6 +55,17 @@ export const EXPORT_FORMS: ExportForm[] = [
       "Plats I et IV en résolution d'impression.",
     ],
     handler: "Couverture (jaquette KDP)",
+  },
+  {
+    id: "docx-x",
+    label: "Manuscrit Révisé & Typographié (DOCX)",
+    engine: "Export bureautique consolidé pour relecture éditoriale",
+    bullets: [
+      "Chapitres fusionnés avec application des règles typographiques aldines.",
+      "Styles éditoriaux conservés (titres, corps, notes de bas de page).",
+      "Idéal pour transmission à un comité de lecture ou un correcteur tiers.",
+    ],
+    handler: "Manuscrit révisé (Word .docx)",
   },
 ];
 

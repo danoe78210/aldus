@@ -18,8 +18,13 @@ const placement = (title: string, startPage: number): ChapterPlacement => ({
 });
 
 describe("presse — formes d'édition", () => {
-  it("propose les trois formes du cycle de fabrication", () => {
-    expect(EXPORT_FORMS.map((form) => form.id)).toEqual(["pdf-x", "epub32", "cover-300"]);
+  it("propose les quatre formes du cycle de fabrication", () => {
+    expect(EXPORT_FORMS.map((form) => form.id)).toEqual([
+      "pdf-x",
+      "epub32",
+      "cover-300",
+      "docx-x",
+    ]);
     EXPORT_FORMS.forEach((form) => {
       expect(form.bullets.length).toBeGreaterThan(0);
       expect(form.handler).not.toBe("");

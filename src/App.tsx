@@ -203,6 +203,7 @@ const App: React.FC = () => {
     "pdf-x": true,
     epub32: true,
     "cover-300": true,
+    "docx-x": true,
   });
   const [exportDirectory, setExportDirectory] = useState<string | null>(null);
   const [coverExportRequest, setCoverExportRequest] = useState(0);
