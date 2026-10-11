@@ -25,14 +25,19 @@ const SEVERITY_WORD: Record<TypographySeverity, string> = {
   minor: "mineur",
 };
 
+/** Règles composées par feuillet des « Règles Analysées » (18 règles / 6 par page). */
+const RULES_PER_PAGE = 6;
+/** Feuillets de la pagination des règles. */
+const TOTAL_RULES_FOLIOS = 3;
+
 /**
  * **Page droite du Correcteur** — la bascule d'en-tête vit désormais sur la
  * page gauche (`ProofExaminer.tsx`) ; ici, chaque feuillet s'ouvre directement
  * sur son titre :
  *
- * * **Feuillet VII — Les Règles Analysées** : grille aérée à deux colonnes des
- *   règles activables, **paginée sur deux feuillets de neuf règles** (cartes
- *   `min-h-[66px]`, coche or antique, libellé bistre). Le réglage est partagé :
+ * * **Feuillet VII — Les Règles Analysées** : colonne unique pleine largeur des
+ *   règles activables, **paginée sur trois feuillets de six règles** (cartes
+ *   `min-h-[58px]`, coche or antique, libellé bistre). Le réglage est partagé :
  *   l'analyse « Indice de Pureté » (page gauche) suit le filtre désigné ici.
  * * **Feuillet VIII — Conseils de l'Imprimeur** : liste défilante sombre des
  *   signalements du feuillet actif, correctif unitaire `[ Corriger ]` et
@@ -54,8 +59,8 @@ export const ProofWorkbench: React.FC = () => {
 
   const [mode, setMode] = useState<"face" | "linguistic">("face");
   const [adviceId, setAdviceId] = useState<string | null>(null);
-  // Pagination des « Règles Analysées » : deux feuillets de neuf règles.
-  const [rulesPage, setRulesPage] = useState<1 | 2>(1);
+  // Pagination des « Règles Analysées » : colonne unique sur trois feuillets.
+  const [rulesPage, setRulesPage] = useState<1 | 2 | 3>(1);
 
   const report = useMemo(
     () => analyzeTypography(proofText, proofEnabledRules),
@@ -93,7 +98,10 @@ export const ProofWorkbench: React.FC = () => {
 
   if (proofTab === "purete") {
     /* ═══════ Feuillet VII — Les Règles Analysées (volet droit) ═══════ */
-    const currentRules = ALL_RULES.slice((rulesPage - 1) * 9, rulesPage * 9);
+    const currentRules = ALL_RULES.slice(
+      (rulesPage - 1) * RULES_PER_PAGE,
+      rulesPage * RULES_PER_PAGE,
+    );
     return (
       <div className="animate-ink-reveal flex h-full min-h-0 flex-col overflow-hidden">
         {/* Bandeau : titre, statut global & pupitre de pagination */}
@@ -107,26 +115,26 @@ export const ProofWorkbench: React.FC = () => {
             </p>
           </div>
 
-          {/* Paginator d'Atelier — deux feuillets de neuf règles */}
+          {/* Paginator d'Atelier — trois feuillets de six règles */}
           <div className="flex items-center gap-2">
             <button
               type="button"
-              onClick={() => setRulesPage(1)}
+              onClick={() => setRulesPage((page) => Math.max(1, page - 1) as 1 | 2 | 3)}
               disabled={rulesPage === 1}
-              className="px-2 py-1 rounded-xs border border-[#382f22] bg-[#141210] font-cinzel text-xs text-[#d4af37] hover:border-[#8f6e2b] disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+              className="px-2.5 py-1 rounded-xs border border-[#382f22] bg-[#141210] font-cinzel text-xs text-[#d4af37] hover:border-[#8f6e2b] disabled:opacity-25 disabled:cursor-not-allowed transition-all"
               title="Feuillet précédent"
               aria-label="Feuillet précédent des règles"
             >
               ‹
             </button>
-            <span className="px-1 font-cinzel text-xs uppercase tracking-wider text-[#c9bea9]">
-              Feuillet {rulesPage} sur 2
+            <span className="px-1.5 font-cinzel text-xs uppercase tracking-wider text-[#c9bea9]">
+              Feuillet {rulesPage} sur {TOTAL_RULES_FOLIOS}
             </span>
             <button
               type="button"
-              onClick={() => setRulesPage(2)}
-              disabled={rulesPage === 2}
-              className="px-2 py-1 rounded-xs border border-[#382f22] bg-[#141210] font-cinzel text-xs text-[#d4af37] hover:border-[#8f6e2b] disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+              onClick={() => setRulesPage((page) => Math.min(TOTAL_RULES_FOLIOS, page + 1) as 1 | 2 | 3)}
+              disabled={rulesPage === TOTAL_RULES_FOLIOS}
+              className="px-2.5 py-1 rounded-xs border border-[#382f22] bg-[#141210] font-cinzel text-xs text-[#d4af37] hover:border-[#8f6e2b] disabled:opacity-25 disabled:cursor-not-allowed transition-all"
               title="Feuillet suivant"
               aria-label="Feuillet suivant des règles"
             >
@@ -135,40 +143,46 @@ export const ProofWorkbench: React.FC = () => {
           </div>
         </div>
 
-        {/* Grille paginée — une page tient naturellement en hauteur, sans ascenseur */}
+        {/* Colonne unique — une page tient naturellement en hauteur, sans ascenseur */}
         <div className="min-h-0 flex-1">
-          <div className="grid grid-cols-2 gap-3.5">
+          <div className="flex flex-col gap-3">
             {currentRules.map((rule) => {
               const enabled = proofEnabledRules.includes(rule.id);
               const count = report.anomalies.filter((anomaly) => anomaly.rule === rule.id).length;
               return (
                 <label
                   key={rule.id}
-                  className="min-h-[66px] p-3.5 rounded-xs border border-[#382f22] bg-[#161310] flex items-center justify-between gap-3 transition-all hover:border-[#8f6e2b] hover:bg-[#1a1612]"
+                  className="w-full min-h-[58px] px-4 py-3 rounded-xs border border-[#382f22] bg-[#161310] flex items-center justify-between gap-4 transition-all hover:border-[#8f6e2b] hover:bg-[#1a1612]"
                   style={enabled ? undefined : { opacity: 0.55 }}
                 >
-                  <span className="flex min-w-0 items-start gap-3">
+                  {/* Zone gauche : case à cocher + intitulé & catégorie */}
+                  <span className="flex min-w-0 flex-1 items-center gap-3.5">
                     <input
                       type="checkbox"
                       checked={enabled}
                       onChange={() => onToggleProofRule(rule.id)}
                       aria-label={rule.label}
-                      className="mt-0.5 h-4 w-4 shrink-0 rounded-xs border-[#6b5327] bg-[#120f0c] accent-[#d4af37]"
+                      className="h-4 w-4 shrink-0 cursor-pointer rounded-xs border-[#6b5327] bg-[#120f0c] accent-[#d4af37]"
                     />
                     <span className="min-w-0 flex-1">
-                      <span className="block font-serif text-sm leading-snug font-medium text-[#f5efe4]">
+                      <span className="block truncate font-serif text-sm font-medium leading-snug text-[#f5efe4]">
                         {rule.label}
                       </span>
-                      <span className="mt-1 block font-serif text-xs text-[#8f8373]">
-                        {FAMILY_LABEL[rule.family]} · {SEVERITY_WORD[rule.severity]}
+                      <span className="mt-0.5 block font-serif text-xs text-[#8f8373]">
+                        {FAMILY_LABEL[rule.family]} ·{" "}
+                        <span style={{ color: SEVERITY_COLOR[rule.severity] }}>
+                          {SEVERITY_WORD[rule.severity]}
+                        </span>
                       </span>
                     </span>
                   </span>
-                  {count > 0 ? (
-                    <span className="min-w-[26px] shrink-0 px-2 py-0.5 rounded-xs border border-[#5a4f3f] bg-[#1c1813] font-mono text-xs font-semibold text-[#d4af37] text-center tabular-nums">
+
+                  {/* Zone droite : badge d'anomalies */}
+                  {count > 0 && (
+                    <span className="shrink-0 min-w-[28px] px-2 py-0.5 rounded-xs border border-[#5a4f3f] bg-[#1c1813] font-mono text-xs font-semibold text-[#d4af37] text-center tabular-nums shadow-xs">
                       {count}
                     </span>
-                  ) : null}
+                  )}
                 </label>
               );
             })}
