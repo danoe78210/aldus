@@ -558,16 +558,40 @@
         </article>
 
         <!-- Banc IV -->
-        <article class="banc-card p-6 rounded-xs bg-atelier-card brass-border flex flex-col">
-          <div class="banc-preview">
-            <span class="banc-preview-placeholder">banc-4.png</span>
-            <img src="assets/screenshots/banc-4.png" alt="Banc IV — Le Banc de Qualité Typographique" loading="lazy" onerror="this.remove()">
+        <article class="banc-card banc-featured md:col-span-2 lg:col-span-3 p-6 sm:p-8 rounded-xs bg-atelier-card brass-border flex flex-col">
+          <div class="banc-showcase">
+            <div class="flex flex-col">
+              <span class="font-cinzel text-xs uppercase tracking-widest text-atelier-gold">Banc IV</span>
+              <h3 class="font-cinzel text-xl sm:text-2xl text-atelier-ivory mt-1">Le Banc de Qualité Typographique</h3>
+              <p class="banc-menu">Menu Correcteur — Vue I</p>
+              <p class="banc-subtitle">L'indice de qualité et l'inspection minutieuse des règles typographiques aldines.</p>
+              <ul class="banc-points">
+                <li><span class="banc-point-key">Rôle :</span> Évaluation globale de la qualité typographique et inspection rigoureuse des canons aldins.</li>
+                <li><span class="banc-point-key">Fonctionnalités de la page de gauche (Synthèse) :</span> Tableau de bord par chapitre, jauge de l'indice de qualité, classification pondérée des anomalies (critiques, style, mineures) et regroupement par catégories (ponctuation, dialogues, ligatures, hygiène spatiale).</li>
+                <li><span class="banc-point-key">Fonctionnalités de la page de droite (Registre) :</span> Navigation par feuillets à travers les 18 contrôles actifs, fiches de règles détaillées et comptage précis des occurrences.</li>
+                <li><span class="banc-point-key">Définition de l'Indice de Qualité :</span> Métrique d'excellence reflétant la pureté typographique du volume et pondérant les écarts selon leur gravité.</li>
+                <li><span class="banc-point-key">Définition de l'Usage Typographique Aldin :</span> Application souveraine des règles humanistes de haute typographie (espaces fines, guillemets français, ponctuation soignée) et consignation au registre de l'atelier.</li>
+              </ul>
+            </div>
+
+            <!-- Pupitre d'exposition à onglets -->
+            <div class="flex flex-col" data-banc-viewer="banc-4">
+              <div class="banc-tabs" role="tablist" aria-label="Vues de l'épreuve du Banc IV">
+                <button type="button" role="tab" class="banc-tab active" data-banc-tab="synthese" aria-selected="true" onclick="selectBancView('banc-4','synthese')">Synthèse &amp; Tableau de bord</button>
+                <button type="button" role="tab" class="banc-tab" data-banc-tab="regles" aria-selected="false" onclick="selectBancView('banc-4','regles')">Registre des règles analysées</button>
+              </div>
+
+              <div class="banc-viewer" id="banc-4-viewer">
+                <span class="banc-viewer-placeholder">Épreuves à venir — déposer banc-4-synthese.png &amp; banc-4-regles.png</span>
+                <img class="banc-viewer-img is-active" data-banc-img="synthese" src="assets/screenshots/banc-4-synthese.png" alt="Synthèse — tableau de bord par chapitre, jauge de l'indice de qualité et anomalies pondérées" loading="lazy" onload="var p=this.parentElement.querySelector('.banc-viewer-placeholder'); if(p){p.remove();}" onerror="this.remove()">
+                <img class="banc-viewer-img" data-banc-img="regles" src="assets/screenshots/banc-4-regles.png" alt="Registre des règles analysées — 18 contrôles actifs, fiches de règles et comptage des occurrences" loading="lazy" onload="var p=this.parentElement.querySelector('.banc-viewer-placeholder'); if(p){p.remove();}" onerror="this.remove()">
+              </div>
+
+              <p class="banc-viewer-caption" id="banc-4-caption" data-banc-caption>Synthèse &amp; tableau de bord — indice de qualité, anomalies pondérées et familles de règles</p>
+
+              <button type="button" class="banc-zoom" id="banc-4-zoom" onclick="zoomBancView('banc-4')" title="Ouvrir l'épreuve active en haute définition">⤢ Examiner en grand format</button>
+            </div>
           </div>
-          <span class="font-cinzel text-xs uppercase tracking-widest text-atelier-gold mt-5">Banc IV</span>
-          <h3 class="font-cinzel text-lg text-atelier-ivory mt-1">Le Banc de Qualité Typographique</h3>
-          <p class="banc-menu">Menu Correcteur — Vue I</p>
-          <p class="banc-role"><span class="banc-role-key">Rôle :</span> Indice de qualité typographique et analyse rigoureuse des règles aldines.</p>
-          <p class="banc-legende">Détection en temps réel des veuves, orphelines, césures abusives, tirets cadratins et espaces insécables sous forme de métriques claires.</p>
         </article>
 
         <!-- Banc V -->
@@ -946,6 +970,19 @@
         calibrage: {
           src: "assets/screenshots/banc-3-calibrage.png",
           caption: "Calibrage & critères KDP — seuils de pagination et contraintes d'impression à la demande",
+        },
+      },
+    },
+    "banc-4": {
+      default: "synthese",
+      views: {
+        synthese: {
+          src: "assets/screenshots/banc-4-synthese.png",
+          caption: "Synthèse & tableau de bord — indice de qualité, anomalies pondérées et familles de règles",
+        },
+        regles: {
+          src: "assets/screenshots/banc-4-regles.png",
+          caption: "Registre des règles analysées — 18 contrôles actifs, fiches de règles et comptage des occurrences",
         },
       },
     },

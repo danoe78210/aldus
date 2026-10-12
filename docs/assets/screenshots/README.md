@@ -10,7 +10,7 @@ Déposez ici les images suivantes (PNG recommandé, ratio ~16/10, largeur ≥ 96
 | `banc-1-parametres.png` + `banc-1-formats.png` | Banc I — Le Banc de Calibrage & Gabarits | Menu Réglages (diptyque) |
 | `banc-2-identite.png` + `banc-2-colophon.png` | Banc II — Le Banc de l'Identité & du Colophon | Menu Informations (diptyque) |
 | `banc-3-architecture.png` + `banc-3-calibrage.png` | Banc III — Le Banc de l'Architecture Narrative | Menu Organisation (diptyque) |
-| `banc-4.png` | Banc IV — Le Banc de Pureté Typographique | Menu Correcteur — Vue I |
+| `banc-4-synthese.png` + `banc-4-regles.png` | Banc IV — Le Banc de Qualité Typographique | Menu Correcteur — Vue I (diptyque) |
 | `banc-5.png` | Banc V — Le Banc d'Épreuve & Retouche | Menu Correcteur — Vue II |
 | `banc-6.png` | Banc VI — Le Banc de Jaquette & Reliure | Menu Couverture |
 | `banc-7.png` | Banc VII — L'Inspection Pré-Presse | Menu Export — Vue I |
