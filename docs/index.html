@@ -277,6 +277,15 @@
       text-align: center;
       color: #786c59;
     }
+    .banc-viewer-placeholder.is-hidden {
+      display: none;
+    }
+    /* Capture non déposée : l'élément reste dans le DOM (on connaît son nom)
+       mais n'affiche ni icône cassée ni zone cliquable. */
+    .banc-viewer-img[data-broken] {
+      opacity: 0 !important;
+      pointer-events: none !important;
+    }
     .banc-viewer-caption {
       margin-top: 0.6rem;
       font-size: 0.625rem;
@@ -452,7 +461,7 @@
       <div class="text-center mb-16">
         <span class="text-atelier-gold text-xl">❦</span>
         <h2 class="font-cinzel text-2xl sm:text-3xl tracking-[0.2em] uppercase text-atelier-ivory mt-2">Les Bancs de l'Atelier</h2>
-        <p class="text-atelier-muted text-sm mt-1 uppercase tracking-widest">Les huit bancs d'ingénierie éditoriale, du calibrage au tirage</p>
+        <p class="text-atelier-muted text-sm mt-1 uppercase tracking-widest">Les sept bancs d'ingénierie éditoriale, du calibrage au tirage</p>
       </div>
 
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -481,8 +490,8 @@
               </div>
 
               <div class="banc-viewer" id="banc-1-viewer">
-                <img class="banc-viewer-img is-active" data-banc-img="parametres" src="assets/screenshots/banc-1-parametres.png" alt="Paramètres du volume — format 7×10 po, corps Garamond 11 pt, interligne 1,15 et titrages" loading="lazy" onerror="this.remove()">
-                <img class="banc-viewer-img" data-banc-img="formats" src="assets/screenshots/banc-1-formats.png" alt="Nuancier des formats de coupe — du format poche au grand format et A4" loading="lazy" onerror="this.remove()">
+                <img class="banc-viewer-img is-active" data-banc-img="parametres" src="assets/screenshots/banc-1-parametres.png" alt="Paramètres du volume — format 7×10 po, corps Garamond 11 pt, interligne 1,15 et titrages" loading="lazy" onerror="this.dataset.broken='1'; bancShotLoaded(this)">
+                <img class="banc-viewer-img" data-banc-img="formats" src="assets/screenshots/banc-1-formats.png" alt="Nuancier des formats de coupe — du format poche au grand format et A4" loading="lazy" onerror="this.dataset.broken='1'; bancShotLoaded(this)">
               </div>
 
               <p class="banc-viewer-caption" id="banc-1-caption" data-banc-caption>Paramètres du livre &amp; mise en page — format 7×10 po · Garamond 11 pt · interligne 1,15</p>
@@ -512,8 +521,8 @@
               </div>
 
               <div class="banc-viewer" id="banc-2-viewer">
-                <img class="banc-viewer-img is-active" data-banc-img="identite" src="assets/screenshots/banc-2-identite.png" alt="Identité de l'œuvre — titre, tomaison, auteur, illustrateur et signature" loading="lazy" onerror="this.remove()">
-                <img class="banc-viewer-img" data-banc-img="colophon" src="assets/screenshots/banc-2-colophon.png" alt="Colophon et administration — mentions légales, ISBN et achevé d'imprimer" loading="lazy" onerror="this.remove()">
+                <img class="banc-viewer-img is-active" data-banc-img="identite" src="assets/screenshots/banc-2-identite.png" alt="Identité de l'œuvre — titre, tomaison, auteur, illustrateur et signature" loading="lazy" onerror="this.dataset.broken='1'; bancShotLoaded(this)">
+                <img class="banc-viewer-img" data-banc-img="colophon" src="assets/screenshots/banc-2-colophon.png" alt="Colophon et administration — mentions légales, ISBN et achevé d'imprimer" loading="lazy" onerror="this.dataset.broken='1'; bancShotLoaded(this)">
               </div>
 
               <p class="banc-viewer-caption" id="banc-2-caption" data-banc-caption>Identité de l'œuvre — titre, tomaison, auteur, illustrateur et signature</p>
@@ -545,9 +554,9 @@
               </div>
 
               <div class="banc-viewer" id="banc-3-viewer">
-                <span class="banc-viewer-placeholder">Épreuves à venir — déposer banc-3-architecture.png &amp; banc-3-calibrage.png</span>
-                <img class="banc-viewer-img is-active" data-banc-img="architecture" src="assets/screenshots/banc-3-architecture.png" alt="Architecture narrative — actes, chapitres, pièces liminaires et illustrations" loading="lazy" onload="var p=this.parentElement.querySelector('.banc-viewer-placeholder'); if(p){p.remove();}" onerror="this.remove()">
-                <img class="banc-viewer-img" data-banc-img="calibrage" src="assets/screenshots/banc-3-calibrage.png" alt="Calibrage KDP — seuils de pagination et contraintes d'impression à la demande" loading="lazy" onload="var p=this.parentElement.querySelector('.banc-viewer-placeholder'); if(p){p.remove();}" onerror="this.remove()">
+                <span class="banc-viewer-placeholder" data-banc-placeholder>Épreuve à venir — banc-3-architecture.png</span>
+                <img class="banc-viewer-img is-active" data-banc-img="architecture" src="assets/screenshots/banc-3-architecture.png" alt="Architecture narrative — actes, chapitres, pièces liminaires et illustrations" loading="lazy" onload="bancShotLoaded(this)" onerror="this.dataset.broken='1'; bancShotLoaded(this)">
+                <img class="banc-viewer-img" data-banc-img="calibrage" src="assets/screenshots/banc-3-calibrage.png" alt="Calibrage KDP — seuils de pagination et contraintes d'impression à la demande" loading="lazy" onload="bancShotLoaded(this)" onerror="this.dataset.broken='1'; bancShotLoaded(this)">
               </div>
 
               <p class="banc-viewer-caption" id="banc-3-caption" data-banc-caption>Architecture &amp; pièces liminaires — actes, chapitres, dédicaces, épigraphes et illustrations</p>
@@ -562,13 +571,14 @@
           <div class="banc-showcase">
             <div class="flex flex-col">
               <span class="font-cinzel text-xs uppercase tracking-widest text-atelier-gold">Banc IV</span>
-              <h3 class="font-cinzel text-xl sm:text-2xl text-atelier-ivory mt-1">Le Banc de Qualité Typographique</h3>
-              <p class="banc-menu">Menu Correcteur — Vue I</p>
-              <p class="banc-subtitle">L'indice de qualité et l'inspection minutieuse des règles typographiques aldines.</p>
+              <h3 class="font-cinzel text-xl sm:text-2xl text-atelier-ivory mt-1">Le Banc de Qualité Typographique &amp; d'Épreuve</h3>
+              <p class="banc-menu">Menu Correcteur — Vues I &amp; II</p>
+              <p class="banc-subtitle">L'indice de qualité, l'inspection minutieuse des règles aldines et la retouche d'épreuve en diptyque.</p>
               <ul class="banc-points">
                 <li><span class="banc-point-key">Rôle :</span> Évaluation globale de la qualité typographique et inspection rigoureuse des canons aldins.</li>
                 <li><span class="banc-point-key">Fonctionnalités de la page de gauche (Synthèse) :</span> Tableau de bord par chapitre, jauge de l'indice de qualité, classification pondérée des anomalies (critiques, style, mineures) et regroupement par catégories (ponctuation, dialogues, ligatures, hygiène spatiale).</li>
                 <li><span class="banc-point-key">Fonctionnalités de la page de droite (Registre) :</span> Navigation par feuillets à travers les 18 contrôles actifs, fiches de règles détaillées et comptage précis des occurrences.</li>
+                <li><span class="banc-point-key">Fonctionnalités de la Vue II (Épreuve &amp; Retouche) :</span> Diptyque d'épreuve synchronisé avec la Synthèse, surlignage doré des anomalies et réglet de retouche Markdown appliqué au texte vivant — correction typographique immédiate, sans quitter l'établi.</li>
                 <li><span class="banc-point-key">Définition de l'Indice de Qualité :</span> Métrique d'excellence reflétant la pureté typographique du volume et pondérant les écarts selon leur gravité.</li>
                 <li><span class="banc-point-key">Définition de l'Usage Typographique Aldin :</span> Application souveraine des règles humanistes de haute typographie (espaces fines, guillemets français, ponctuation soignée) et consignation au registre de l'atelier.</li>
               </ul>
@@ -579,12 +589,16 @@
               <div class="banc-tabs" role="tablist" aria-label="Vues de l'épreuve du Banc IV">
                 <button type="button" role="tab" class="banc-tab active" data-banc-tab="synthese" aria-selected="true" onclick="selectBancView('banc-4','synthese')">Synthèse &amp; Tableau de bord</button>
                 <button type="button" role="tab" class="banc-tab" data-banc-tab="regles" aria-selected="false" onclick="selectBancView('banc-4','regles')">Registre des règles analysées</button>
+                <button type="button" role="tab" class="banc-tab" data-banc-tab="epreuve" aria-selected="false" onclick="selectBancView('banc-4','epreuve')">Épreuve &amp; surlignage des anomalies</button>
+                <button type="button" role="tab" class="banc-tab" data-banc-tab="retouche" aria-selected="false" onclick="selectBancView('banc-4','retouche')">Réglet de retouche Markdown</button>
               </div>
 
               <div class="banc-viewer" id="banc-4-viewer">
-                <span class="banc-viewer-placeholder">Épreuves à venir — déposer banc-4-synthese.png &amp; banc-4-regles.png</span>
-                <img class="banc-viewer-img is-active" data-banc-img="synthese" src="assets/screenshots/banc-4-synthese.png" alt="Synthèse — tableau de bord par chapitre, jauge de l'indice de qualité et anomalies pondérées" loading="lazy" onload="var p=this.parentElement.querySelector('.banc-viewer-placeholder'); if(p){p.remove();}" onerror="this.remove()">
-                <img class="banc-viewer-img" data-banc-img="regles" src="assets/screenshots/banc-4-regles.png" alt="Registre des règles analysées — 18 contrôles actifs, fiches de règles et comptage des occurrences" loading="lazy" onload="var p=this.parentElement.querySelector('.banc-viewer-placeholder'); if(p){p.remove();}" onerror="this.remove()">
+                <span class="banc-viewer-placeholder" data-banc-placeholder>Épreuve à venir — banc-4-synthese.png</span>
+                <img class="banc-viewer-img is-active" data-banc-img="synthese" src="assets/screenshots/banc-4-synthese.png" alt="Synthèse — tableau de bord par chapitre, jauge de l'indice de qualité et anomalies pondérées" loading="lazy" onload="bancShotLoaded(this)" onerror="this.dataset.broken='1'; bancShotLoaded(this)">
+                <img class="banc-viewer-img" data-banc-img="regles" src="assets/screenshots/banc-4-regles.png" alt="Registre des règles analysées — 18 contrôles actifs, fiches de règles et comptage des occurrences" loading="lazy" onload="bancShotLoaded(this)" onerror="this.dataset.broken='1'; bancShotLoaded(this)">
+                <img class="banc-viewer-img" data-banc-img="epreuve" src="assets/screenshots/banc-4-epreuve.png" alt="Épreuve &amp; surlignage — diptyque synchronisé et surbrillance dorée des anomalies" loading="lazy" onload="bancShotLoaded(this)" onerror="this.dataset.broken='1'; bancShotLoaded(this)">
+                <img class="banc-viewer-img" data-banc-img="retouche" src="assets/screenshots/banc-4-retouche.png" alt="Réglet de retouche Markdown — espaces insécables et tirets cadratins sur le texte vivant" loading="lazy" onload="bancShotLoaded(this)" onerror="this.dataset.broken='1'; bancShotLoaded(this)">
               </div>
 
               <p class="banc-viewer-caption" id="banc-4-caption" data-banc-caption>Synthèse &amp; tableau de bord — indice de qualité, anomalies pondérées et familles de règles</p>
@@ -598,48 +612,35 @@
         <article class="banc-card p-6 rounded-xs bg-atelier-card brass-border flex flex-col">
           <div class="banc-preview">
             <span class="banc-preview-placeholder">banc-5.png</span>
-            <img src="assets/screenshots/banc-5.png" alt="Banc V — Le Banc d'Épreuve &amp; Retouche" loading="lazy" onerror="this.remove()">
+            <img src="assets/screenshots/banc-5.png" alt="Banc V — Le Banc de Jaquette &amp; Reliure" loading="lazy" onerror="this.remove()">
           </div>
           <span class="font-cinzel text-xs uppercase tracking-widest text-atelier-gold mt-5">Banc V</span>
-          <h3 class="font-cinzel text-lg text-atelier-ivory mt-1">Le Banc d'Épreuve &amp; Retouche</h3>
-          <p class="banc-menu">Menu Correcteur — Vue II</p>
-          <p class="banc-role"><span class="banc-role-key">Rôle :</span> Diptyque synchronisé, localisation d'or et réglet Markdown.</p>
-          <p class="banc-legende">Confrontation directe au texte vivant, surbrillance dorée des anomalies et retouche typographique immédiate sans quitter l'établi.</p>
-        </article>
-
-        <!-- Banc VI -->
-        <article class="banc-card p-6 rounded-xs bg-atelier-card brass-border flex flex-col">
-          <div class="banc-preview">
-            <span class="banc-preview-placeholder">banc-6.png</span>
-            <img src="assets/screenshots/banc-6.png" alt="Banc VI — Le Banc de Jaquette &amp; Reliure" loading="lazy" onerror="this.remove()">
-          </div>
-          <span class="font-cinzel text-xs uppercase tracking-widest text-atelier-gold mt-5">Banc VI</span>
           <h3 class="font-cinzel text-lg text-atelier-ivory mt-1">Le Banc de Jaquette &amp; Reliure</h3>
           <p class="banc-menu">Menu Couverture</p>
           <p class="banc-role"><span class="banc-role-key">Rôle :</span> Géométrie 300 DPI, calcul micrométrique du dos et gabarit complet.</p>
           <p class="banc-legende">Calibrage automatique de la couverture intégrale (Plat I, dos et Plat IV) calculé au centième de millimètre selon l'épaisseur exacte du papier.</p>
         </article>
 
-        <!-- Banc VII -->
+        <!-- Banc VI -->
         <article class="banc-card p-6 rounded-xs bg-atelier-card brass-border flex flex-col">
           <div class="banc-preview">
-            <span class="banc-preview-placeholder">banc-7.png</span>
-            <img src="assets/screenshots/banc-7.png" alt="Banc VII — L'Inspection Pré-Presse" loading="lazy" onerror="this.remove()">
+            <span class="banc-preview-placeholder">banc-6.png</span>
+            <img src="assets/screenshots/banc-6.png" alt="Banc VI — L'Inspection Pré-Presse" loading="lazy" onerror="this.remove()">
           </div>
-          <span class="font-cinzel text-xs uppercase tracking-widest text-atelier-gold mt-5">Banc VII</span>
+          <span class="font-cinzel text-xs uppercase tracking-widest text-atelier-gold mt-5">Banc VI</span>
           <h3 class="font-cinzel text-lg text-atelier-ivory mt-1">L'Inspection Pré-Presse</h3>
           <p class="banc-menu">Menu Export — Vue I</p>
           <p class="banc-role"><span class="banc-role-key">Rôle :</span> Dossier de fabrication en tête, contrôle d'intégrité et formats d'édition.</p>
           <p class="banc-legende">Vérification pré-tirage KDP, jauge d'encrage et préparation des formes multiples (PDF d'imprimerie, DOCX bureautique, EPUB 3.2).</p>
         </article>
 
-        <!-- Banc VIII -->
+        <!-- Banc VII -->
         <article class="banc-card p-6 rounded-xs bg-atelier-card brass-border flex flex-col">
           <div class="banc-preview">
-            <span class="banc-preview-placeholder">banc-8.png</span>
-            <img src="assets/screenshots/banc-8.png" alt="Banc VIII — Le Tirage sous Presse" loading="lazy" onerror="this.remove()">
+            <span class="banc-preview-placeholder">banc-7.png</span>
+            <img src="assets/screenshots/banc-7.png" alt="Banc VII — Le Tirage sous Presse" loading="lazy" onerror="this.remove()">
           </div>
-          <span class="font-cinzel text-xs uppercase tracking-widest text-atelier-gold mt-5">Banc VIII</span>
+          <span class="font-cinzel text-xs uppercase tracking-widest text-atelier-gold mt-5">Banc VII</span>
           <h3 class="font-cinzel text-lg text-atelier-ivory mt-1">Le Tirage sous Presse</h3>
           <p class="banc-menu">Menu Export — Vue II</p>
           <p class="banc-role"><span class="banc-role-key">Rôle :</span> Actionnement du balancier, sceau de bronze et ouverture des épreuves.</p>
@@ -659,7 +660,7 @@
 
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
         <div class="p-8 rounded-xs bg-atelier-card brass-border flex flex-col gap-3">
-          <span class="text-xs font-cinzel uppercase tracking-widest text-atelier-gold">Bancs IV &amp; V</span>
+          <span class="text-xs font-cinzel uppercase tracking-widest text-atelier-gold">Banc IV — Vues I &amp; II</span>
           <h3 class="font-cinzel text-lg text-atelier-ivory">Les Diptyques Synchronisés</h3>
           <p class="text-atelier-bistre text-base">
             Les deux volets du Correcteur — l'Indice de Qualité Typographique et le Banc d'Épreuve — basculent désormais d'une seule main : bascule partagée via le contexte de l'atelier, grille des règles en colonne unique paginée, « Conseils de l'Imprimeur », repère [ ⌖ Localiser ] et mode [ ✍ Retouche ].
@@ -678,7 +679,7 @@
           <span class="text-xs font-cinzel uppercase tracking-widest text-atelier-gold">Export &amp; Tirage</span>
           <h3 class="font-cinzel text-lg text-atelier-ivory">Manuscrit DOCX Consolidé</h3>
           <p class="text-atelier-bistre text-base">
-            Le dossier de fabrication en tête du Banc VII réunit la forme Word DOCX réintégrée, le bouton [ OUVRIR LE DOSSIER DES ÉPREUVES ] natif et le sceau de presse qui s'efface de lui-même après trente secondes.
+            Le dossier de fabrication en tête du Banc VI réunit la forme Word DOCX réintégrée, le bouton [ OUVRIR LE DOSSIER DES ÉPREUVES ] natif et le sceau de presse qui s'efface de lui-même après trente secondes.
           </p>
         </div>
 
@@ -984,6 +985,14 @@
           src: "assets/screenshots/banc-4-regles.png",
           caption: "Registre des règles analysées — 18 contrôles actifs, fiches de règles et comptage des occurrences",
         },
+        epreuve: {
+          src: "assets/screenshots/banc-4-epreuve.png",
+          caption: "Épreuve & surlignage — diptyque synchronisé et surbrillance dorée des anomalies",
+        },
+        retouche: {
+          src: "assets/screenshots/banc-4-retouche.png",
+          caption: "Réglet de retouche Markdown — espaces insécables et tirets cadratins sur le texte vivant",
+        },
       },
     },
   };
@@ -1014,7 +1023,45 @@
     // Légende synchronisée
     const caption = root.querySelector("[data-banc-caption]");
     if (caption) caption.textContent = view.caption;
+
+    // État du cadre d'exposition (capture déposée ou non).
+    refreshBancPlaceholder(root);
   }
+
+  /**
+   * Masque le libellé d'attente lorsque la capture de la vue active est
+   * disponible, et le réaffiche avec le nom du fichier manquant sinon.
+   */
+  function refreshBancPlaceholder(root) {
+    const frame = root.querySelector(".banc-viewer");
+    const placeholder = root.querySelector("[data-banc-placeholder]");
+    if (!frame || !placeholder) return;
+
+    const active = frame.querySelector(".banc-viewer-img.is-active");
+    const ready =
+      Boolean(active) &&
+      active.dataset.broken !== "1" &&
+      active.naturalWidth > 0;
+    placeholder.classList.toggle("is-hidden", ready);
+
+    if (!ready) {
+      const file = active
+        ? (active.getAttribute("src") || "").split("/").pop()
+        : "";
+      placeholder.textContent = file
+        ? "Épreuve à venir — " + file
+        : "Épreuve à venir";
+    }
+  }
+
+  /** Rappelé par chaque capture (`onload` / `onerror`) pour rafraîchir son pupitre. */
+  function bancShotLoaded(img) {
+    const root = img.closest("[data-banc-viewer]");
+    if (root) refreshBancPlaceholder(root);
+  }
+
+  // État initial des pupitres (captures déjà en cache ou non déposées).
+  document.querySelectorAll("[data-banc-viewer]").forEach(refreshBancPlaceholder);
 
   // Ouvre l'épreuve active en haute définition dans la visionneuse
   function zoomBancView(bancId) {
