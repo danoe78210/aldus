@@ -426,3 +426,39 @@ body {
   animation: pingSeal 0.9s ease-out 1 both;
 }
 
+/* ── Anti-tremblement au redimensionnement de la fenêtre (Window Jitter) ──── */
+
+/* Isolation de couche GPU des panneaux maîtres.
+   La promotion (`transform` / `will-change`) est appliquée au seul conteneur
+   racine `.atelier-container`, qui coïncide exactement avec la fenêtre : les
+   overlays `position: fixed` — portalisés ou non — restent donc calés sur le
+   viewport. En revanche, `.book-spread` et `.main-layout` abritent des modales
+   `fixed inset-0` NON portalisées (CoverPreExportModal, prévisualisation du
+   tirage) : leur appliquer `transform`/`will-change` en ferait leurs nouveaux
+   contenants et les décalerait. On se contente donc de `backface-visibility`
+   (qui ne crée pas de containing block) sur les scènes internes. */
+.atelier-container {
+  transform: translateZ(0);
+  will-change: transform, width, height;
+  backface-visibility: hidden;
+}
+.book-spread,
+.main-layout,
+.menu-flipbook,
+.preview-flipbook {
+  backface-visibility: hidden;
+}
+
+/* Gel strict des animations et transitions pendant le redimensionnement.
+   La classe `is-resizing` est posée sur `<body>` par `installWindowResizeGuard`
+   (src/utils/windowResizeGuard.ts) puis retirée 150 ms après le dernier
+   événement `resize` : les feuilletages cessent de redémarrer leurs transitions
+   à chaque frame, ce qui supprime le « layout thrashing » et les saccades. */
+body.is-resizing,
+body.is-resizing *,
+.is-resizing .atelier-container,
+.is-resizing .book-spread {
+  transition: none !important;
+  animation: none !important;
+}
+

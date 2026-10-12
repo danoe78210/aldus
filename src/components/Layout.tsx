@@ -63,7 +63,7 @@ export const Layout: React.FC<LayoutProps> = ({
 
   return (
     <div
-      className="relative flex h-screen w-screen flex-col overflow-hidden bg-[#0e0c0a] select-none"
+      className="atelier-container relative flex h-screen w-screen flex-col overflow-hidden bg-[#0e0c0a] select-none"
       style={{
         backgroundImage:
           "radial-gradient(circle at 50% 45%, #1b1613 0%, #0e0c0a 62%)",
@@ -76,11 +76,11 @@ export const Layout: React.FC<LayoutProps> = ({
 
       {/* 2. Établi central portant le registre. `pl-40` réserve la gouttière
           franche à gauche où se déploient les signets (débord `-translate-x-full`). */}
-      <main className="relative z-10 flex flex-1 items-center justify-center p-6 pl-40">
+      <main className="main-layout relative z-10 flex flex-1 items-center justify-center p-6 pl-40">
 
         {/* Le Registre — livre ancien : navigation à gauche, pages tournantes à droite.
             Perspective 3D (1400 px) : le volet droit se rabat vers la gauche à la fermeture. */}
-        <div className="relative flex h-full max-h-[860px] w-full max-w-[1560px] [perspective:1400px] shadow-[0_20px_50px_rgba(0,0,0,0.9)]">
+        <div className="book-spread relative flex h-full max-h-[860px] w-full max-w-[1560px] [perspective:1400px] shadow-[0_20px_50px_rgba(0,0,0,0.9)]">
           {/* Halo lumineux d'ambiance (backdrop glow) — derrière le livre. */}
           <div
             aria-hidden

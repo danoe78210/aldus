@@ -194,9 +194,19 @@ export const PreviewFlipbook: React.FC<PreviewFlipbookProps> = ({ payload, onClo
       });
     };
     compute();
-    const observer = new ResizeObserver(compute);
+    // Coalescence des notifications dans une seule *frame* (`requestAnimationFrame`) :
+    // évite le layout thrashing lorsque le redimensionnement émet plusieurs
+    // mesures avant que le navigateur n'ait repeint.
+    let frame = 0;
+    const observer = new ResizeObserver(() => {
+      window.cancelAnimationFrame(frame);
+      frame = window.requestAnimationFrame(compute);
+    });
     observer.observe(element);
-    return () => observer.disconnect();
+    return () => {
+      observer.disconnect();
+      window.cancelAnimationFrame(frame);
+    };
   }, [canvases.length, ratio]);
 
   const goTo = useCallback((step: number) => {
