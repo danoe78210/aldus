@@ -155,6 +155,69 @@
       font-size: 0.9375rem;
       color: #a89f91;
     }
+    /* Banc I — présentation enrichie (diptyque de captures) */
+    .banc-featured {
+      background-image: radial-gradient(circle at 50% 0%, rgba(143, 110, 43, 0.07) 0%, rgba(0, 0, 0, 0) 62%);
+    }
+    .banc-subtitle {
+      margin-top: 0.25rem;
+      font-size: 0.8125rem;
+      font-style: italic;
+      letter-spacing: 0.02em;
+      color: #a08342;
+    }
+    .banc-points {
+      margin-top: 1rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      font-size: 0.875rem;
+      color: #a89f91;
+    }
+    .banc-points li {
+      position: relative;
+      padding-left: 1.15rem;
+    }
+    .banc-points li::before {
+      content: "✦";
+      position: absolute;
+      left: 0;
+      top: 0.05rem;
+      color: #8f6e2b;
+      font-size: 0.7rem;
+    }
+    .banc-point-key {
+      color: #f5efe4;
+      font-weight: 600;
+    }
+    .banc-diptych {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 1rem;
+    }
+    @media (min-width: 640px) {
+      .banc-diptych {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+    .banc-shot {
+      margin: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+    .banc-shot .banc-preview {
+      aspect-ratio: 4 / 3;
+      border: 1px solid rgba(143, 110, 43, 0.55);
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.45), inset 0 0 20px rgba(212, 175, 55, 0.04);
+    }
+    .banc-shot figcaption {
+      font-size: 0.625rem;
+      text-transform: uppercase;
+      letter-spacing: 0.18em;
+      color: #786c59;
+      text-align: center;
+    }
   </style>
 </head>
 <body class="font-serif antialiased selection:bg-[#8f6e2b]/30 selection:text-[#f3e5ab]">
@@ -309,16 +372,39 @@
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
 
         <!-- Banc I -->
-        <article class="banc-card p-6 rounded-xs bg-atelier-card brass-border flex flex-col">
-          <div class="banc-preview">
-            <span class="banc-preview-placeholder">banc-1.png</span>
-            <img src="assets/screenshots/banc-1.png" alt="Banc I — Le Banc de Calibrage &amp; Gabarits" loading="lazy" onerror="this.remove()">
+        <article class="banc-card banc-featured md:col-span-2 lg:col-span-3 p-6 sm:p-8 rounded-xs bg-atelier-card brass-border flex flex-col">
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8 items-start">
+            <div class="flex flex-col">
+              <span class="font-cinzel text-xs uppercase tracking-widest text-atelier-gold">Banc I</span>
+              <h3 class="font-cinzel text-xl sm:text-2xl text-atelier-ivory mt-1">Le Banc de Calibrage &amp; Gabarits</h3>
+              <p class="banc-menu">Menu Réglages</p>
+              <p class="banc-subtitle">Les fondations géométriques &amp; l'harmonie typographique du volume</p>
+              <ul class="banc-points">
+                <li><span class="banc-point-key">Proportions &amp; formats de coupe :</span> Choix immédiat du gabarit parmi les formats canoniques de l'édition (du format poche 5×8 po au grand in-octavo 7×10 po pour un confort de lecture supérieur).</li>
+                <li><span class="banc-point-key">Corps d'atelier &amp; hiérarchie :</span> Sélection du caractère d'imprimerie (Garamond), étalonnage du corps (11 pt), de l'interlignage (1,15) et des hauteurs optiques de titrage.</li>
+                <li><span class="banc-point-key">Attache des sources :</span> Déclaration fluide des répertoires du manuscrit (chapitres Markdown) et du dossier des ornements et illustrations.</li>
+                <li><span class="banc-point-key">Rigueur du correcteur :</span> Paramétrage des seuils de vigilance et de l'analyse orthotypographique.</li>
+              </ul>
+            </div>
+
+            <!-- Diptyque de captures -->
+            <div class="banc-diptych">
+              <figure class="banc-shot">
+                <div class="banc-preview">
+                  <span class="banc-preview-placeholder">banc-1-parametres.png</span>
+                  <img src="assets/screenshots/banc-1-parametres.png" alt="Paramètres du livre et mise en page — format 7×10 po, corps Garamond 11 pt, interligne 1,15 et titrages" loading="lazy" onerror="this.remove()">
+                </div>
+                <figcaption>Paramètres du livre &amp; mise en page</figcaption>
+              </figure>
+              <figure class="banc-shot">
+                <div class="banc-preview">
+                  <span class="banc-preview-placeholder">banc-1-formats.png</span>
+                  <img src="assets/screenshots/banc-1-formats.png" alt="Nuancier des formats de coupe — du format poche au grand format et A4" loading="lazy" onerror="this.remove()">
+                </div>
+                <figcaption>Choix des formats de coupe</figcaption>
+              </figure>
+            </div>
           </div>
-          <span class="font-cinzel text-xs uppercase tracking-widest text-atelier-gold mt-5">Banc I</span>
-          <h3 class="font-cinzel text-lg text-atelier-ivory mt-1">Le Banc de Calibrage &amp; Gabarits</h3>
-          <p class="banc-menu">Menu Réglages</p>
-          <p class="banc-role"><span class="banc-role-key">Rôle :</span> Formats de coupe in-folio, marges de reliure et papiers d'édition.</p>
-          <p class="banc-legende">Définition millimétrique des dimensions de coupe (Roman 6×9, 7×10), gouttière de reliure et grain du papier bouffant.</p>
         </article>
 
         <!-- Banc II -->

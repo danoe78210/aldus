@@ -7,7 +7,7 @@ Déposez ici les images suivantes (PNG recommandé, ratio ~16/10, largeur ≥ 96
 
 | Fichier | Banc | Menu / Vue |
 |---|---|---|
-| `banc-1.png` | Banc I — Le Banc de Calibrage & Gabarits | Menu Réglages |
+| `banc-1-parametres.png` + `banc-1-formats.png` | Banc I — Le Banc de Calibrage & Gabarits | Menu Réglages (diptyque) |
 | `banc-2.png` | Banc II — Le Banc des Notules & Métadonnées | Menu Informations |
 | `banc-3.png` | Banc III — Le Banc de Structure & Imposition | Menu Organisation |
 | `banc-4.png` | Banc IV — Le Banc de Pureté Typographique | Menu Correcteur — Vue I |
