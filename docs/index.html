@@ -263,6 +263,20 @@
       opacity: 1;
       pointer-events: auto;
     }
+    .banc-viewer-placeholder {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1.5rem;
+      font-family: ui-monospace, SFMono-Regular, "Courier New", monospace;
+      font-size: 0.6875rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      text-align: center;
+      color: #786c59;
+    }
     .banc-viewer-caption {
       margin-top: 0.6rem;
       font-size: 0.625rem;
@@ -510,16 +524,37 @@
         </article>
 
         <!-- Banc III -->
-        <article class="banc-card p-6 rounded-xs bg-atelier-card brass-border flex flex-col">
-          <div class="banc-preview">
-            <span class="banc-preview-placeholder">banc-3.png</span>
-            <img src="assets/screenshots/banc-3.png" alt="Banc III — Le Banc de Structure &amp; Imposition" loading="lazy" onerror="this.remove()">
+        <article class="banc-card banc-featured md:col-span-2 lg:col-span-3 p-6 sm:p-8 rounded-xs bg-atelier-card brass-border flex flex-col">
+          <div class="banc-showcase">
+            <div class="flex flex-col">
+              <span class="font-cinzel text-xs uppercase tracking-widest text-atelier-gold">Banc III</span>
+              <h3 class="font-cinzel text-xl sm:text-2xl text-atelier-ivory mt-1">Le Banc de l'Architecture Narrative</h3>
+              <p class="banc-menu">Menu Organisation</p>
+              <p class="banc-subtitle">L'agencement des actes, des pièces liminaires et le calibrage de l'ouvrage.</p>
+              <ul class="banc-points">
+                <li><span class="banc-point-key">Organisation du livre en actes, chapitres, illustrations et pages spéciales :</span> Orchestration de la structure narrative (actes, chapitres), intégration rigoureuse des pièces liminaires (dédicaces, épigraphes, prologue) et placement des illustrations.</li>
+                <li><span class="banc-point-key">Calibrage du livre en fonction des critères KDP :</span> Respect des seuils de pagination et des contraintes techniques d'impression à la demande pour garantir une conformité irréprochable des épreuves.</li>
+              </ul>
+            </div>
+
+            <!-- Pupitre d'exposition à onglets -->
+            <div class="flex flex-col" data-banc-viewer="banc-3">
+              <div class="banc-tabs" role="tablist" aria-label="Vues de l'épreuve du Banc III">
+                <button type="button" role="tab" class="banc-tab active" data-banc-tab="architecture" aria-selected="true" onclick="selectBancView('banc-3','architecture')">Architecture &amp; Pièces liminaires</button>
+                <button type="button" role="tab" class="banc-tab" data-banc-tab="calibrage" aria-selected="false" onclick="selectBancView('banc-3','calibrage')">Calibrage &amp; Critères KDP</button>
+              </div>
+
+              <div class="banc-viewer" id="banc-3-viewer">
+                <span class="banc-viewer-placeholder">Épreuves à venir — déposer banc-3-architecture.png &amp; banc-3-calibrage.png</span>
+                <img class="banc-viewer-img is-active" data-banc-img="architecture" src="assets/screenshots/banc-3-architecture.png" alt="Architecture narrative — actes, chapitres, pièces liminaires et illustrations" loading="lazy" onload="var p=this.parentElement.querySelector('.banc-viewer-placeholder'); if(p){p.remove();}" onerror="this.remove()">
+                <img class="banc-viewer-img" data-banc-img="calibrage" src="assets/screenshots/banc-3-calibrage.png" alt="Calibrage KDP — seuils de pagination et contraintes d'impression à la demande" loading="lazy" onload="var p=this.parentElement.querySelector('.banc-viewer-placeholder'); if(p){p.remove();}" onerror="this.remove()">
+              </div>
+
+              <p class="banc-viewer-caption" id="banc-3-caption" data-banc-caption>Architecture &amp; pièces liminaires — actes, chapitres, dédicaces, épigraphes et illustrations</p>
+
+              <button type="button" class="banc-zoom" id="banc-3-zoom" onclick="zoomBancView('banc-3')" title="Ouvrir l'épreuve active en haute définition">⤢ Examiner en grand format</button>
+            </div>
           </div>
-          <span class="font-cinzel text-xs uppercase tracking-widest text-atelier-gold mt-5">Banc III</span>
-          <h3 class="font-cinzel text-lg text-atelier-ivory mt-1">Le Banc de Structure &amp; Imposition</h3>
-          <p class="banc-menu">Menu Organisation</p>
-          <p class="banc-role"><span class="banc-role-key">Rôle :</span> Ordonnancement du manuscrit et hiérarchie des pièces.</p>
-          <p class="banc-legende">Agencement fluide des chapitres, prologues et annexes avec contrôle visuel des folios et de l'architecture narrative.</p>
         </article>
 
         <!-- Banc IV -->
@@ -898,6 +933,19 @@
         colophon: {
           src: "assets/screenshots/banc-2-colophon.png",
           caption: "Colophon & administration — mentions légales, ISBN et achevé d'imprimer",
+        },
+      },
+    },
+    "banc-3": {
+      default: "architecture",
+      views: {
+        architecture: {
+          src: "assets/screenshots/banc-3-architecture.png",
+          caption: "Architecture & pièces liminaires — actes, chapitres, dédicaces, épigraphes et illustrations",
+        },
+        calibrage: {
+          src: "assets/screenshots/banc-3-calibrage.png",
+          caption: "Calibrage & critères KDP — seuils de pagination et contraintes d'impression à la demande",
         },
       },
     },
