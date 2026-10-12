@@ -15,10 +15,10 @@
       {
         "label": "main",
         "title": "Aldus — Atelier du Livre Moderne",
-        "width": 1360,
+        "width": 1440,
         "height": 900,
         "resizable": true,
-        "fullscreen": false
+        "fullscreen": true
       }
     ],
     "security": {

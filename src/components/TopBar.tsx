@@ -1,4 +1,9 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
+import {
+  isFullscreen,
+  isFullscreenSupported,
+  toggleFullscreen,
+} from "../utils/fullscreen";
 
 interface TopBarProps {
   /** Avancement global de 0 à 100. */
@@ -26,6 +31,45 @@ export const TopBar: React.FC<TopBarProps> = ({
   const clamped = Math.min(100, Math.max(0, Math.round(progress)));
   const scale = [0, 25, 50, 75, 100];
 
+  // Porte de sortie du plein écran (la fenêtre démarre en plein écran).
+  const fullscreenSupported = isFullscreenSupported();
+  const [fullscreen, setIsFullscreen] = useState(false);
+
+  // Aligne l'état initial et suit les bascules externes (sortie gérée par
+  // l'OS ou la WebView, qui n'émettent pas d'événement Tauri dédié).
+  useEffect(() => {
+    if (!fullscreenSupported) return;
+    let active = true;
+    void isFullscreen().then((value) => {
+      if (active) setIsFullscreen(value);
+    });
+    const onFullscreenChange = () => {
+      void isFullscreen().then(setIsFullscreen);
+    };
+    document.addEventListener("fullscreenchange", onFullscreenChange);
+    return () => {
+      active = false;
+      document.removeEventListener("fullscreenchange", onFullscreenChange);
+    };
+  }, [fullscreenSupported]);
+
+  // Raccourci clavier `F11` : neutralise la bascule native de la WebView au
+  // profit d'un pilotage explicite de la fenêtre Tauri.
+  useEffect(() => {
+    if (!fullscreenSupported) return;
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key !== "F11") return;
+      event.preventDefault();
+      void toggleFullscreen().then(setIsFullscreen);
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [fullscreenSupported]);
+
+  const handleFullscreenToggle = () => {
+    void toggleFullscreen().then(setIsFullscreen);
+  };
+
   return (
     <div className="mx-auto w-full max-w-6xl">
       {/* Pupitre de typographe en ébène et laiton */}
@@ -42,11 +86,29 @@ export const TopBar: React.FC<TopBarProps> = ({
             {label}
             {running && <span className="ml-2 text-[#c5a059]">— en cours</span>}
           </span>
-          {/* Curseur gradué du typographe (plus aucun affichage digital) */}
-          <span className="flex items-center gap-2 font-serif text-[10px] tracking-widest text-[#8f6e2b] uppercase">
-            <span className="h-2 w-px bg-[#8f6e2b]" />
-            <span className="h-3 w-px bg-[#8f6e2b]" />
-            <span className="h-2 w-px bg-[#8f6e2b]" />
+          {/* Commandes d'atelier : porte de sortie du plein écran + curseur gradué */}
+          <span className="flex items-center gap-3">
+            {fullscreenSupported && (
+              <button
+                type="button"
+                onClick={handleFullscreenToggle}
+                aria-pressed={fullscreen}
+                title={
+                  fullscreen
+                    ? "Quitter le plein écran (F11)"
+                    : "Passer en plein écran (F11)"
+                }
+                className="rounded-xs border border-[#3a3022] px-2 py-0.5 font-serif text-[10px] tracking-widest text-[#a89f91] uppercase transition-colors hover:border-[#8f6e2b] hover:text-[#e6c878]"
+              >
+                {fullscreen ? "⤡ Fenêtré" : "⤢ Plein écran"}
+              </button>
+            )}
+            {/* Curseur gradué du typographe (plus aucun affichage digital) */}
+            <span className="flex items-center gap-2 font-serif text-[10px] tracking-widest text-[#8f6e2b] uppercase">
+              <span className="h-2 w-px bg-[#8f6e2b]" />
+              <span className="h-3 w-px bg-[#8f6e2b]" />
+              <span className="h-2 w-px bg-[#8f6e2b]" />
+            </span>
           </span>
         </div>
 
