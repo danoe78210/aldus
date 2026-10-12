@@ -173,7 +173,7 @@
     </h2>
     <div class="h-px w-24 bg-gradient-to-r from-transparent via-atelier-brass to-transparent mx-auto mt-3"></div>
     <p class="text-atelier-muted text-xs sm:text-sm mt-3 uppercase tracking-widest">
-      Explorez les piliers d'Aldus à travers les estampes de l'Atelier
+      Explorez le pilier fondateur d'Aldus à travers l'estampe de l'Atelier
     </p>
   </div>
 
@@ -186,24 +186,6 @@
     >
       <span class="text-atelier-gold">✦</span>
       <span>I. Ébène & Cuir</span>
-    </button>
-
-    <button
-      onclick="selectPlate(1)"
-      id="tab-btn-1"
-      class="tab-btn px-5 py-3 rounded-xs border font-cinzel text-xs uppercase tracking-widest transition-all duration-300 flex items-center gap-2 cursor-pointer border-atelier-border bg-atelier-card text-atelier-bistre hover:border-atelier-brass hover:text-atelier-ivory"
-    >
-      <span class="text-atelier-muted">✦</span>
-      <span>II. Règles Humanistes</span>
-    </button>
-
-    <button
-      onclick="selectPlate(2)"
-      id="tab-btn-2"
-      class="tab-btn px-5 py-3 rounded-xs border font-cinzel text-xs uppercase tracking-widest transition-all duration-300 flex items-center gap-2 cursor-pointer border-atelier-border bg-atelier-card text-atelier-bistre hover:border-atelier-brass hover:text-atelier-ivory"
-    >
-      <span class="text-atelier-muted">✦</span>
-      <span>III. Rigueur KDP</span>
     </button>
   </div>
 
@@ -485,7 +467,7 @@
   </footer>
 
 <script>
-  // Données dynamiques des trois planches
+  // Donnée de la planche exposée sur le pupitre
   const plates = [
     {
       title: "I. Ébène & Cuir — L'Immersion de l'Atelier",
@@ -496,28 +478,6 @@
         "Creuset d'or et sas immersif",
         "Suppression de l'éblouissement",
         "Pupitre à reliure centrale"
-      ]
-    },
-    {
-      title: "II. Règles Humanistes — L'Excellence Typographique",
-      subtitle: "Planche II · Code & Correcteur",
-      image: "Aldus002.png",
-      desc: "Application rigoureuse des préceptes de l'Imprimerie nationale. Aldus traque automatiquement les hérésies numériques pour garantir un texte digne des plus grands ateliers vénitiens.",
-      features: [
-        "Espaces insécables automatiques",
-        "Tirets cadratins de dialogue (—)",
-        "Ligatures (œ, æ) et majuscules accentuées"
-      ]
-    },
-    {
-      title: "III. Rigueur KDP — L'Ingénierie Éditoriale",
-      subtitle: "Planche III · Marbre & Reliure 3D",
-      image: "Aldus003.png",
-      desc: "Calibrage millimétrique instantané du dos selon le nombre de pages et le papier (blanc ou crème). Gabarits avec fonds perdus stricts de 3,2 mm et simulation reliée en trois dimensions.",
-      features: [
-        "Calibreur de tranche KDP dynamique",
-        "Fonds perdus et repères de coupe",
-        "Simulation 3D du volume relié"
       ]
     }
   ];
