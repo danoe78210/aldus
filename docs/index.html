@@ -190,33 +190,105 @@
       color: #f5efe4;
       font-weight: 600;
     }
-    .banc-diptych {
+    /* Banc I — pupitre d'exposition à onglets (texte 42% / visuel 58%) */
+    .banc-1-layout {
       display: grid;
       grid-template-columns: 1fr;
-      gap: 1rem;
+      gap: 1.5rem;
+      align-items: start;
     }
-    @media (min-width: 640px) {
-      .banc-diptych {
-        grid-template-columns: 1fr 1fr;
+    @media (min-width: 1024px) {
+      .banc-1-layout {
+        grid-template-columns: 42fr 58fr;
       }
     }
-    .banc-shot {
-      margin: 0;
+    .banc-1-tabs {
       display: flex;
-      flex-direction: column;
+      flex-wrap: wrap;
       gap: 0.5rem;
+      margin-bottom: 0.85rem;
     }
-    .banc-shot .banc-preview {
-      aspect-ratio: 4 / 3;
+    .banc-1-tab {
+      font-family: "Cinzel", serif;
+      font-size: 0.6875rem;
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+      padding: 0.5rem 0.95rem;
+      background-color: #161310;
+      border: 1px solid #382f22;
+      border-radius: 2px;
+      color: #a89f91;
+      cursor: pointer;
+      transition: color 0.25s ease, border-color 0.25s ease, background-color 0.25s ease, box-shadow 0.25s ease;
+    }
+    .banc-1-tab:hover {
+      border-color: #8f6e2b;
+      color: #f5efe4;
+    }
+    .banc-1-tab.active {
+      border-color: #d4af37;
+      background-color: #221b14;
+      color: #f3e5ab;
+      box-shadow: 0 0 18px rgba(212, 175, 55, 0.18);
+    }
+    .banc-1-frame {
+      position: relative;
+      width: 100%;
+      min-height: 460px;
+      background-color: #0a0907;
+      border: 1px solid #382f22;
+      border-radius: 3px;
+      overflow: hidden;
+      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.5), inset 0 0 24px rgba(212, 175, 55, 0.04);
+    }
+    .banc-1-frame::after {
+      content: "";
+      position: absolute;
+      inset: 0;
       border: 1px solid rgba(143, 110, 43, 0.55);
-      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.45), inset 0 0 20px rgba(212, 175, 55, 0.04);
+      border-radius: 3px;
+      pointer-events: none;
     }
-    .banc-shot figcaption {
+    .banc-1-shot {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.35s ease;
+    }
+    .banc-1-shot.is-active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+    .banc-1-caption {
+      margin-top: 0.6rem;
       font-size: 0.625rem;
       text-transform: uppercase;
       letter-spacing: 0.18em;
       color: #786c59;
       text-align: center;
+    }
+    .banc-1-zoom {
+      align-self: center;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      margin-top: 0.75rem;
+      font-family: "Cinzel", serif;
+      font-size: 0.625rem;
+      text-transform: uppercase;
+      letter-spacing: 0.16em;
+      color: #a08342;
+      background: transparent;
+      border: 0;
+      cursor: pointer;
+      transition: color 0.2s ease;
+    }
+    .banc-1-zoom:hover {
+      color: #f3e5ab;
     }
   </style>
 </head>
@@ -373,7 +445,7 @@
 
         <!-- Banc I -->
         <article class="banc-card banc-featured md:col-span-2 lg:col-span-3 p-6 sm:p-8 rounded-xs bg-atelier-card brass-border flex flex-col">
-          <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8 items-start">
+          <div class="banc-1-layout">
             <div class="flex flex-col">
               <span class="font-cinzel text-xs uppercase tracking-widest text-atelier-gold">Banc I</span>
               <h3 class="font-cinzel text-xl sm:text-2xl text-atelier-ivory mt-1">Le Banc de Calibrage &amp; Gabarits</h3>
@@ -387,22 +459,21 @@
               </ul>
             </div>
 
-            <!-- Diptyque de captures -->
-            <div class="banc-diptych">
-              <figure class="banc-shot">
-                <div class="banc-preview">
-                  <span class="banc-preview-placeholder">banc-1-parametres.png</span>
-                  <img src="assets/screenshots/banc-1-parametres.png" alt="Paramètres du livre et mise en page — format 7×10 po, corps Garamond 11 pt, interligne 1,15 et titrages" loading="lazy" onerror="this.remove()">
-                </div>
-                <figcaption>Paramètres du livre &amp; mise en page</figcaption>
-              </figure>
-              <figure class="banc-shot">
-                <div class="banc-preview">
-                  <span class="banc-preview-placeholder">banc-1-formats.png</span>
-                  <img src="assets/screenshots/banc-1-formats.png" alt="Nuancier des formats de coupe — du format poche au grand format et A4" loading="lazy" onerror="this.remove()">
-                </div>
-                <figcaption>Choix des formats de coupe</figcaption>
-              </figure>
+            <!-- Pupitre d'exposition à onglets -->
+            <div class="flex flex-col">
+              <div class="banc-1-tabs" role="tablist" aria-label="Vues de l'épreuve du Banc I">
+                <button type="button" role="tab" class="banc-1-tab active" data-banc1-tab="parametres" aria-selected="true" onclick="selectBancIView('parametres')">Paramètres du volume</button>
+                <button type="button" role="tab" class="banc-1-tab" data-banc1-tab="formats" aria-selected="false" onclick="selectBancIView('formats')">Formats de coupe</button>
+              </div>
+
+              <div class="banc-1-frame" id="banc-1-frame">
+                <img class="banc-1-shot is-active" data-banc1-shot="parametres" src="assets/screenshots/banc-1-parametres.png" alt="Paramètres du volume — format 7×10 po, corps Garamond 11 pt, interligne 1,15 et titrages" loading="lazy" onerror="this.remove()">
+                <img class="banc-1-shot" data-banc1-shot="formats" src="assets/screenshots/banc-1-formats.png" alt="Nuancier des formats de coupe — du format poche au grand format et A4" loading="lazy" onerror="this.remove()">
+              </div>
+
+              <p class="banc-1-caption" id="banc-1-caption">Paramètres du livre &amp; mise en page — format 7×10 po · Garamond 11 pt · interligne 1,15</p>
+
+              <button type="button" class="banc-1-zoom" id="banc1-zoom" onclick="zoomBancI()" title="Ouvrir l'épreuve active en haute définition">⤢ Examiner en grand format</button>
             </div>
           </div>
         </article>
@@ -782,6 +853,54 @@
     }
     selection.removeAllRanges();
     onDone();
+  }
+
+  // --- Pupitre à onglets du Banc I : épreuve grand format commutable ---
+  const BANC_I_VIEWS = [
+    {
+      id: "parametres",
+      src: "assets/screenshots/banc-1-parametres.png",
+      caption: "Paramètres du livre & mise en page — format 7×10 po · Garamond 11 pt · interligne 1,15",
+    },
+    {
+      id: "formats",
+      src: "assets/screenshots/banc-1-formats.png",
+      caption: "Nuancier des formats de coupe — du poche au grand format et A4",
+    },
+  ];
+  let bancIView = "parametres";
+
+  function selectBancIView(viewId) {
+    const view = BANC_I_VIEWS.find((v) => v.id === viewId);
+    if (!view) return;
+    bancIView = viewId;
+
+    // Onglets : état actif surligné d'or
+    document.querySelectorAll("[data-banc1-tab]").forEach((btn) => {
+      const active = btn.dataset.banc1Tab === viewId;
+      btn.classList.toggle("active", active);
+      btn.setAttribute("aria-selected", active ? "true" : "false");
+    });
+
+    // Images : fondu croisé (fade in / fade out)
+    document.querySelectorAll("[data-banc1-shot]").forEach((img) => {
+      img.classList.toggle("is-active", img.dataset.banc1Shot === viewId);
+    });
+
+    // Légende synchronisée
+    const caption = document.getElementById("banc-1-caption");
+    if (caption) caption.textContent = view.caption;
+  }
+
+  // Ouvre l'épreuve active en haute définition dans la visionneuse
+  function zoomBancI() {
+    const view = BANC_I_VIEWS.find((v) => v.id === bancIView) || BANC_I_VIEWS[0];
+    const box = document.getElementById("lightbox");
+    const img = document.getElementById("lightbox-img");
+    if (!box || !img) return;
+    img.src = view.src;
+    box.classList.remove("hidden");
+    box.classList.add("flex");
   }
 </script>
 
