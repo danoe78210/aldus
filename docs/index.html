@@ -190,25 +190,25 @@
       color: #f5efe4;
       font-weight: 600;
     }
-    /* Banc I — pupitre d'exposition à onglets (texte 42% / visuel 58%) */
-    .banc-1-layout {
+    /* Pupitre d'exposition à onglets (Bancs I & II) — texte 42% / visuel 58% */
+    .banc-showcase {
       display: grid;
       grid-template-columns: 1fr;
       gap: 1.5rem;
       align-items: start;
     }
     @media (min-width: 1024px) {
-      .banc-1-layout {
+      .banc-showcase {
         grid-template-columns: 42fr 58fr;
       }
     }
-    .banc-1-tabs {
+    .banc-tabs {
       display: flex;
       flex-wrap: wrap;
       gap: 0.5rem;
       margin-bottom: 0.85rem;
     }
-    .banc-1-tab {
+    .banc-tab {
       font-family: "Cinzel", serif;
       font-size: 0.6875rem;
       text-transform: uppercase;
@@ -221,17 +221,17 @@
       cursor: pointer;
       transition: color 0.25s ease, border-color 0.25s ease, background-color 0.25s ease, box-shadow 0.25s ease;
     }
-    .banc-1-tab:hover {
+    .banc-tab:hover {
       border-color: #8f6e2b;
       color: #f5efe4;
     }
-    .banc-1-tab.active {
+    .banc-tab.active {
       border-color: #d4af37;
       background-color: #221b14;
       color: #f3e5ab;
       box-shadow: 0 0 18px rgba(212, 175, 55, 0.18);
     }
-    .banc-1-frame {
+    .banc-viewer {
       position: relative;
       width: 100%;
       min-height: 460px;
@@ -241,7 +241,7 @@
       overflow: hidden;
       box-shadow: 0 16px 40px rgba(0, 0, 0, 0.5), inset 0 0 24px rgba(212, 175, 55, 0.04);
     }
-    .banc-1-frame::after {
+    .banc-viewer::after {
       content: "";
       position: absolute;
       inset: 0;
@@ -249,7 +249,7 @@
       border-radius: 3px;
       pointer-events: none;
     }
-    .banc-1-shot {
+    .banc-viewer-img {
       position: absolute;
       inset: 0;
       width: 100%;
@@ -259,11 +259,11 @@
       pointer-events: none;
       transition: opacity 0.35s ease;
     }
-    .banc-1-shot.is-active {
+    .banc-viewer-img.is-active {
       opacity: 1;
       pointer-events: auto;
     }
-    .banc-1-caption {
+    .banc-viewer-caption {
       margin-top: 0.6rem;
       font-size: 0.625rem;
       text-transform: uppercase;
@@ -271,7 +271,7 @@
       color: #786c59;
       text-align: center;
     }
-    .banc-1-zoom {
+    .banc-zoom {
       align-self: center;
       display: inline-flex;
       align-items: center;
@@ -287,7 +287,7 @@
       cursor: pointer;
       transition: color 0.2s ease;
     }
-    .banc-1-zoom:hover {
+    .banc-zoom:hover {
       color: #f3e5ab;
     }
   </style>
@@ -445,7 +445,7 @@
 
         <!-- Banc I -->
         <article class="banc-card banc-featured md:col-span-2 lg:col-span-3 p-6 sm:p-8 rounded-xs bg-atelier-card brass-border flex flex-col">
-          <div class="banc-1-layout">
+          <div class="banc-showcase">
             <div class="flex flex-col">
               <span class="font-cinzel text-xs uppercase tracking-widest text-atelier-gold">Banc I</span>
               <h3 class="font-cinzel text-xl sm:text-2xl text-atelier-ivory mt-1">Le Banc de Calibrage &amp; Gabarits</h3>
@@ -460,35 +460,53 @@
             </div>
 
             <!-- Pupitre d'exposition à onglets -->
-            <div class="flex flex-col">
-              <div class="banc-1-tabs" role="tablist" aria-label="Vues de l'épreuve du Banc I">
-                <button type="button" role="tab" class="banc-1-tab active" data-banc1-tab="parametres" aria-selected="true" onclick="selectBancIView('parametres')">Paramètres du volume</button>
-                <button type="button" role="tab" class="banc-1-tab" data-banc1-tab="formats" aria-selected="false" onclick="selectBancIView('formats')">Formats de coupe</button>
+            <div class="flex flex-col" data-banc-viewer="banc-1">
+              <div class="banc-tabs" role="tablist" aria-label="Vues de l'épreuve du Banc I">
+                <button type="button" role="tab" class="banc-tab active" data-banc-tab="parametres" aria-selected="true" onclick="selectBancView('banc-1','parametres')">Paramètres du volume</button>
+                <button type="button" role="tab" class="banc-tab" data-banc-tab="formats" aria-selected="false" onclick="selectBancView('banc-1','formats')">Formats de coupe</button>
               </div>
 
-              <div class="banc-1-frame" id="banc-1-frame">
-                <img class="banc-1-shot is-active" data-banc1-shot="parametres" src="assets/screenshots/banc-1-parametres.png" alt="Paramètres du volume — format 7×10 po, corps Garamond 11 pt, interligne 1,15 et titrages" loading="lazy" onerror="this.remove()">
-                <img class="banc-1-shot" data-banc1-shot="formats" src="assets/screenshots/banc-1-formats.png" alt="Nuancier des formats de coupe — du format poche au grand format et A4" loading="lazy" onerror="this.remove()">
+              <div class="banc-viewer" id="banc-1-viewer">
+                <img class="banc-viewer-img is-active" data-banc-img="parametres" src="assets/screenshots/banc-1-parametres.png" alt="Paramètres du volume — format 7×10 po, corps Garamond 11 pt, interligne 1,15 et titrages" loading="lazy" onerror="this.remove()">
+                <img class="banc-viewer-img" data-banc-img="formats" src="assets/screenshots/banc-1-formats.png" alt="Nuancier des formats de coupe — du format poche au grand format et A4" loading="lazy" onerror="this.remove()">
               </div>
 
-              <p class="banc-1-caption" id="banc-1-caption">Paramètres du livre &amp; mise en page — format 7×10 po · Garamond 11 pt · interligne 1,15</p>
+              <p class="banc-viewer-caption" id="banc-1-caption" data-banc-caption>Paramètres du livre &amp; mise en page — format 7×10 po · Garamond 11 pt · interligne 1,15</p>
 
-              <button type="button" class="banc-1-zoom" id="banc1-zoom" onclick="zoomBancI()" title="Ouvrir l'épreuve active en haute définition">⤢ Examiner en grand format</button>
+              <button type="button" class="banc-zoom" id="banc-1-zoom" onclick="zoomBancView('banc-1')" title="Ouvrir l'épreuve active en haute définition">⤢ Examiner en grand format</button>
             </div>
           </div>
         </article>
 
         <!-- Banc II -->
-        <article class="banc-card p-6 rounded-xs bg-atelier-card brass-border flex flex-col">
-          <div class="banc-preview">
-            <span class="banc-preview-placeholder">banc-2.png</span>
-            <img src="assets/screenshots/banc-2.png" alt="Banc II — Le Banc des Notules &amp; Métadonnées" loading="lazy" onerror="this.remove()">
+        <article class="banc-card banc-featured md:col-span-2 lg:col-span-3 p-6 sm:p-8 rounded-xs bg-atelier-card brass-border flex flex-col">
+          <div class="banc-showcase">
+            <div class="flex flex-col">
+              <span class="font-cinzel text-xs uppercase tracking-widest text-atelier-gold">Banc II</span>
+              <h3 class="font-cinzel text-xl sm:text-2xl text-atelier-ivory mt-1">Le Banc de l'Identité &amp; du Colophon</h3>
+              <p class="banc-menu">Menu Informations</p>
+              <p class="banc-subtitle">L'état-civil du volume &amp; l'achevé d'imprimer</p>
+              <p class="banc-role"><span class="banc-role-key">Rôle :</span> État-civil du livre, mentions légales KDP et colophon historique.</p>
+              <p class="banc-legende">Renseignement des métadonnées éditoriales, du titre, de la signature d'auteur et de l'achevé d'imprimer.</p>
+            </div>
+
+            <!-- Pupitre d'exposition à onglets -->
+            <div class="flex flex-col" data-banc-viewer="banc-2">
+              <div class="banc-tabs" role="tablist" aria-label="Vues de l'épreuve du Banc II">
+                <button type="button" role="tab" class="banc-tab active" data-banc-tab="identite" aria-selected="true" onclick="selectBancView('banc-2','identite')">Identité de l'œuvre</button>
+                <button type="button" role="tab" class="banc-tab" data-banc-tab="colophon" aria-selected="false" onclick="selectBancView('banc-2','colophon')">Colophon &amp; Administration</button>
+              </div>
+
+              <div class="banc-viewer" id="banc-2-viewer">
+                <img class="banc-viewer-img is-active" data-banc-img="identite" src="assets/screenshots/banc-2-identite.png" alt="Identité de l'œuvre — titre, tomaison, auteur, illustrateur et signature" loading="lazy" onerror="this.remove()">
+                <img class="banc-viewer-img" data-banc-img="colophon" src="assets/screenshots/banc-2-colophon.png" alt="Colophon et administration — mentions légales, ISBN et achevé d'imprimer" loading="lazy" onerror="this.remove()">
+              </div>
+
+              <p class="banc-viewer-caption" id="banc-2-caption" data-banc-caption>Identité de l'œuvre — titre, tomaison, auteur, illustrateur et signature</p>
+
+              <button type="button" class="banc-zoom" id="banc-2-zoom" onclick="zoomBancView('banc-2')" title="Ouvrir l'épreuve active en haute définition">⤢ Examiner en grand format</button>
+            </div>
           </div>
-          <span class="font-cinzel text-xs uppercase tracking-widest text-atelier-gold mt-5">Banc II</span>
-          <h3 class="font-cinzel text-lg text-atelier-ivory mt-1">Le Banc des Notules &amp; Métadonnées</h3>
-          <p class="banc-menu">Menu Informations</p>
-          <p class="banc-role"><span class="banc-role-key">Rôle :</span> État-civil du livre, mentions légales KDP et colophon historique.</p>
-          <p class="banc-legende">Renseignement des métadonnées éditoriales, du titre, de la signature d'auteur et de l'achevé d'imprimer.</p>
         </article>
 
         <!-- Banc III -->
@@ -855,49 +873,73 @@
     onDone();
   }
 
-  // --- Pupitre à onglets du Banc I : épreuve grand format commutable ---
-  const BANC_I_VIEWS = [
-    {
-      id: "parametres",
-      src: "assets/screenshots/banc-1-parametres.png",
-      caption: "Paramètres du livre & mise en page — format 7×10 po · Garamond 11 pt · interligne 1,15",
+  // --- Pupitres d'exposition à onglets (Bancs I & II) : épreuve grand format commutable ---
+  const BANC_VIEWERS = {
+    "banc-1": {
+      default: "parametres",
+      views: {
+        parametres: {
+          src: "assets/screenshots/banc-1-parametres.png",
+          caption: "Paramètres du livre & mise en page — format 7×10 po · Garamond 11 pt · interligne 1,15",
+        },
+        formats: {
+          src: "assets/screenshots/banc-1-formats.png",
+          caption: "Nuancier des formats de coupe — du poche au grand format et A4",
+        },
+      },
     },
-    {
-      id: "formats",
-      src: "assets/screenshots/banc-1-formats.png",
-      caption: "Nuancier des formats de coupe — du poche au grand format et A4",
+    "banc-2": {
+      default: "identite",
+      views: {
+        identite: {
+          src: "assets/screenshots/banc-2-identite.png",
+          caption: "Identité de l'œuvre — titre, tomaison, auteur, illustrateur et signature",
+        },
+        colophon: {
+          src: "assets/screenshots/banc-2-colophon.png",
+          caption: "Colophon & administration — mentions légales, ISBN et achevé d'imprimer",
+        },
+      },
     },
-  ];
-  let bancIView = "parametres";
+  };
+  const bancViewState = {};
 
-  function selectBancIView(viewId) {
-    const view = BANC_I_VIEWS.find((v) => v.id === viewId);
+  function selectBancView(bancId, viewId) {
+    const config = BANC_VIEWERS[bancId];
+    if (!config) return;
+    const view = config.views[viewId];
     if (!view) return;
-    bancIView = viewId;
+    bancViewState[bancId] = viewId;
+
+    const root = document.querySelector('[data-banc-viewer="' + bancId + '"]');
+    if (!root) return;
 
     // Onglets : état actif surligné d'or
-    document.querySelectorAll("[data-banc1-tab]").forEach((btn) => {
-      const active = btn.dataset.banc1Tab === viewId;
+    root.querySelectorAll("[data-banc-tab]").forEach((btn) => {
+      const active = btn.dataset.bancTab === viewId;
       btn.classList.toggle("active", active);
       btn.setAttribute("aria-selected", active ? "true" : "false");
     });
 
     // Images : fondu croisé (fade in / fade out)
-    document.querySelectorAll("[data-banc1-shot]").forEach((img) => {
-      img.classList.toggle("is-active", img.dataset.banc1Shot === viewId);
+    root.querySelectorAll("[data-banc-img]").forEach((img) => {
+      img.classList.toggle("is-active", img.dataset.bancImg === viewId);
     });
 
     // Légende synchronisée
-    const caption = document.getElementById("banc-1-caption");
+    const caption = root.querySelector("[data-banc-caption]");
     if (caption) caption.textContent = view.caption;
   }
 
   // Ouvre l'épreuve active en haute définition dans la visionneuse
-  function zoomBancI() {
-    const view = BANC_I_VIEWS.find((v) => v.id === bancIView) || BANC_I_VIEWS[0];
+  function zoomBancView(bancId) {
+    const config = BANC_VIEWERS[bancId];
+    if (!config) return;
+    const activeId = bancViewState[bancId] || config.default;
+    const view = config.views[activeId] || config.views[config.default];
     const box = document.getElementById("lightbox");
     const img = document.getElementById("lightbox-img");
-    if (!box || !img) return;
+    if (!box || !img || !view) return;
     img.src = view.src;
     box.classList.remove("hidden");
     box.classList.add("flex");
