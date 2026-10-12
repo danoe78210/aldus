@@ -19,7 +19,7 @@ const CARD_FAMILIES: TypographyFamily[] = ["punctuation", "dialogue", "letters",
  * **Page gauche du Correcteur** — porte la bascule d'en-tête (partagée avec la
  * page droite du livre) et déploie l'un des deux diptyques in-folio :
  *
- * * **Feuillet VII — Indice de Pureté** : sceau d'intégrité (jauge circulaire),
+ * * **Feuillet VII — Indice de Qualité Typographique** : sceau d'intégrité (jauge circulaire),
  *   cartouche de synthèse (mots, anomalies, gravités), inventaire des règles par
  *   famille, et les ordres majeurs `[ Imposer l'Usage Typographique Aldin › ]`
  *   et `[ Consigner le chapitre au registre ]` (la grille des règles activables,
@@ -73,12 +73,12 @@ export const ProofExaminer: React.FC = () => {
       <div className="mb-4 shrink-0">
         <ProofTabToggle tab={proofTab} onChange={onProofTabChange} />
         <h2 className="mt-3 shrink-0 text-center font-cinzel text-sm sm:text-base tracking-[0.25em] text-[#d4af37] uppercase">
-          {proofTab === "purete" ? "VII. Indice de Pureté" : "VIII. Le Banc d'Épreuve"}
+          {proofTab === "purete" ? "VII. Indice de Qualité Typographique" : "VIII. Le Banc d'Épreuve"}
         </h2>
       </div>
 
       {proofTab === "purete" ? (
-        /* ═══════ Feuillet VII — Indice de Pureté (volet gauche) ═══════ */
+        /* ═══════ Feuillet VII — Indice de Qualité Typographique (volet gauche) ═══════ */
         <>
           {/* [1] Sélecteur de chapitre — même pupitre que le banc : le changement de
               chapitre met immédiatement à jour l'indice, les anomalies et la
@@ -112,7 +112,7 @@ export const ProofExaminer: React.FC = () => {
             <div
               className="relative flex h-[92px] w-[92px] shrink-0 items-center justify-center rounded-full border-2 border-[#8f6e2b]/60 bg-[#13110f] shadow-[inset_0_0_18px_rgba(0,0,0,0.9),0_0_18px_rgba(212,175,55,0.18)]"
               role="img"
-              aria-label={`Indice de pureté typographique : ${report.purity} pour cent`}
+              aria-label={`Indice de qualité typographique : ${report.purity} pour cent`}
             >
               <span className="absolute inset-1.5 rounded-full border border-[#8f6e2b]/30" aria-hidden />
               <span
@@ -126,7 +126,7 @@ export const ProofExaminer: React.FC = () => {
             </div>
             <div className="min-w-0 flex-1">
               <p className="font-cinzel text-xs uppercase tracking-widest text-[#d4af37]">
-                Indice de pureté
+                Indice de qualité typographique
               </p>
               <p className="mt-1 font-serif text-[12px] text-[#c9bea9]">
                 {proofText === ""

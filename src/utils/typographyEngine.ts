@@ -240,7 +240,7 @@ export interface TypographyAnalysis {
   anomalies: TypographyAnomaly[];
   total: number;
   words: number;
-  /** Indice de pureté (0–100) : conformité à l'usage aldin. */
+  /** Indice de qualité typographique (0–100) : conformité à l'usage aldin. */
   purity: number;
   byFamily: Record<TypographyFamily, number>;
   bySeverity: Record<TypographySeverity, number>;
@@ -562,7 +562,7 @@ export const analyzeTypography = (
     push("double-space", match.index ?? 0, match[0].length, " ");
   }
 
-  // Agrégation & indice de pureté -------------------------------------------
+  // Agrégation & indice de qualité typographique -----------------------------
   anomalies.sort((left, right) => left.offset - right.offset);
   const words =
     text.trim() === ""

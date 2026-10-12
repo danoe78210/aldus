@@ -1004,7 +1004,7 @@ const App: React.FC = () => {
     }
   }, []);
 
-  /** Bascule le diptyque du Correcteur (VII — Indice de Pureté / VIII — Banc d'Épreuve). */
+  /** Bascule le diptyque du Correcteur (VII — Indice de Qualité Typographique / VIII — Banc d'Épreuve). */
   const handleProofTabChange = useCallback((tab: ProofTab) => setProofTab(tab), []);
 
   /** Active / désactive une règle depuis « Les Règles Analysées » (page droite du Feuillet VII). */

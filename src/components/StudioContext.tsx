@@ -148,7 +148,7 @@ export interface StudioContextValue {
   // --- Correcteur (Feuillets VII & VIII) ---
   /** Feuillet du Correcteur déployé par la bascule d'en-tête (partagée entre les deux pages du livre). */
   proofTab: ProofTab;
-  /** Bascule le diptyque du Correcteur (VII — Indice de Pureté / VIII — Banc d'Épreuve). */
+  /** Bascule le diptyque du Correcteur (VII — Indice de Qualité Typographique / VIII — Banc d'Épreuve). */
   onProofTabChange: (tab: ProofTab) => void;
   /** Règles aldines activées : l'analyse (page gauche) suit la grille « Les Règles Analysées » (page droite). */
   proofEnabledRules: TypographyRuleId[];

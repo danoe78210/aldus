@@ -37,7 +37,7 @@ const TOTAL_RULES_FOLIOS = 3;
  * * **Feuillet VII — Les Règles Analysées** : colonne unique pleine largeur des
  *   règles activables, **paginée sur trois feuillets de six règles** (cartes
  *   `min-h-[58px]`, coche or antique, libellé bistre). Le réglage est partagé :
- *   l'analyse « Indice de Pureté » (page gauche) suit le filtre désigné ici.
+ *   l'analyse « Indice de Qualité Typographique » (page gauche) suit le filtre désigné ici.
  * * **Feuillet VIII — Conseils de l'Imprimeur** : liste défilante sombre des
  *   signalements du feuillet actif, correctif unitaire `[ Corriger ]` et
  *   explication `[ Règle ]` ; la bascule `[ Relecture linguistique ]` conserve
