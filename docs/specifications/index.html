@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="theme-color" content="#181614">
-  <meta name="description" content="Découvrez les sept stations d'Aldus, son atelier de couverture KDP et ses moteurs de composition et d'export.">
+  <meta name="description" content="Découvrez les sept Bancs d'Aldus, son atelier de couverture KDP et ses moteurs de composition et d'export.">
   <link rel="canonical" href="https://aldus.danoeecrivain.net/specifications/">
   <link rel="icon" type="image/x-icon" href="../favicon.ico">
   <title>Spécifications — Aldus, Atelier du Livre Moderne</title>
@@ -156,27 +156,27 @@
     }
     .section-heading p { margin-bottom: 0; color: var(--bistre); }
 
-    .stations {
+    .banc-grid {
       display: grid;
       grid-template-columns: repeat(2, minmax(0, 1fr));
       gap: 22px;
     }
-    .station {
+    .banc-card {
       min-width: 0;
       border: 1px solid var(--line);
       background: linear-gradient(145deg, rgba(41, 36, 28, 0.72), rgba(23, 21, 18, 0.94));
     }
-    .station:last-child { grid-column: 1 / -1; display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr); }
-    .station-visual { position: relative; overflow: hidden; background: var(--ebony-deep); }
-    .station-visual img { width: 100%; aspect-ratio: 16 / 9; object-fit: cover; object-position: top center; }
-    .station:last-child .station-visual img { height: 100%; aspect-ratio: auto; object-fit: cover; }
-    .station-visual::after { content: ""; position: absolute; inset: 55% 0 0; background: linear-gradient(transparent, rgba(17,16,14,0.4)); pointer-events: none; }
-    .station-content { padding: 22px 24px 25px; }
-    .station-index { color: var(--gold); font-size: 10px; font-weight: 700; letter-spacing: 0.2em; text-transform: uppercase; }
-    .station h3 { margin: 5px 0 8px; font-family: var(--serif); font-size: 27px; font-weight: 600; line-height: 1.05; }
-    .station-menu { display: block; margin-bottom: 12px; color: var(--gold-pale); font-size: 10px; letter-spacing: 0.13em; text-transform: uppercase; }
-    .station p { margin-bottom: 0; color: var(--bistre); font-size: 13px; line-height: 1.75; }
-    .station:last-child .station-content { align-self: center; padding: 30px clamp(24px, 4vw, 48px); }
+    .banc-card:last-child { grid-column: 1 / -1; display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr); }
+    .banc-visual { position: relative; overflow: hidden; background: var(--ebony-deep); }
+    .banc-visual img { width: 100%; aspect-ratio: 16 / 9; object-fit: cover; object-position: top center; }
+    .banc-card:last-child .banc-visual img { height: 100%; aspect-ratio: auto; object-fit: cover; }
+    .banc-visual::after { content: ""; position: absolute; inset: 55% 0 0; background: linear-gradient(transparent, rgba(17,16,14,0.4)); pointer-events: none; }
+    .banc-content { padding: 22px 24px 25px; }
+    .banc-index { color: var(--gold); font-size: 10px; font-weight: 700; letter-spacing: 0.2em; text-transform: uppercase; }
+    .banc-card h3 { margin: 5px 0 8px; font-family: var(--serif); font-size: 27px; font-weight: 600; line-height: 1.05; }
+    .banc-menu { display: block; margin-bottom: 12px; color: var(--gold-pale); font-size: 10px; letter-spacing: 0.13em; text-transform: uppercase; }
+    .banc-card p { margin-bottom: 0; color: var(--bistre); font-size: 13px; line-height: 1.75; }
+    .banc-card:last-child .banc-content { align-self: center; padding: 30px clamp(24px, 4vw, 48px); }
 
     .cover-layout { display: grid; grid-template-columns: minmax(0, 1fr) minmax(260px, 0.72fr); gap: 38px; align-items: start; }
     .cover-copy { color: var(--bistre); }
@@ -240,9 +240,9 @@
       .nav { gap: 14px; font-size: 9px; }
       .intro { grid-template-columns: 1fr 0.82fr; gap: 28px; padding: 54px 0 44px; }
       h1 { font-size: 46px; }
-      .stations { gap: 14px; }
-      .station-content { padding: 18px; }
-      .station h3 { font-size: 24px; }
+      .banc-grid { gap: 14px; }
+      .banc-content { padding: 18px; }
+      .banc-card h3 { font-size: 24px; }
       .formats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
       .format:nth-child(2) { border-right: 0; }
       .format:nth-child(-n+2) { border-bottom: 1px solid var(--line); }
@@ -260,10 +260,10 @@
       .intro-figure img { aspect-ratio: 16 / 10; }
       .section { padding: 56px 0; }
       .section-heading h2 { font-size: 34px; }
-      .stations { grid-template-columns: 1fr; }
-      .station:last-child { grid-column: auto; display: block; }
-      .station:last-child .station-visual img { aspect-ratio: 16 / 9; }
-      .station:last-child .station-content { padding: 20px; }
+      .banc-grid { grid-template-columns: 1fr; }
+      .banc-card:last-child { grid-column: auto; display: block; }
+      .banc-card:last-child .banc-visual img { aspect-ratio: 16 / 9; }
+      .banc-card:last-child .banc-content { padding: 20px; }
       .cover-layout { grid-template-columns: 1fr; gap: 26px; }
       .spec-list { grid-template-columns: 1fr; gap: 8px; }
       .formats { grid-template-columns: 1fr; }
@@ -287,7 +287,7 @@
       </a>
       <nav class="nav" aria-label="Navigation des spécifications">
         <a class="back-link" href="../index.html">Accueil</a>
-        <a href="#stations">Stations</a>
+        <a href="#bancs">Bancs</a>
         <a href="#couverture">Couverture</a>
         <a href="#sorties">Exports</a>
         <a href="#technologie">Technologie</a>
@@ -301,7 +301,7 @@
         <p class="eyebrow">Registre public · Édition 1.2.0</p>
         <h1 id="page-title">L'atelier qui façonne le livre.</h1>
         <div class="intro-rule"></div>
-        <p class="intro-copy">Aldus réunit dans un même atelier la préparation d'un manuscrit, sa composition, sa relecture et la fabrication de ses fichiers de publication. Chaque étape est pensée comme une station de travail éditoriale, du premier réglage jusqu'au tirage.</p>
+        <p class="intro-copy">Aldus réunit dans un même atelier la préparation d'un manuscrit, sa composition, sa relecture et la fabrication de ses fichiers de publication. Chaque étape se déroule sur un Banc d'atelier, du premier réglage jusqu'au tirage.</p>
         <div class="intro-meta"><span>Composition éditoriale</span><span>Reliure KDP</span><span>Atelier de bureau</span></div>
       </div>
       <figure class="intro-figure">
@@ -310,47 +310,47 @@
       </figure>
     </section>
 
-    <section class="section" id="stations" aria-labelledby="stations-title">
+    <section class="section" id="bancs" aria-labelledby="bancs-title">
       <div class="section-heading">
         <span class="section-kicker">Du manuscrit au volume</span>
-        <h2 id="stations-title">Les sept stations de l'atelier</h2>
-        <p>Six menus organisent le travail; les sept stations décrivent le parcours complet, avec certaines étapes réparties sur les deux feuillets du registre.</p>
+        <h2 id="bancs-title">Les sept Bancs de l'atelier</h2>
+        <p>Six menus organisent le travail; les sept Bancs décrivent le parcours complet, avec certaines étapes réparties sur les deux feuillets du registre.</p>
       </div>
-      <div class="stations">
-        <article class="station">
-          <figure class="station-visual"><img src="../assets/screenshots/banc-1-parametres.png" alt="Écran de réglage du format du livre, du corps de texte et des titres" loading="lazy"></figure>
-          <div class="station-content"><span class="station-index">Station I</span><h3>Calibrage &amp; Gabarits</h3><span class="station-menu">Menu Réglages</span><p>Choisissez le format de coupe, les polices et les règles de mise en page. Les réglages s'appliquent au livre exporté, tandis que l'interface de l'atelier conserve sa présentation.</p></div>
+      <div class="banc-grid">
+        <article class="banc-card">
+          <figure class="banc-visual"><img src="../assets/screenshots/banc-1-parametres.png" alt="Écran de réglage du format du livre, du corps de texte et des titres" loading="lazy"></figure>
+          <div class="banc-content"><span class="banc-index">Banc I</span><h3>Calibrage &amp; Gabarits</h3><span class="banc-menu">Menu Réglages</span><p>Choisissez le format de coupe, les polices et les règles de mise en page. Les réglages s'appliquent au livre exporté, tandis que l'interface de l'atelier conserve sa présentation.</p></div>
         </article>
-        <article class="station">
-          <figure class="station-visual"><img src="../assets/screenshots/banc-2-identite.png" alt="Formulaire d'identité du livre avec titre, série, auteur et collaborateurs" loading="lazy"></figure>
-          <div class="station-content"><span class="station-index">Station II</span><h3>Identité &amp; Colophon</h3><span class="station-menu">Menu Informations</span><p>Rassemblez le titre, la série, les auteurs et les mentions d'édition. Ces informations alimentent les pages liminaires et le justificatif d'achevé d'imprimer.</p></div>
+        <article class="banc-card">
+          <figure class="banc-visual"><img src="../assets/screenshots/banc-2-identite.png" alt="Formulaire d'identité du livre avec titre, série, auteur et collaborateurs" loading="lazy"></figure>
+          <div class="banc-content"><span class="banc-index">Banc II</span><h3>Identité &amp; Colophon</h3><span class="banc-menu">Menu Informations</span><p>Rassemblez le titre, la série, les auteurs et les mentions d'édition. Ces informations alimentent les pages liminaires et le justificatif d'achevé d'imprimer.</p></div>
         </article>
-        <article class="station">
-          <figure class="station-visual"><img src="../assets/screenshots/banc-3-architecture.png" alt="Organisation narrative des actes, chapitres et pièces liminaires" loading="lazy"></figure>
-          <div class="station-content"><span class="station-index">Station III</span><h3>Imposition &amp; Architecture narrative</h3><span class="station-menu">Menu Organisation</span><p>Structurez actes, chapitres, illustrations et pages spéciales, puis réordonnez-les. Les outils contrôlent pagination, cahiers et ouvertures de chapitre sur une belle page.</p></div>
+        <article class="banc-card">
+          <figure class="banc-visual"><img src="../assets/screenshots/banc-3-architecture.png" alt="Organisation narrative des actes, chapitres et pièces liminaires" loading="lazy"></figure>
+          <div class="banc-content"><span class="banc-index">Banc III</span><h3>Imposition &amp; Architecture</h3><span class="banc-menu">Menu Organisation</span><p>Structurez actes, chapitres, illustrations et pages spéciales, puis réordonnez-les. Les outils contrôlent pagination, cahiers et ouvertures de chapitre sur une belle page.</p></div>
         </article>
-        <article class="station">
-          <figure class="station-visual"><img src="../assets/screenshots/Correcteur03.png" alt="Diptyque de lecture et de conseils, avec une anomalie typographique repérée en or" loading="lazy"></figure>
-          <div class="station-content"><span class="station-index">Station IV</span><h3>Qualité &amp; Épreuve</h3><span class="station-menu">Menu Correcteur · Vues I &amp; II</span><p>Examinez l'indice de qualité et les 18 règles typographiques, puis lisez le chapitre face à ses annotations. Localisez les anomalies, appliquez une suggestion ou retouchez le Markdown en direct.</p></div>
+        <article class="banc-card">
+          <figure class="banc-visual"><img src="../assets/screenshots/Correcteur03.png" alt="Diptyque de lecture et de conseils, avec une anomalie typographique repérée en or" loading="lazy"></figure>
+          <div class="banc-content"><span class="banc-index">Banc IV</span><h3>Qualité Typographique &amp; d'Épreuve</h3><span class="banc-menu">Menu Correcteur · Vues I &amp; II</span><p>Examinez l'indice de qualité et les 18 règles typographiques, puis lisez le chapitre face à ses annotations. Localisez les anomalies, appliquez une suggestion ou retouchez le Markdown en direct.</p></div>
         </article>
-        <article class="station">
-          <figure class="station-visual"><img src="../assets/screenshots/Couverture03.png" alt="Aperçu tridimensionnel orbital d'un livre relié" loading="lazy"></figure>
-          <div class="station-content"><span class="station-index">Station V</span><h3>Mise en couverture</h3><span class="station-menu">Menu Couverture</span><p>Calibrez le papier et le dos, importez les plats, puis inspectez la planche à plat ou le volume relié en 3D. Les repères et alertes aident à vérifier le gabarit avant export.</p></div>
+        <article class="banc-card">
+          <figure class="banc-visual"><img src="../assets/screenshots/Couverture03.png" alt="Aperçu tridimensionnel orbital d'un livre relié" loading="lazy"></figure>
+          <div class="banc-content"><span class="banc-index">Banc V</span><h3>Mise en couverture</h3><span class="banc-menu">Menu Couverture</span><p>Calibrez le papier et le dos, importez les plats, puis inspectez la planche à plat ou le volume relié en 3D. Les repères et alertes aident à vérifier le gabarit avant export.</p></div>
         </article>
-        <article class="station">
-          <figure class="station-visual"><img src="../assets/screenshots/Export01.png" alt="Dossier de fabrication et sélection des formes d'édition" loading="lazy"></figure>
-          <div class="station-content"><span class="station-index">Station VI</span><h3>Inspection Pré-Presse</h3><span class="station-menu">Menu Export · Feuillet IX</span><p>Préparez le dossier de fabrication, sélectionnez une ou plusieurs formes de sortie et consultez le bilan d'intégrité avant de lancer la génération.</p></div>
+        <article class="banc-card">
+          <figure class="banc-visual"><img src="../assets/screenshots/Export01.png" alt="Dossier de fabrication et sélection des formes d'édition" loading="lazy"></figure>
+          <div class="banc-content"><span class="banc-index">Banc VI</span><h3>Inspection Pré-Presse</h3><span class="banc-menu">Menu Export · Feuillet IX</span><p>Préparez le dossier de fabrication, sélectionnez une ou plusieurs formes de sortie et consultez le bilan d'intégrité avant de lancer la génération.</p></div>
         </article>
-        <article class="station">
-          <figure class="station-visual"><img src="../assets/screenshots/Export02.png" alt="Feuillet de tirage avec justificatif, action de presse et ouverture des épreuves" loading="lazy"></figure>
-          <div class="station-content"><span class="station-index">Station VII</span><h3>Tirage sous Presse</h3><span class="station-menu">Menu Export · Feuillet X</span><p>Relisez le justificatif, actionnez la presse et ouvrez le dossier des épreuves ou le volume composé. Le tirage clôt le parcours sans modifier le manuscrit source.</p></div>
+        <article class="banc-card">
+          <figure class="banc-visual"><img src="../assets/screenshots/Export02.png" alt="Feuillet de tirage avec justificatif, action de presse et ouverture des épreuves" loading="lazy"></figure>
+          <div class="banc-content"><span class="banc-index">Banc VII</span><h3>Tirage sous Presse</h3><span class="banc-menu">Menu Export · Feuillet X</span><p>Relisez le justificatif, actionnez la presse et ouvrez le dossier des épreuves ou le volume composé. Le tirage clôt le parcours sans modifier le manuscrit source.</p></div>
         </article>
       </div>
     </section>
 
     <section class="section" id="couverture" aria-labelledby="cover-title">
       <div class="section-heading">
-        <span class="section-kicker">Cover Studio · Station V</span>
+        <span class="section-kicker">Cover Studio · Banc V</span>
         <h2 id="cover-title">La couverture, au millimètre.</h2>
         <p>Le Cover Studio calcule la jaquette complète à partir du format de coupe, de la pagination et du type de papier choisi.</p>
       </div>
