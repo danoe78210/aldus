@@ -11,7 +11,7 @@ Déposez ici les images suivantes (PNG recommandé, ratio ~16/10, largeur ≥ 96
 | `banc-2-identite.png` + `banc-2-colophon.png` | Banc II — Le Banc de l'Identité & du Colophon | Menu Informations (diptyque) |
 | `banc-3-architecture.png` + `banc-3-calibrage.png` | Banc III — Le Banc de l'Architecture Narrative | Menu Organisation (diptyque) |
 | `Correcteur01.png` + `Correcteur02.png` + `Correcteur03.png` + `Correcteur04.png` | Banc IV — Le Banc de Qualité Typographique & d'Épreuve | Menu Correcteur — Vues I & II (4 vues) |
-| `Couverture02.png` + `Couverture01.jpg` + `Couverture03.png` | Banc V — Le Banc de Jaquette & Reliure | Menu Couverture (3 vues) |
+| `Couverture02.png` + `Couverture01.jpg` + `Couverture03.png` | Banc V — Le Banc de mise en couverture | Menu Couverture (3 vues) |
 | `banc-6.png` | Banc VI — L'Inspection Pré-Presse | Menu Export — Vue I |
 | `banc-7.png` | Banc VII — Le Tirage sous Presse | Menu Export — Vue II |
 
