@@ -684,29 +684,38 @@
         </article>
 
         <!-- Banc VI -->
-        <article class="banc-card p-6 rounded-xs bg-atelier-card brass-border flex flex-col">
-          <div class="banc-preview">
-            <span class="banc-preview-placeholder">banc-6.png</span>
-            <img src="assets/screenshots/banc-6.png" alt="Banc VI — L'Inspection Pré-Presse" loading="lazy" onerror="this.remove()">
-          </div>
-          <span class="font-cinzel text-xs uppercase tracking-widest text-atelier-gold mt-5">Banc VI</span>
-          <h3 class="font-cinzel text-lg text-atelier-ivory mt-1">L'Inspection Pré-Presse</h3>
-          <p class="banc-menu">Menu Export — Vue I</p>
-          <p class="banc-role"><span class="banc-role-key">Rôle :</span> Dossier de fabrication en tête, contrôle d'intégrité et formats d'édition.</p>
-          <p class="banc-legende">Vérification pré-tirage KDP, jauge d'encrage et préparation des formes multiples (PDF d'imprimerie, DOCX bureautique, EPUB 3.2).</p>
-        </article>
+        <article class="banc-card banc-featured md:col-span-2 lg:col-span-3 p-6 sm:p-8 rounded-xs bg-atelier-card brass-border flex flex-col">
+          <div class="banc-showcase">
+            <div class="flex flex-col justify-start">
+              <span class="font-cinzel text-xs uppercase tracking-widest text-atelier-gold">Banc VI</span>
+              <h3 class="font-cinzel text-xl sm:text-2xl text-atelier-ivory mt-1">L'Inspection &amp; le Tirage sous Presse</h3>
+              <p class="banc-menu">Menu Export — Vues I &amp; II</p>
+              <div id="banc-6-narrative" class="banc-narrative-box">
+                <p class="banc-subtitle" data-banc-subtitle>L'Inspection Pré-Presse &amp; la Génération des Formes</p>
+                <p class="text-atelier-bistre text-base leading-relaxed mt-5" data-banc-desc>
+                  Constitution du dossier de fabrication et pilotage des formes d'édition multiples : génération certifiée du PDF/X KDP (noir pur 100% K, polices incorporées), de l'ePub 3.2 reflowable, de la jaquette haute définition à 300 DPI avec zone de code-barres, et du manuscrit DOCX révisé pour relecture.
+                </p>
+              </div>
+            </div>
 
-        <!-- Banc VII -->
-        <article class="banc-card p-6 rounded-xs bg-atelier-card brass-border flex flex-col">
-          <div class="banc-preview">
-            <span class="banc-preview-placeholder">banc-7.png</span>
-            <img src="assets/screenshots/banc-7.png" alt="Banc VII — Le Tirage sous Presse" loading="lazy" onerror="this.remove()">
+            <!-- Pupitre d'exposition à onglets -->
+            <div class="flex flex-col" data-banc-viewer="banc-6">
+              <div class="banc-tabs-single-line" role="tablist" aria-label="Vues de l'épreuve du Banc VI">
+                <button type="button" role="tab" class="banc-tab active" data-banc-tab="prepresse" aria-selected="true" onclick="selectBancView('banc-6','prepresse')">1. Inspection Pré-Presse</button>
+                <button type="button" role="tab" class="banc-tab" data-banc-tab="tirage" aria-selected="false" onclick="selectBancView('banc-6','tirage')">2. Tirage sous Presse</button>
+              </div>
+
+              <div class="banc-viewer" id="banc-6-viewer">
+                <span class="banc-viewer-placeholder" data-banc-placeholder>Épreuve à venir — Export01.png</span>
+                <img class="banc-viewer-img is-active" data-banc-img="prepresse" src="assets/screenshots/Export01.png" alt="Inspection Pré-Presse — génération certifiée du PDF/X, ePub 3.2, jaquette et manuscrit DOCX" loading="lazy" onload="bancShotLoaded(this)" onerror="this.dataset.broken='1'; bancShotLoaded(this)">
+                <img class="banc-viewer-img" data-banc-img="tirage" src="assets/screenshots/Export02.png" alt="Tirage sous Presse — justificatif de tirage, scellage officiel du volume et ouverture des épreuves" loading="lazy" onload="bancShotLoaded(this)" onerror="this.dataset.broken='1'; bancShotLoaded(this)">
+              </div>
+
+              <p class="banc-viewer-caption" id="banc-6-caption" data-banc-caption>Inspection Pré-Presse — génération certifiée du PDF/X, ePub 3.2, jaquette et manuscrit DOCX</p>
+
+              <button type="button" class="banc-zoom" id="banc-6-zoom" onclick="zoomBancView('banc-6')" title="Ouvrir l'épreuve active en haute définition">⤢ Examiner en grand format</button>
+            </div>
           </div>
-          <span class="font-cinzel text-xs uppercase tracking-widest text-atelier-gold mt-5">Banc VII</span>
-          <h3 class="font-cinzel text-lg text-atelier-ivory mt-1">Le Tirage sous Presse</h3>
-          <p class="banc-menu">Menu Export — Vue II</p>
-          <p class="banc-role"><span class="banc-role-key">Rôle :</span> Actionnement du balancier, sceau de bronze et ouverture des épreuves.</p>
-          <p class="banc-legende">Scellage officiel du volume sous presse aldine et accès natif immédiat aux épreuves générées.</p>
         </article>
 
       </div>
@@ -1085,6 +1094,23 @@
           caption: "Volume Relié 3D — inspection orbitale de l'ouvrage sous tous les angles et export certifié",
           subtitle: "Restitution visuelle tridimensionnelle et interactive",
           description: "Restitution visuelle tridimensionnelle et interactive du livre relié. Permet d'inspecter l'harmonie globale de l'objet fini sous tous les angles, de surveiller l'intégrité de la tranche et d'accéder au module d'exportation du fichier PDF certifié KDP.",
+        },
+      },
+    },
+    "banc-6": {
+      default: "prepresse",
+      views: {
+        prepresse: {
+          src: "assets/screenshots/Export01.png",
+          caption: "Inspection Pré-Presse — génération certifiée du PDF/X, ePub 3.2, jaquette et manuscrit DOCX",
+          subtitle: "L'Inspection Pré-Presse & la Génération des Formes",
+          description: "Constitution du dossier de fabrication et pilotage des formes d'édition multiples : génération certifiée du PDF/X KDP (noir pur 100% K, polices incorporées), de l'ePub 3.2 reflowable, de la jaquette haute définition à 300 DPI avec zone de code-barres, et du manuscrit DOCX révisé pour relecture.",
+        },
+        tirage: {
+          src: "assets/screenshots/Export02.png",
+          caption: "Tirage sous Presse — justificatif de tirage, scellage officiel du volume et ouverture des épreuves",
+          subtitle: "Le Tirage sous Presse & le Scellage du Volume",
+          description: "L'acte solennel de l'Officine d'Aldus. Affiche le justificatif de tirage traditionnel, permet d'actionner la presse pour figer le volume dans ses 60 feuillets, et offre un accès direct au dossier des épreuves et au feuilletage du livre composé.",
         },
       },
     },
