@@ -647,16 +647,40 @@
         </article>
 
         <!-- Banc V -->
-        <article class="banc-card p-6 rounded-xs bg-atelier-card brass-border flex flex-col">
-          <div class="banc-preview">
-            <span class="banc-preview-placeholder">banc-5.png</span>
-            <img src="assets/screenshots/banc-5.png" alt="Banc V — Le Banc de Jaquette &amp; Reliure" loading="lazy" onerror="this.remove()">
+        <article class="banc-card banc-featured md:col-span-2 lg:col-span-3 p-6 sm:p-8 rounded-xs bg-atelier-card brass-border flex flex-col">
+          <div class="banc-showcase">
+            <div class="flex flex-col justify-start">
+              <span class="font-cinzel text-xs uppercase tracking-widest text-atelier-gold">Banc V</span>
+              <h3 class="font-cinzel text-xl sm:text-2xl text-atelier-ivory mt-1">Le Banc de Jaquette &amp; Reliure</h3>
+              <p class="banc-menu">Menu Couverture</p>
+              <div id="banc-5-narrative" class="banc-narrative-box">
+                <p class="banc-subtitle" data-banc-subtitle>Paramétrage mathématique de l'enveloppe extérieure</p>
+                <p class="text-atelier-bistre text-base leading-relaxed mt-5" data-banc-desc>
+                  Paramétrage mathématique de l'enveloppe extérieure. Déclaration de la pagination et choix rigoureux du papier d'imprimerie (crème, blanc ou couleur) pour calculer automatiquement l'épaisseur du dos au centième de millimètre. Sélection du pelliculage (mat velouté ou brillant éclatant), import des visuels des plats en haute définition (305 DPI) et composition du texte de la tranche.
+                </p>
+              </div>
+            </div>
+
+            <!-- Pupitre d'exposition à onglets -->
+            <div class="flex flex-col" data-banc-viewer="banc-5">
+              <div class="banc-tabs-single-line" role="tablist" aria-label="Vues de l'épreuve du Banc V">
+                <button type="button" role="tab" class="banc-tab active" data-banc-tab="calibrage" aria-selected="true" onclick="selectBancView('banc-5','calibrage')">1. Calibrage &amp; Matières</button>
+                <button type="button" role="tab" class="banc-tab" data-banc-tab="marbre" aria-selected="false" onclick="selectBancView('banc-5','marbre')">2. Marbre 2D &amp; Gabarit</button>
+                <button type="button" role="tab" class="banc-tab" data-banc-tab="volume3d" aria-selected="false" onclick="selectBancView('banc-5','volume3d')">3. Volume Relié 3D</button>
+              </div>
+
+              <div class="banc-viewer" id="banc-5-viewer">
+                <span class="banc-viewer-placeholder" data-banc-placeholder>Épreuve à venir — Couverture02.png</span>
+                <img class="banc-viewer-img is-active" data-banc-img="calibrage" src="assets/screenshots/Couverture02.png" alt="Calibrage &amp; Matières — épaisseur du dos au centième de millimètre, papier et pelliculage" loading="lazy" onload="bancShotLoaded(this)" onerror="this.dataset.broken='1'; bancShotLoaded(this)">
+                <img class="banc-viewer-img" data-banc-img="marbre" src="assets/screenshots/Couverture01.jpg" alt="Marbre 2D &amp; Gabarit — imposition plane, repères de coupe, lignes de pliure et code-barres" loading="lazy" onload="bancShotLoaded(this)" onerror="this.dataset.broken='1'; bancShotLoaded(this)">
+                <img class="banc-viewer-img" data-banc-img="volume3d" src="assets/screenshots/Couverture03.png" alt="Volume Relié 3D — inspection orbitale de l'ouvrage sous tous les angles et export certifié" loading="lazy" onload="bancShotLoaded(this)" onerror="this.dataset.broken='1'; bancShotLoaded(this)">
+              </div>
+
+              <p class="banc-viewer-caption" id="banc-5-caption" data-banc-caption>Calibrage &amp; Matières — épaisseur du dos au centième de millimètre, papier et pelliculage</p>
+
+              <button type="button" class="banc-zoom" id="banc-5-zoom" onclick="zoomBancView('banc-5')" title="Ouvrir l'épreuve active en haute définition">⤢ Examiner en grand format</button>
+            </div>
           </div>
-          <span class="font-cinzel text-xs uppercase tracking-widest text-atelier-gold mt-5">Banc V</span>
-          <h3 class="font-cinzel text-lg text-atelier-ivory mt-1">Le Banc de Jaquette &amp; Reliure</h3>
-          <p class="banc-menu">Menu Couverture</p>
-          <p class="banc-role"><span class="banc-role-key">Rôle :</span> Géométrie 300 DPI, calcul micrométrique du dos et gabarit complet.</p>
-          <p class="banc-legende">Calibrage automatique de la couverture intégrale (Plat I, dos et Plat IV) calculé au centième de millimètre selon l'épaisseur exacte du papier.</p>
         </article>
 
         <!-- Banc VI -->
@@ -1038,6 +1062,29 @@
           caption: "Modification du Texte — réglet de retouche Markdown, espaces insécables et tirets cadratins",
           subtitle: "Retouche chirurgicale dans le manuscrit vivant",
           description: "Édition directe du texte vivant au format Markdown. Permet d'appliquer des corrections orthotypographiques immédiates — insertion d'espaces insécables, tirets cadratins et ligatures — sans jamais quitter l'établi.",
+        },
+      },
+    },
+    "banc-5": {
+      default: "calibrage",
+      views: {
+        calibrage: {
+          src: "assets/screenshots/Couverture02.png",
+          caption: "Calibrage & Matières — épaisseur du dos au centième de millimètre, papier et pelliculage",
+          subtitle: "Paramétrage mathématique de l'enveloppe extérieure",
+          description: "Paramétrage mathématique de l'enveloppe extérieure. Déclaration de la pagination et choix rigoureux du papier d'imprimerie (crème, blanc ou couleur) pour calculer automatiquement l'épaisseur du dos au centième de millimètre. Sélection du pelliculage (mat velouté ou brillant éclatant), import des visuels des plats en haute définition (305 DPI) et composition du texte de la tranche.",
+        },
+        marbre: {
+          src: "assets/screenshots/Couverture01.jpg",
+          caption: "Marbre 2D & Gabarit — imposition plane, repères de coupe, lignes de pliure et code-barres",
+          subtitle: "Atelier d'imposition plane de la couverture complète",
+          description: "Atelier d'imposition plane de la couverture complète (Plat I, dos et Plat IV). Gestion intelligente des alertes de dérive de pagination, affichage des repères professionnels indispensables (fonds perdus à 3,2 mm, lignes de pliure, zones de sécurité) et placement de la réserve de code-barres.",
+        },
+        volume3d: {
+          src: "assets/screenshots/Couverture03.png",
+          caption: "Volume Relié 3D — inspection orbitale de l'ouvrage sous tous les angles et export certifié",
+          subtitle: "Restitution visuelle tridimensionnelle et interactive",
+          description: "Restitution visuelle tridimensionnelle et interactive du livre relié. Permet d'inspecter l'harmonie globale de l'objet fini sous tous les angles, de surveiller l'intégrité de la tranche et d'accéder au module d'exportation du fichier PDF certifié KDP.",
         },
       },
     },
