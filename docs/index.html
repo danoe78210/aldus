@@ -252,6 +252,12 @@
       color: #f3e5ab;
       box-shadow: 0 0 18px rgba(212, 175, 55, 0.22), inset 0 0 10px rgba(212, 175, 55, 0.05);
     }
+    .banc-narrative-box {
+      transition: opacity 0.25s ease;
+    }
+    .banc-narrative-box.is-fading {
+      opacity: 0;
+    }
     .banc-viewer {
       position: relative;
       width: 100%;
@@ -608,10 +614,12 @@
               <span class="font-cinzel text-xs uppercase tracking-widest text-atelier-gold">Banc IV</span>
               <h3 class="font-cinzel text-xl sm:text-2xl text-atelier-ivory mt-1">Le Banc de Qualité Typographique &amp; d'Épreuve</h3>
               <p class="banc-menu">Menu Correcteur — Vues I &amp; II</p>
-              <p class="banc-subtitle">L'indice de qualité, l'inspection minutieuse des règles aldines et la retouche chirurgicale d'épreuve.</p>
-              <p class="text-atelier-bistre text-base leading-relaxed mt-5">
-                Véritable cœur orthotypographique de l'atelier, le Banc IV scelle l'alliance entre le diagnostic global de la pureté typographique — jauge d'excellence du volume et registre exhaustif des 18 règles aldines — et le diptyque de correction interactive permettant la retouche chirurgicale directement au sein du manuscrit vivant.
-              </p>
+              <div id="banc-4-narrative" class="banc-narrative-box">
+                <p class="banc-subtitle" data-banc-subtitle>L'indice de qualité, l'inspection minutieuse des règles aldines et la retouche chirurgicale d'épreuve.</p>
+                <p class="text-atelier-bistre text-base leading-relaxed mt-5" data-banc-desc>
+                  Évaluation globale du chapitre. Affiche la jauge de conformité aldine, le tableau de bord par chapitre, la classification pondérée des anomalies (critiques, style, mineures) et le regroupement par familles typographiques.
+                </p>
+              </div>
             </div>
 
             <!-- Pupitre d'exposition à onglets -->
@@ -1010,18 +1018,26 @@
         synthese: {
           src: "assets/screenshots/Correcteur01.png",
           caption: "Synthèse & Qualité — tableau de bord par chapitre, jauge de l'indice de qualité et anomalies pondérées",
+          subtitle: "Évaluation globale du chapitre & jauge de conformité",
+          description: "Évaluation globale du chapitre. Affiche la jauge de conformité aldine, le tableau de bord par chapitre, la classification pondérée des anomalies (critiques, style, mineures) et le regroupement par familles typographiques.",
         },
         regles: {
           src: "assets/screenshots/Correcteur02.png",
           caption: "Registre des Règles — 18 contrôles actifs, fiches de règles et comptage des occurrences",
+          subtitle: "Registre exhaustif des 18 règles aldines",
+          description: "Navigation feuillet par feuillet à travers l'ensemble des règles orthotypographiques : fiches explicatives détaillées, exemples avant/après, niveau de sévérité et décompte précis des occurrences détectées.",
         },
         epreuve: {
           src: "assets/screenshots/Correcteur03.png",
           caption: "Épreuve & Surlignage — diptyque synchronisé et surbrillance dorée des anomalies",
+          subtitle: "Diptyque d'épreuve & conseils de l'imprimeur",
+          description: "Vue double synchrone associant le feuillet de lecture au pupitre des conseils de l'imprimeur. Les anomalies sont surlignées d'or sur la page vivante, avec repérage instantané et recommandations de correction.",
         },
         retouche: {
           src: "assets/screenshots/Correcteur04.png",
           caption: "Modification du Texte — réglet de retouche Markdown, espaces insécables et tirets cadratins",
+          subtitle: "Retouche chirurgicale dans le manuscrit vivant",
+          description: "Édition directe du texte vivant au format Markdown. Permet d'appliquer des corrections orthotypographiques immédiates — insertion d'espaces insécables, tirets cadratins et ligatures — sans jamais quitter l'établi.",
         },
       },
     },
@@ -1053,6 +1069,27 @@
     // Légende synchronisée
     const caption = root.querySelector("[data-banc-caption]");
     if (caption) caption.textContent = view.caption;
+
+    // Mise à jour narrative synchronisée (colonne de gauche) avec fondu élégant
+    if (view.description || view.subtitle) {
+      const showcase = root.closest(".banc-showcase");
+      if (showcase) {
+        const narrBox = showcase.querySelector(".banc-narrative-box");
+        const subEl = showcase.querySelector("[data-banc-subtitle]");
+        const descEl = showcase.querySelector("[data-banc-desc]");
+        if (narrBox) {
+          narrBox.classList.add("is-fading");
+          setTimeout(() => {
+            if (subEl && view.subtitle) subEl.textContent = view.subtitle;
+            if (descEl && view.description) descEl.textContent = view.description;
+            narrBox.classList.remove("is-fading");
+          }, 120);
+        } else {
+          if (subEl && view.subtitle) subEl.textContent = view.subtitle;
+          if (descEl && view.description) descEl.textContent = view.description;
+        }
+      }
+    }
 
     // État du cadre d'exposition (capture déposée ou non).
     refreshBancPlaceholder(root);
