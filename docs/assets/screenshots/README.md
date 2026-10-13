@@ -12,7 +12,8 @@ Déposez ici les images suivantes (PNG recommandé, ratio ~16/10, largeur ≥ 96
 | `banc-3-architecture.png` + `banc-3-calibrage.png` | Banc III — Le Banc de l'Architecture Narrative | Menu Organisation (diptyque) |
 | `Correcteur01.png` + `Correcteur02.png` + `Correcteur03.png` + `Correcteur04.png` | Banc IV — Le Banc de Qualité Typographique & d'Épreuve | Menu Correcteur — Vues I & II (4 vues) |
 | `Couverture02.png` + `Couverture01.jpg` + `Couverture03.png` | Banc V — Le Banc de mise en couverture | Menu Couverture (3 vues) |
-| `Export01.png` + `Export02.png` | Banc VI — L'Inspection & le Tirage sous Presse | Menu Export — Vues I & II (2 vues) |
+| `Export01.png` | Banc VI — L'Inspection Pré-Presse | Menu Export — Vue I |
+| `Export02.png` | Banc VII — Le Tirage sous Presse | Menu Export — Vue II |
 
 > Tant qu'un fichier est absent, le cadre du banc affiche automatiquement un libellé
 > de remplacement (le nom du fichier attendu) : aucune image cassée n'est visible.

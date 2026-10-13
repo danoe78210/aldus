@@ -354,6 +354,130 @@
     .banc-zoom:hover {
       color: #f3e5ab;
     }
+    .banc-card {
+      scroll-margin-top: 5.5rem;
+    }
+    /* Sommaire flottant des 7 Bancs (Navigation Rapide — Renaissance, ébène et ors) */
+    .bancs-floating-nav {
+      position: fixed;
+      right: 1.25rem;
+      top: 50%;
+      transform: translateY(-50%);
+      z-index: 40;
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      background: rgba(11, 10, 9, 0.95);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border: 1px solid rgba(197, 160, 89, 0.3);
+      border-radius: 4px;
+      padding: 0.65rem 0.4rem;
+      box-shadow: 0 16px 36px rgba(0, 0, 0, 0.75), inset 0 0 16px rgba(212, 175, 55, 0.06);
+      transition: opacity 0.3s ease, transform 0.3s ease;
+    }
+    @media (min-width: 1024px) {
+      .bancs-floating-nav {
+        display: flex;
+      }
+    }
+    .bancs-nav-header {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-bottom: 0.45rem;
+      padding-bottom: 0.35rem;
+      border-bottom: 1px solid rgba(197, 160, 89, 0.2);
+      width: 100%;
+    }
+    .bancs-nav-fleuron {
+      font-size: 0.75rem;
+      color: #c5a059;
+      line-height: 1;
+    }
+    .bancs-nav-title {
+      font-family: "Cinzel", serif;
+      font-size: 0.5rem;
+      text-transform: uppercase;
+      letter-spacing: 0.2em;
+      color: #8f6e2b;
+      margin-top: 0.15rem;
+    }
+    .bancs-nav-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.35rem;
+      list-style: none;
+      margin: 0;
+      padding: 0;
+    }
+    .bancs-nav-item {
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 2.35rem;
+      height: 2.15rem;
+      border: 1px solid rgba(197, 160, 89, 0.2);
+      border-radius: 2px;
+      background: rgba(20, 17, 14, 0.85);
+      color: #a89f91;
+      text-decoration: none;
+      cursor: pointer;
+      font-family: "Cinzel", serif;
+      font-size: 0.6875rem;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      transition: color 0.25s ease, border-color 0.25s ease, background-color 0.25s ease, box-shadow 0.25s ease, transform 0.2s ease;
+    }
+    .bancs-nav-item:hover {
+      color: #f5efe4;
+      border-color: #8f6e2b;
+      background: rgba(36, 28, 20, 0.95);
+      box-shadow: 0 0 12px rgba(212, 175, 55, 0.25);
+      transform: translateX(-2px);
+    }
+    .bancs-nav-item.active {
+      color: #f3e5ab;
+      border-color: #d4af37;
+      background: #241c14;
+      box-shadow: 0 0 16px rgba(212, 175, 55, 0.4), inset 0 0 8px rgba(212, 175, 55, 0.12);
+    }
+    .bancs-nav-tooltip {
+      position: absolute;
+      right: calc(100% + 0.75rem);
+      top: 50%;
+      transform: translateY(-50%) translateX(6px);
+      background: rgba(11, 10, 9, 0.96);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      border: 1px solid rgba(197, 160, 89, 0.4);
+      border-radius: 3px;
+      padding: 0.4rem 0.75rem;
+      font-family: "Cinzel", serif;
+      font-size: 0.625rem;
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+      white-space: nowrap;
+      color: #f5efe4;
+      pointer-events: none;
+      opacity: 0;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.75), inset 0 0 10px rgba(212, 175, 55, 0.05);
+      transition: opacity 0.2s ease, transform 0.2s ease;
+    }
+    .bancs-nav-tooltip::after {
+      content: "";
+      position: absolute;
+      left: 100%;
+      top: 50%;
+      transform: translateY(-50%);
+      border: 4px solid transparent;
+      border-left-color: rgba(197, 160, 89, 0.5);
+    }
+    .bancs-nav-item:hover .bancs-nav-tooltip {
+      opacity: 1;
+      transform: translateY(-50%) translateX(0);
+    }
   </style>
 </head>
 <body class="font-serif antialiased selection:bg-[#8f6e2b]/30 selection:text-[#f3e5ab]">
@@ -497,6 +621,58 @@
   </div>
 </div>
 
+<!-- Sommaire Flottant des 7 Bancs (Navigation Rapide) -->
+<nav id="bancs-floating-nav" class="bancs-floating-nav" aria-label="Sommaire des bancs de l'atelier">
+  <div class="bancs-nav-header">
+    <span class="bancs-nav-fleuron">❦</span>
+    <span class="bancs-nav-title">Bancs</span>
+  </div>
+  <ul class="bancs-nav-list">
+    <li>
+      <a href="#banc-1" class="bancs-nav-item" data-banc-target="banc-1" aria-label="Banc I — Calibrage &amp; Gabarits">
+        <span class="bancs-nav-numeral">[ I ]</span>
+        <span class="bancs-nav-tooltip">Banc I — Calibrage &amp; Gabarits</span>
+      </a>
+    </li>
+    <li>
+      <a href="#banc-2" class="bancs-nav-item" data-banc-target="banc-2" aria-label="Banc II — Identité &amp; Colophon">
+        <span class="bancs-nav-numeral">[ II ]</span>
+        <span class="bancs-nav-tooltip">Banc II — Identité &amp; Colophon</span>
+      </a>
+    </li>
+    <li>
+      <a href="#banc-3" class="bancs-nav-item" data-banc-target="banc-3" aria-label="Banc III — Architecture Narrative">
+        <span class="bancs-nav-numeral">[ III ]</span>
+        <span class="bancs-nav-tooltip">Banc III — Architecture Narrative</span>
+      </a>
+    </li>
+    <li>
+      <a href="#banc-4" class="bancs-nav-item" data-banc-target="banc-4" aria-label="Banc IV — Qualité Typographique &amp; Épreuve">
+        <span class="bancs-nav-numeral">[ IV ]</span>
+        <span class="bancs-nav-tooltip">Banc IV — Qualité Typographique &amp; Épreuve</span>
+      </a>
+    </li>
+    <li>
+      <a href="#banc-5" class="bancs-nav-item" data-banc-target="banc-5" aria-label="Banc V — Mise en couverture">
+        <span class="bancs-nav-numeral">[ V ]</span>
+        <span class="bancs-nav-tooltip">Banc V — Mise en couverture</span>
+      </a>
+    </li>
+    <li>
+      <a href="#banc-6" class="bancs-nav-item" data-banc-target="banc-6" aria-label="Banc VI — Inspection Pré-Presse">
+        <span class="bancs-nav-numeral">[ VI ]</span>
+        <span class="bancs-nav-tooltip">Banc VI — Inspection Pré-Presse</span>
+      </a>
+    </li>
+    <li>
+      <a href="#banc-7" class="bancs-nav-item" data-banc-target="banc-7" aria-label="Banc VII — Tirage sous Presse">
+        <span class="bancs-nav-numeral">[ VII ]</span>
+        <span class="bancs-nav-tooltip">Banc VII — Tirage sous Presse</span>
+      </a>
+    </li>
+  </ul>
+</nav>
+
     <!-- Section Les Bancs de l'Atelier -->
     <section id="bancs" class="pt-32 text-left">
       <div class="text-center mb-16">
@@ -508,7 +684,7 @@
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
 
         <!-- Banc I -->
-        <article class="banc-card banc-featured md:col-span-2 lg:col-span-3 p-6 sm:p-8 rounded-xs bg-atelier-card brass-border flex flex-col">
+        <article id="banc-1" class="banc-card banc-featured md:col-span-2 lg:col-span-3 p-6 sm:p-8 rounded-xs bg-atelier-card brass-border flex flex-col">
           <div class="banc-showcase">
             <div class="flex flex-col">
               <span class="font-cinzel text-xs uppercase tracking-widest text-atelier-gold">Banc I</span>
@@ -543,7 +719,7 @@
         </article>
 
         <!-- Banc II -->
-        <article class="banc-card banc-featured md:col-span-2 lg:col-span-3 p-6 sm:p-8 rounded-xs bg-atelier-card brass-border flex flex-col">
+        <article id="banc-2" class="banc-card banc-featured md:col-span-2 lg:col-span-3 p-6 sm:p-8 rounded-xs bg-atelier-card brass-border flex flex-col">
           <div class="banc-showcase">
             <div class="flex flex-col">
               <span class="font-cinzel text-xs uppercase tracking-widest text-atelier-gold">Banc II</span>
@@ -574,7 +750,7 @@
         </article>
 
         <!-- Banc III -->
-        <article class="banc-card banc-featured md:col-span-2 lg:col-span-3 p-6 sm:p-8 rounded-xs bg-atelier-card brass-border flex flex-col">
+        <article id="banc-3" class="banc-card banc-featured md:col-span-2 lg:col-span-3 p-6 sm:p-8 rounded-xs bg-atelier-card brass-border flex flex-col">
           <div class="banc-showcase">
             <div class="flex flex-col">
               <span class="font-cinzel text-xs uppercase tracking-widest text-atelier-gold">Banc III</span>
@@ -608,7 +784,7 @@
         </article>
 
         <!-- Banc IV -->
-        <article class="banc-card banc-featured md:col-span-2 lg:col-span-3 p-6 sm:p-8 rounded-xs bg-atelier-card brass-border flex flex-col">
+        <article id="banc-4" class="banc-card banc-featured md:col-span-2 lg:col-span-3 p-6 sm:p-8 rounded-xs bg-atelier-card brass-border flex flex-col">
           <div class="banc-showcase">
             <div class="flex flex-col justify-start">
               <span class="font-cinzel text-xs uppercase tracking-widest text-atelier-gold">Banc IV</span>
@@ -647,7 +823,7 @@
         </article>
 
         <!-- Banc V -->
-        <article class="banc-card banc-featured md:col-span-2 lg:col-span-3 p-6 sm:p-8 rounded-xs bg-atelier-card brass-border flex flex-col">
+        <article id="banc-5" class="banc-card banc-featured md:col-span-2 lg:col-span-3 p-6 sm:p-8 rounded-xs bg-atelier-card brass-border flex flex-col">
           <div class="banc-showcase">
             <div class="flex flex-col justify-start">
               <span class="font-cinzel text-xs uppercase tracking-widest text-atelier-gold">Banc V</span>
@@ -684,12 +860,12 @@
         </article>
 
         <!-- Banc VI -->
-        <article class="banc-card banc-featured md:col-span-2 lg:col-span-3 p-6 sm:p-8 rounded-xs bg-atelier-card brass-border flex flex-col">
+        <article id="banc-6" class="banc-card banc-featured md:col-span-2 lg:col-span-3 p-6 sm:p-8 rounded-xs bg-atelier-card brass-border flex flex-col">
           <div class="banc-showcase">
             <div class="flex flex-col justify-start">
               <span class="font-cinzel text-xs uppercase tracking-widest text-atelier-gold">Banc VI</span>
-              <h3 class="font-cinzel text-xl sm:text-2xl text-atelier-ivory mt-1">L'Inspection &amp; le Tirage sous Presse</h3>
-              <p class="banc-menu">Menu Export — Vues I &amp; II</p>
+              <h3 class="font-cinzel text-xl sm:text-2xl text-atelier-ivory mt-1">L'Inspection Pré-Presse</h3>
+              <p class="banc-menu">Menu Export — Vue I</p>
               <div id="banc-6-narrative" class="banc-narrative-box">
                 <p class="banc-subtitle" data-banc-subtitle>L'Inspection Pré-Presse &amp; la Génération des Formes</p>
                 <p class="text-atelier-bistre text-base leading-relaxed mt-5" data-banc-desc>
@@ -698,22 +874,45 @@
               </div>
             </div>
 
-            <!-- Pupitre d'exposition à onglets -->
+            <!-- Pupitre d'exposition -->
             <div class="flex flex-col" data-banc-viewer="banc-6">
-              <div class="banc-tabs-single-line" role="tablist" aria-label="Vues de l'épreuve du Banc VI">
-                <button type="button" role="tab" class="banc-tab active" data-banc-tab="prepresse" aria-selected="true" onclick="selectBancView('banc-6','prepresse')">1. Inspection Pré-Presse</button>
-                <button type="button" role="tab" class="banc-tab" data-banc-tab="tirage" aria-selected="false" onclick="selectBancView('banc-6','tirage')">2. Tirage sous Presse</button>
-              </div>
-
               <div class="banc-viewer" id="banc-6-viewer">
                 <span class="banc-viewer-placeholder" data-banc-placeholder>Épreuve à venir — Export01.png</span>
                 <img class="banc-viewer-img is-active" data-banc-img="prepresse" src="assets/screenshots/Export01.png" alt="Inspection Pré-Presse — génération certifiée du PDF/X, ePub 3.2, jaquette et manuscrit DOCX" loading="lazy" onload="bancShotLoaded(this)" onerror="this.dataset.broken='1'; bancShotLoaded(this)">
-                <img class="banc-viewer-img" data-banc-img="tirage" src="assets/screenshots/Export02.png" alt="Tirage sous Presse — justificatif de tirage, scellage officiel du volume et ouverture des épreuves" loading="lazy" onload="bancShotLoaded(this)" onerror="this.dataset.broken='1'; bancShotLoaded(this)">
               </div>
 
               <p class="banc-viewer-caption" id="banc-6-caption" data-banc-caption>Inspection Pré-Presse — génération certifiée du PDF/X, ePub 3.2, jaquette et manuscrit DOCX</p>
 
               <button type="button" class="banc-zoom" id="banc-6-zoom" onclick="zoomBancView('banc-6')" title="Ouvrir l'épreuve active en haute définition">⤢ Examiner en grand format</button>
+            </div>
+          </div>
+        </article>
+
+        <!-- Banc VII -->
+        <article id="banc-7" class="banc-card banc-featured md:col-span-2 lg:col-span-3 p-6 sm:p-8 rounded-xs bg-atelier-card brass-border flex flex-col">
+          <div class="banc-showcase">
+            <div class="flex flex-col justify-start">
+              <span class="font-cinzel text-xs uppercase tracking-widest text-atelier-gold">Banc VII</span>
+              <h3 class="font-cinzel text-xl sm:text-2xl text-atelier-ivory mt-1">Le Tirage sous Presse</h3>
+              <p class="banc-menu">Menu Export — Vue II</p>
+              <div id="banc-7-narrative" class="banc-narrative-box">
+                <p class="banc-subtitle" data-banc-subtitle>Le Tirage sous Presse &amp; le Scellage du Volume</p>
+                <p class="text-atelier-bistre text-base leading-relaxed mt-5" data-banc-desc>
+                  L'acte solennel de l'Officine d'Aldus. Affiche le justificatif de tirage traditionnel, permet d'actionner la presse pour figer le volume dans ses 60 feuillets, et offre un accès direct au dossier des épreuves et au feuilletage du livre composé.
+                </p>
+              </div>
+            </div>
+
+            <!-- Pupitre d'exposition -->
+            <div class="flex flex-col" data-banc-viewer="banc-7">
+              <div class="banc-viewer" id="banc-7-viewer">
+                <span class="banc-viewer-placeholder" data-banc-placeholder>Épreuve à venir — Export02.png</span>
+                <img class="banc-viewer-img is-active" data-banc-img="tirage" src="assets/screenshots/Export02.png" alt="Tirage sous Presse — justificatif de tirage, scellage officiel du volume et ouverture des épreuves" loading="lazy" onload="bancShotLoaded(this)" onerror="this.dataset.broken='1'; bancShotLoaded(this)">
+              </div>
+
+              <p class="banc-viewer-caption" id="banc-7-caption" data-banc-caption>Tirage sous Presse — justificatif de tirage, scellage officiel du volume et ouverture des épreuves</p>
+
+              <button type="button" class="banc-zoom" id="banc-7-zoom" onclick="zoomBancView('banc-7')" title="Ouvrir l'épreuve active en haute définition">⤢ Examiner en grand format</button>
             </div>
           </div>
         </article>
@@ -1106,6 +1305,11 @@
           subtitle: "L'Inspection Pré-Presse & la Génération des Formes",
           description: "Constitution du dossier de fabrication et pilotage des formes d'édition multiples : génération certifiée du PDF/X KDP (noir pur 100% K, polices incorporées), de l'ePub 3.2 reflowable, de la jaquette haute définition à 300 DPI avec zone de code-barres, et du manuscrit DOCX révisé pour relecture.",
         },
+      },
+    },
+    "banc-7": {
+      default: "tirage",
+      views: {
         tirage: {
           src: "assets/screenshots/Export02.png",
           caption: "Tirage sous Presse — justificatif de tirage, scellage officiel du volume et ouverture des épreuves",
@@ -1215,6 +1419,51 @@
     img.src = view.src;
     box.classList.remove("hidden");
     box.classList.add("flex");
+  }
+
+  // --- Sommaire flottant des 7 Bancs (Navigation rapide & Scroll Spy) ---
+  const bancNavLinks = document.querySelectorAll(".bancs-nav-item");
+  bancNavLinks.forEach((link) => {
+    link.addEventListener("click", (e) => {
+      e.preventDefault();
+      const targetId = link.getAttribute("data-banc-target");
+      const targetEl = document.getElementById(targetId);
+      if (targetEl) {
+        targetEl.scrollIntoView({ behavior: "smooth", block: "start" });
+        bancNavLinks.forEach((l) => {
+          const active = l === link;
+          l.classList.toggle("active", active);
+          if (active) l.setAttribute("aria-current", "true");
+          else l.removeAttribute("aria-current");
+        });
+      }
+    });
+  });
+
+  const bancArticles = Array.from(document.querySelectorAll("article[id^='banc-']"));
+  if (bancArticles.length > 0 && "IntersectionObserver" in window) {
+    const bancObserver = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            const id = entry.target.id;
+            bancNavLinks.forEach((link) => {
+              const active = link.getAttribute("data-banc-target") === id;
+              link.classList.toggle("active", active);
+              if (active) link.setAttribute("aria-current", "true");
+              else link.removeAttribute("aria-current");
+            });
+          }
+        });
+      },
+      {
+        root: null,
+        rootMargin: "-20% 0px -55% 0px",
+        threshold: 0,
+      }
+    );
+
+    bancArticles.forEach((article) => bancObserver.observe(article));
   }
 </script>
 
