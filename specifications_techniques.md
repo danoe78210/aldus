@@ -102,7 +102,7 @@ Fichiers : `src/index.css` (tokens `@theme`), `index.html` (webfonts).
 | `components/InfoView.tsx` | `InfoIdentityPanel` (Feuillet I) / `InfoEditionPanel` (Feuillet II) |
 | `components/MenuFlipBook.tsx` / `MenuPage.tsx` | Livre virtuel des onglets, routage des vues |
 | `components/StudioContext.tsx` | Contexte applicatif consommé par les pages |
-| `components/cover/*` | Cover Studio v1.2.0 (canvas, 3D, inspection, pré-export) |
+| `components/cover/*`, `CoverPlate.tsx`, `CoverCalibration.tsx` | Cover Studio v1.2.0 (marbre 2D/3D, calibrage, inspection, pré-export) |
 | `utils/*` | Ponts Tauri, projet (`.danoe`), sources, correcteur, arrêt propre |
 
 `MenuPage` est créé une fois (référence stable) : le contenu reste vivant via le
@@ -261,49 +261,29 @@ de l'onglet Organisation) et par `OrganizationView` (rangs romains des lignes).
   `BARCODE_SAFETY_MARGIN_MM = 6.4`; fonctions `coverMetrics`, `trimToMm`,
   `blurbFit` (contrôle d'empiètement de la prière d'insérer sur la zone de
   code-barres).
-- `src/components/CoverBindingPanel.tsx` (Feuillet V) : pagination, papier,
+- `src/components/CoverCalibration.tsx` (Feuillet VI) : pagination, papier,
   **pelliculage** (`cover.finish`, `CoverFinish = 'mat' | 'glossy'`), visuels des
-  plats (`pick_cover_image`) + inspection DPI (`inspect_cover_images`), texte de
-  tranche, dégradé, métriques temps réel, `SpineGauge`, **plat IV** (`cover.blurb`).
-- `src/components/cover/CoverStudioView.tsx` (Feuillet VI) : marbre
-  `bg-[#121316] border-[#2a2c33]`, bascule 2D/3D (`SUB_TABS`), bannière de dérive,
-  audit pré-export, export Typst (`export_kdp_cover_pdf`).
+  plats + inspection DPI, métriques temps réel, texte du dos et plat IV
+  (`cover.blurb`, contrôle d'empiètement sur la réserve ISBN).
+- `src/components/CoverPlate.tsx` (Feuillet V) : marbre, bascule 2D/3D
+  (`SUB_TABS`), repères, bannière de dérive, checklist et dialogue pré-export ;
+  génération par `export_kdp_cover_pdf`.
 - `cover.finish` et `cover.blurb` sont **optionnels** dans `CoverStudioState`
-  (compatibilité des fichiers `.danoe` antérieurs) ; `CoverSettingsPanel` a été
-  remplacé par `CoverBindingPanel`.
+  (compatibilité des fichiers `.danoe` antérieurs). La finition est un choix de
+  projet et n'est pas matérialisée par un profil de pelliculage dans le PDF.
+
+Références géométriques : fond perdu `3,2 mm` (norme KDP nominale `3,175 mm`),
+réserve code-barres `50,8 × 30,5 mm` avec marge `6,4 mm`, tranche calculée par
+page et coefficient papier. Le repère de préparation des plats `2138 × 3076 px`
+à `305,43 DPI` n'est pas une contrainte codée : l'inspecteur mesure la résolution
+effective depuis le fichier et le format de coupe sélectionné, avec validation à
+partir de `300 DPI`. Le DPI d'une image raster ne peut être relevé par l'export.
 
 ### 8.4 Module Correcteur (Feuillets VII & VIII)
 
 - `src/utils/typographyEngine.ts` — moteur **Usage Aldin** pur et testé
   (`src/utils/__tests__/typographyEngine.test.ts`) : 18 règles du *Code
   typographique* et du *Lexique de l'Imprimerie nationale*, réparties en 5
-## 9. Évolutions v1.2.0 — Commandes, état partagé & styles
-
-### 9.1 Commandes Rust (Tauri v2)
-
-| Commande | Comportement |
-|---|---|
-| `open_proofs_directory(app, path)` | Crée le dossier s'il n'existe pas (`std::fs::create_dir_all`) puis l'ouvre dans le gestionnaire natif (« explorer » / « open » / « xdg-open »). Destinataire : bouton `[ OUVRIR LE DOSSIER DES ÉPREUVES ]` (Feuillet X). |
-| `open_author_website()` | Lance le navigateur du système vers `https://danoeecrivain.net/` (`rundll32 url.dll,FileProtocolHandler` / « open » / « xdg-open »). Destinataire : **Ex-Libris de l'Auteur** (tranche gauche). |
-
-### 9.2 État partagé — `StudioContext`
-
-Centralisation de l'état des diptyques du Correcteur et de l'Export :
-`proofTab`, `proofEnabledRules`, `proofChapter`, `proofText`, `proofPage`,
-`proofOnlyAnomalies`, `activeAnomalyId` (commande « Localiser »), `pressDone`
-(sceau d'achevé d'imprimer) et `exportDirectory` (dossier de fabrication) —
-synchronisation **bidirectionnelle** entre la page gauche et la page droite du
-livre (les feuillets de droite lisent le même contexte que la page gauche).
-
-### 9.3 Styles & performance
-
-- Classes utilitaires intégrées : `.font-cinzel` (Cinzel éditoriale),
-  `.proof-scroll-dark` / `.proof-scroll-light` (ascenseurs feutrés sombre et
-  clair), `.animate-fade-in` + `.animate-ping` (sceau de presse).
-- **Nettoyage des overflow** : chaque page tient en hauteur sans barre de
-  défilement blanche parasite (`overflow-hidden` / `overflow-y-auto` stylisé) ;
-  colonne unique paginée des règles du Feuillet VII et compactage du Feuillet IX
-  pour un rendu responsive fluide.
   familles — ponctuation haute (insécable `U+00A0` avant `:`, fine `U+202F` avant
   `; ! ?`, ellipse `U+2026`), guillemets & dialogues (guillemets français,
   anglais courbes en citation imbriquée, cadratin de réplique `^[-–]\s+`,
@@ -337,6 +317,76 @@ livre (les feuillets de droite lisent le même contexte que la page gauche).
   diptyques VII & VIII (modèle du marbre de couverture).
 - `onNotify(level, message)` (contexte) alimente le journal inférieur
   (`StatusBar`) depuis n'importe quelle page.
+
+## 9. Évolutions v1.2.0 — Commandes, état partagé & styles
+
+### 9.1 Commandes Rust (Tauri v2)
+
+| Commande | Comportement |
+|---|---|
+| `open_proofs_directory(app, path)` | Crée le dossier s'il n'existe pas (`std::fs::create_dir_all`) puis l'ouvre dans le gestionnaire natif (« explorer » / « open » / « xdg-open »). Destinataire : bouton `[ OUVRIR LE DOSSIER DES ÉPREUVES ]` (Feuillet X). |
+| `open_author_website()` | Lance le navigateur du système vers `https://danoeecrivain.net/` (`rundll32 url.dll,FileProtocolHandler` / « open » / « xdg-open »). Destinataire : **Ex-Libris de l'Auteur** (tranche gauche). |
+
+### 9.2 État partagé — `StudioContext`
+
+Centralisation de l'état des diptyques du Correcteur et de l'Export :
+`proofTab`, `proofEnabledRules`, `proofChapter`, `proofText`, `proofPage`,
+`proofOnlyAnomalies`, `activeAnomalyId` (commande « Localiser »), `pressDone`
+(sceau d'achevé d'imprimer) et `exportDirectory` (dossier de fabrication) —
+synchronisation **bidirectionnelle** entre la page gauche et la page droite du
+livre (les feuillets de droite lisent le même contexte que la page gauche).
+
+### 9.3 Styles & performance
+
+- Classes utilitaires intégrées : `.font-cinzel` (Cinzel éditoriale),
+  `.proof-scroll-dark` / `.proof-scroll-light` (ascenseurs feutrés sombre et
+  clair), `.animate-fade-in` + `.animate-ping` (sceau de presse).
+- **Nettoyage des overflow** : chaque page tient en hauteur sans barre de
+  défilement blanche parasite (`overflow-hidden` / `overflow-y-auto` stylisé) ;
+  colonne unique paginée des règles du Feuillet VII et compactage du Feuillet IX
+  pour un rendu responsive fluide.
+
+### 9.4 Redimensionnement, rendu et plein écran
+
+- `src/utils/windowResizeGuard.ts` installe une écoute `resize` idempotente et
+  passive. La classe `is-resizing` est posée sur `<body>` pendant les événements,
+  puis retirée **150 ms après le dernier** (temporisateur réinitialisé à chaque
+  événement). L'écouteur n'effectue aucune mesure DOM ni mise à jour React.
+- `src/index.css` gèle transitions et animations sous `body.is-resizing`. Le
+  conteneur maître `.atelier-container` reçoit `translateZ(0)`,
+  `will-change: transform, width, height` et `backface-visibility: hidden`.
+  Les scènes internes utilisent `backface-visibility` sans promotion par
+  `transform`, pour ne pas transformer les ancres des modales `position: fixed`.
+- `MenuFlipBook` mesure ses dimensions par `ResizeObserver`; le lecteur PDF
+  `PreviewFlipbook` coalesce ses mesures dans `requestAnimationFrame` et annule
+  l'observation/la frame au démontage. Cela limite les recalculs superflus et
+  stabilise l'affichage lors des changements de taille.
+- La fenêtre Tauri principale est configurée `fullscreen: true` (1440 × 900,
+  redimensionnable). `utils/fullscreen.ts` fournit aussi le basculement natif
+  Tauri et un repli via l'API plein écran du navigateur.
+
+### 9.5 Formes proposées et pipeline réel
+
+Le pupitre propose quatre formes (`src/utils/exportEngine.ts`) : PDF intérieur,
+EPUB étiqueté 3.2 dans l'interface, couverture PDF 300 DPI et DOCX révisé. Le
+routage Rust actuel est :
+
+1. Projet → AST Markdown / enrichissements → générateur Typst et compilateur
+   Typst embarqué pour le PDF intérieur.
+2. Projet → générateur de couverture Rust/Typst pour le PDF pleine jaquette;
+   dimensions de coupe, fond perdu, tranche, images et réserve ISBN sont
+   injectés dans le document Typst.
+3. Projet → `epub-builder` pour le scaffold EPUB reflowable. Le code ne fixe pas
+   explicitement la version 3.2; les commentaires du module signalent que les
+   images et notes restent à traiter.
+4. Projet → `docx-rs` pour le document DOCX.
+
+Le dépôt ne référence **ni pandoc ni scripts externes d'imposition PDF/X**. Le
+choix d'interface « PDF/X KDP », les assertions marketing de PDF/X ou de noir
+100 % K ne prouvent pas une validation de norme : aucun profil/output intent,
+contrôle PDF/X dédié ou préflight correspondant n'est présent dans le pipeline
+audité. Documenter ces étapes comme implémentées serait inexact; elles relèvent
+d'un chantier distinct si une certification PDF/X est requise.
 
 ---
 

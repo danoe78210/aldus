@@ -19,8 +19,11 @@ terminal rétro-futuriste, monospace d'interface).
 
 **Proposition fonctionnelle** : transformer des chapitres (Markdown / texte /
 Word) et des illustrations en un livre prêt à publier (Amazon KDP broché et
-ebook), en trois formats : **Word `.docx`**, **PDF** (moteur Typst embarqué),
-**EPUB 3**.
+ebook), avec quatre formes proposées au pupitre de presse : **PDF prêt-à-imprimer**
+(libellé de vitrine « PDF/X KDP »), **EPUB** (étiqueté 3.2 dans l'interface), **jaquette KDP PDF** et
+**DOCX révisé**. Les moteurs effectivement reliés sont Rust/Typst pour les PDF,
+`epub-builder` pour l'EPUB et `docx-rs` pour le DOCX ; voir les limites de conformité
+dans `specifications_techniques.md`.
 
 ### 1.1 Règle d'architecture fondamentale (non négociable)
 
@@ -235,7 +238,51 @@ est partagée entre les deux pages du livre via `StudioContext` (état
 
 ---
 
-## 8. Renvois
+## 8. Inventaire fonctionnel des sept Bancs de l'Atelier
+
+Les sept Bancs sont les parcours éditoriaux présentés par la vitrine. Dans
+l'application, ils sont distribués sur six rubans : Réglages, Informations,
+Organisation, Correcteur, Couverture et Export. Les Feuillets gauche/droite
+forment un seul parcours fonctionnel et partagent le contexte du projet.
+
+| Banc | Entrée et interactions | Résultat / contrôles |
+|---|---|---|
+| **I — Calibrage & Gabarits** | Menu Réglages : choisir le format KDP, les paramètres de composition (corps, police, interligne, alignement, lettrines), les dossiers de sources et options de journal/correcteur. Importer ou gérer les fichiers depuis les panneaux concernés. | Les paramètres décrivent le manuscrit exporté, pas l'interface. Les formats et réglages sont repris par les calculs d'imposition et les exports. |
+| **II — Identité & Colophon** | Menu Informations : renseigner titre/sous-titre, saga et tome, auteur et collaborateurs, éditeur, ISBN, date, lieu et bibliographie sur les deux feuillets. Validation au blur et sauvegarde automatique. | Métadonnées persistées dans le projet, réutilisées pour les pages liminaires et le colophon de tirage. |
+| **III — Imposition & Architecture Narrative** | Menu Organisation : créer/importer actes, chapitres, images et pages spéciales, renommer, régler le rôle, puis réordonner par glisser-déposer. Consulter la table des matières, l'estimation KDP, les cahiers et les ouvertures de chapitres. | Numérotation romaine et alertes de belle page paire ; calculs de pagination et dos avec coefficients de papier. Une illustration non liée peut bloquer l'export. |
+| **IV — Qualité Typographique & Épreuve** | Menu Correcteur : sélectionner un chapitre, examiner la jauge de qualité et les anomalies pondérées, activer/désactiver les 18 règles, parcourir les signalements dans le diptyque, localiser une occurrence, puis corriger par suggestion ou dans la retouche Markdown. | Les vues I (examen/registre) et II (épreuve/conseils) partagent chapitre, texte, page et règles. La localisation surligne en or et recentre ; la retouche permet la mise en forme typographique et la sauvegarde. |
+| **V — Mise en couverture** | Menu Couverture : saisir la pagination, sélectionner papier crème/blanc/couleur, choisir Mat Velouté ou Brillant Éclatant, charger les plats, composer le texte et la couleur/dégradé du dos. Examiner le marbre 2D ou le volume 3D, puis passer la checklist avant export. | Calcul du dos et des dimensions dépliées, inspection DPI, repères de fond perdu/pliure/sécurité/code-barres et détection de dérive de pagination ou de structure. Les trois vues de vitrine décrivent les deux feuillets de Cover Studio. |
+| **VI — Inspection Pré-Presse** | Menu Export, Feuillet IX : choisir le dossier de fabrication et cocher une ou plusieurs formes, consulter le bilan d'intégrité KDP et lancer les formes retenues. | Quatre formes proposées : PDF intérieur prêt-à-imprimer, EPUB 3.2, couverture PDF 300 DPI et DOCX révisé. La mention « PDF/X » est un libellé de produit, pas une affirmation de validation PDF/X par un outil dédié. |
+| **VII — Tirage sous Presse** | Menu Export, Feuillet X : contrôler le justificatif d'achevé d'imprimer, actionner la presse, ouvrir le dossier des épreuves ou feuilleter le PDF composé. | Séquence de pressage à trois étapes, sceau temporaire, accès natif au dossier et aperçu paginé. Le tirage n'altère pas le manuscrit source. |
+
+### 8.1 Sous-vues de la vitrine `docs/index.html`
+
+La vitrine associe chaque capture à une légende. Les Bancs IV et V affichent
+également un sous-titre et une description qui changent avec la vue; les Bancs VI
+et VII ont une description fixe. Le changement d'onglet synchronise l'état
+actif (`aria-selected`), l'image, sa légende et le texte descriptif avec un fondu.
+La visionneuse plein écran ouvre la capture de la vue courante. Les Bancs I, II
+et III ont deux vues, le Banc IV quatre vues et le Banc V trois vues. Les Bancs
+VI et VII présentent chacun une capture unique, sans onglet de sous-vue.
+Les images absentes affichent un placeholder au nom du fichier attendu.
+
+Le sommaire flottant relie les sept ancres `#banc-1` à `#banc-7`. Le clic fait
+défiler en douceur et l'état actif suit la section visible via
+`IntersectionObserver` (Scroll Spy). Le sommaire n'est affiché qu'à partir de
+1024 px de largeur.
+
+### 8.2 Portée des formes d'export
+
+Les intitulés détaillés par la vitrine décrivent les objectifs éditoriaux des
+formes. Dans le code actuel, le PDF intérieur et la couverture sont compilés par
+Typst embarqué, le DOCX par `docx-rs`, et l'EPUB par `epub-builder`. Le dépôt ne
+contient pas de pipeline pandoc, de scripts externes d'imposition PDF/X, ni de
+validateur de conformité PDF/X : « PDF/X KDP » reste le nom de la forme proposée,
+pas une certification technique attestée. De même, « ePub 3.2 » est le libellé
+du pupitre; le moteur actuel est un scaffold EPUB et ne déclare pas explicitement
+la version 3.2.
+
+## 9. Renvois
 
 - **Spécifications techniques** : `specifications_techniques.md`
 - **Module Couverture** : `SPECIFICATIONS_COVER_STUDIO_v1.2.0.md`

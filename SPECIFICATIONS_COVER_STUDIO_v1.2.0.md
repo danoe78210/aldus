@@ -92,6 +92,18 @@ Lecture **uniquement de l'en-tête** (`ImageReader::into_decoder()`, aucun déco
 
 `inspect_cover_images` renvoie un `ImageInspectionReport { trimSize, requiredDpi, front, back }`.
 
+### 4.1 Repères de résolution et dimensions de référence
+
+- Seuil de production contrôlé par l'application : **300 DPI effectifs** au minimum ; le
+  statut `valid` commence à 300 DPI. Le calcul utilise le format physique choisi et les
+  dimensions réelles de chaque image, et non une taille de fichier imposée.
+- Repère de préparation des plats utilisé dans le présent cahier : **2138 × 3076 px à
+  305,43 DPI**. Cette dimension est une référence de gabarit/source, pas une constante
+  inscrite dans le moteur : les formats KDP disponibles ont des rapports de coupe variés.
+- Le document de couverture généré est vectoriel via Typst ; la résolution d'un visuel
+  raster importé reste celle mesurée par l'inspecteur. Un PDF vectoriel n'augmente pas la
+  résolution intrinsèque de ces images.
+
 ---
 
 ## 5. Pipeline Typst & export PDF (`typst_generator.rs`)
@@ -130,14 +142,15 @@ Compilation via `pdf::compile_to_pdf_with_root(source, work_dir)` (moteur **Typs
 
 | Composant | Rôle |
 |---|---|
-| `CoverStudioView.tsx` | Conteneur d'état + **3 sous-onglets** (`settings`, `canvas2d`, `preview3d`) |
-| `CoverSettingsPanel.tsx` | Page 1 pleine largeur : images, paramètres KDP, typographie de tranche |
-| `CoverCanvas2D.tsx` | Page 2 : planche SVG pleine surface + loupe plein écran (portal) + export |
-| `Cover3DPreview.tsx` | Page 3 : livre 3D orbital + vitrine immersive (portal) + export |
+| `CoverCalibration.tsx` | Feuillet VI : pagination, papier, finition, images, texte du dos et métriques en direct |
+| `CoverPlate.tsx` | Feuillet V : marbre, sous-vues 2D/3D, dérive et dialogue de pré-export |
+| `CoverCanvas2D.tsx` | Planche SVG + loupe plein écran (portal) + accès à l'export |
+| `Cover3DPreview.tsx` | Livre 3D orbital + vitrine immersive (portal) |
 | `CoverPreExportModal.tsx` | Checklist de conformité avant export |
 
-- **Sous-navigation** (`grid grid-cols-3`, registre/laiton) : `1. Réglages & Sources`,
-  `2. Planche technique 2D`, `3. Volume 3D` — rendu **pleine surface** de la page de droite.
+- Les trois fonctions du Banc V sont réparties sur deux feuillets : calibrage/matières
+  (Feuillet VI), puis marbre 2D ou volume 3D (Feuillet V). La sous-navigation du marbre
+  bascule entre `canvas2d` et `preview3d` ; les réglages ne forment pas un troisième onglet.
 - **Miniatures réelles** (page 1) : `convertFileSrc(path)` → `<img>` (repli cadre pointillé
   *« Déposez ou parcourez… »*), nom de fichier + **badges DPI** (🟢 ≥ 300 · 🟡 250–299 · 🔴 < 250 ·
   🔵 alpha aplati).
@@ -150,6 +163,12 @@ Compilation via `pdf::compile_to_pdf_with_root(source, work_dir)` (moteur **Typs
   → retour à l'onglet `settings`, listener nettoyé au démontage.
 - **Repères 2D** : fond perdu (rouge pointillé), pliures (bleu pointillé), zone de sécurité (vert),
   réserve code-barres (blanc).
+- **Dérive** : comparaison de la pagination déclarée au snapshot et d'une signature de structure
+  intégrant l'identifiant, le type et le volume textuel des sections ; le recalcul met à jour
+  le snapshot après confirmation.
+- **Finitions** : choix persisté `mat` (Mat Velouté) ou `glossy` (Brillant Éclatant). Ce choix
+  décrit le pelliculage souhaité ; il n'ajoute pas de couche d'impression ni de certification
+  de finition au PDF généré.
 
 ### 6.0 Harmonisation typographique
 Deux registres coexistent volontairement :
@@ -316,6 +335,8 @@ suppression de section ou qu'un changement de pagination (`pageCount !== pageCou
 | Couverture **brochée** (full wrap) PDF 300 DPI | ✅ Livré |
 | Couverture **rigide** (« hardcover ») | ❌ Reporté en **v1.3** |
 | Formats de coupe personnalisés (saisie libre) | ❌ Non pris en charge (7 presets KDP) |
+| Contrôle des plats à ≥ 300 DPI effectifs | ✅ Livré (inspecteur basé sur le format de coupe) |
+| Dimensions raster fixes 2138 × 3076 px | ℹ️ Repère documentaire, non imposé par le moteur |
 
 ---
 
