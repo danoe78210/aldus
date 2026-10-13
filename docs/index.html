@@ -234,8 +234,9 @@
     .banc-viewer {
       position: relative;
       width: 100%;
-      min-height: 460px;
-      background-color: #0a0907;
+      height: 480px;
+      max-height: 500px;
+      background-color: #0b0a09;
       border: 1px solid #382f22;
       border-radius: 3px;
       overflow: hidden;
@@ -255,6 +256,8 @@
       width: 100%;
       height: 100%;
       object-fit: contain;
+      object-position: center;
+      background-color: #0b0a09;
       opacity: 0;
       pointer-events: none;
       transition: opacity 0.35s ease;
@@ -587,21 +590,21 @@
             <!-- Pupitre d'exposition à onglets -->
             <div class="flex flex-col" data-banc-viewer="banc-4">
               <div class="banc-tabs" role="tablist" aria-label="Vues de l'épreuve du Banc IV">
-                <button type="button" role="tab" class="banc-tab active" data-banc-tab="synthese" aria-selected="true" onclick="selectBancView('banc-4','synthese')">Synthèse &amp; Tableau de bord</button>
-                <button type="button" role="tab" class="banc-tab" data-banc-tab="regles" aria-selected="false" onclick="selectBancView('banc-4','regles')">Registre des règles analysées</button>
-                <button type="button" role="tab" class="banc-tab" data-banc-tab="epreuve" aria-selected="false" onclick="selectBancView('banc-4','epreuve')">Épreuve &amp; surlignage des anomalies</button>
-                <button type="button" role="tab" class="banc-tab" data-banc-tab="retouche" aria-selected="false" onclick="selectBancView('banc-4','retouche')">Réglet de retouche Markdown</button>
+                <button type="button" role="tab" class="banc-tab active" data-banc-tab="synthese" aria-selected="true" onclick="selectBancView('banc-4','synthese')">Synthèse &amp; Qualité</button>
+                <button type="button" role="tab" class="banc-tab" data-banc-tab="regles" aria-selected="false" onclick="selectBancView('banc-4','regles')">Registre des Règles</button>
+                <button type="button" role="tab" class="banc-tab" data-banc-tab="epreuve" aria-selected="false" onclick="selectBancView('banc-4','epreuve')">Épreuve &amp; Surlignage</button>
+                <button type="button" role="tab" class="banc-tab" data-banc-tab="retouche" aria-selected="false" onclick="selectBancView('banc-4','retouche')">Modification du Texte</button>
               </div>
 
               <div class="banc-viewer" id="banc-4-viewer">
-                <span class="banc-viewer-placeholder" data-banc-placeholder>Épreuve à venir — banc-4-synthese.png</span>
-                <img class="banc-viewer-img is-active" data-banc-img="synthese" src="assets/screenshots/banc-4-synthese.png" alt="Synthèse — tableau de bord par chapitre, jauge de l'indice de qualité et anomalies pondérées" loading="lazy" onload="bancShotLoaded(this)" onerror="this.dataset.broken='1'; bancShotLoaded(this)">
-                <img class="banc-viewer-img" data-banc-img="regles" src="assets/screenshots/banc-4-regles.png" alt="Registre des règles analysées — 18 contrôles actifs, fiches de règles et comptage des occurrences" loading="lazy" onload="bancShotLoaded(this)" onerror="this.dataset.broken='1'; bancShotLoaded(this)">
-                <img class="banc-viewer-img" data-banc-img="epreuve" src="assets/screenshots/banc-4-epreuve.png" alt="Épreuve &amp; surlignage — diptyque synchronisé et surbrillance dorée des anomalies" loading="lazy" onload="bancShotLoaded(this)" onerror="this.dataset.broken='1'; bancShotLoaded(this)">
-                <img class="banc-viewer-img" data-banc-img="retouche" src="assets/screenshots/banc-4-retouche.png" alt="Réglet de retouche Markdown — espaces insécables et tirets cadratins sur le texte vivant" loading="lazy" onload="bancShotLoaded(this)" onerror="this.dataset.broken='1'; bancShotLoaded(this)">
+                <span class="banc-viewer-placeholder" data-banc-placeholder>Épreuve à venir — Correcteur01.png</span>
+                <img class="banc-viewer-img is-active" data-banc-img="synthese" src="assets/screenshots/Correcteur01.png" alt="Synthèse &amp; Qualité — tableau de bord par chapitre, jauge de l'indice de qualité et anomalies pondérées" loading="lazy" onload="bancShotLoaded(this)" onerror="this.dataset.broken='1'; bancShotLoaded(this)">
+                <img class="banc-viewer-img" data-banc-img="regles" src="assets/screenshots/Correcteur02.png" alt="Registre des Règles — 18 contrôles actifs, fiches de règles et comptage des occurrences" loading="lazy" onload="bancShotLoaded(this)" onerror="this.dataset.broken='1'; bancShotLoaded(this)">
+                <img class="banc-viewer-img" data-banc-img="epreuve" src="assets/screenshots/Correcteur03.png" alt="Épreuve &amp; Surlignage — diptyque synchronisé et surbrillance dorée des anomalies" loading="lazy" onload="bancShotLoaded(this)" onerror="this.dataset.broken='1'; bancShotLoaded(this)">
+                <img class="banc-viewer-img" data-banc-img="retouche" src="assets/screenshots/Correcteur04.png" alt="Modification du Texte — réglet de retouche Markdown, espaces insécables et tirets cadratins" loading="lazy" onload="bancShotLoaded(this)" onerror="this.dataset.broken='1'; bancShotLoaded(this)">
               </div>
 
-              <p class="banc-viewer-caption" id="banc-4-caption" data-banc-caption>Synthèse &amp; tableau de bord — indice de qualité, anomalies pondérées et familles de règles</p>
+              <p class="banc-viewer-caption" id="banc-4-caption" data-banc-caption>Synthèse &amp; Qualité — tableau de bord par chapitre, jauge de l'indice de qualité et anomalies pondérées</p>
 
               <button type="button" class="banc-zoom" id="banc-4-zoom" onclick="zoomBancView('banc-4')" title="Ouvrir l'épreuve active en haute définition">⤢ Examiner en grand format</button>
             </div>
@@ -978,20 +981,20 @@
       default: "synthese",
       views: {
         synthese: {
-          src: "assets/screenshots/banc-4-synthese.png",
-          caption: "Synthèse & tableau de bord — indice de qualité, anomalies pondérées et familles de règles",
+          src: "assets/screenshots/Correcteur01.png",
+          caption: "Synthèse & Qualité — tableau de bord par chapitre, jauge de l'indice de qualité et anomalies pondérées",
         },
         regles: {
-          src: "assets/screenshots/banc-4-regles.png",
-          caption: "Registre des règles analysées — 18 contrôles actifs, fiches de règles et comptage des occurrences",
+          src: "assets/screenshots/Correcteur02.png",
+          caption: "Registre des Règles — 18 contrôles actifs, fiches de règles et comptage des occurrences",
         },
         epreuve: {
-          src: "assets/screenshots/banc-4-epreuve.png",
-          caption: "Épreuve & surlignage — diptyque synchronisé et surbrillance dorée des anomalies",
+          src: "assets/screenshots/Correcteur03.png",
+          caption: "Épreuve & Surlignage — diptyque synchronisé et surbrillance dorée des anomalies",
         },
         retouche: {
-          src: "assets/screenshots/banc-4-retouche.png",
-          caption: "Réglet de retouche Markdown — espaces insécables et tirets cadratins sur le texte vivant",
+          src: "assets/screenshots/Correcteur04.png",
+          caption: "Modification du Texte — réglet de retouche Markdown, espaces insécables et tirets cadratins",
         },
       },
     },
