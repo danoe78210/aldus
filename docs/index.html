@@ -190,7 +190,7 @@
       color: #f5efe4;
       font-weight: 600;
     }
-    /* Pupitre d'exposition à onglets (Bancs I & II) — texte 42% / visuel 58% */
+    /* Pupitre d'exposition à onglets — proportions équilibrées 40% texte / 60% visuel */
     .banc-showcase {
       display: grid;
       grid-template-columns: 1fr;
@@ -199,7 +199,8 @@
     }
     @media (min-width: 1024px) {
       .banc-showcase {
-        grid-template-columns: 42fr 58fr;
+        grid-template-columns: 40fr 60fr;
+        gap: 2rem;
       }
     }
     .banc-tabs {
@@ -208,13 +209,32 @@
       gap: 0.5rem;
       margin-bottom: 0.85rem;
     }
+    /* Barre d'onglets fluide sur une seule ligne horizontale */
+    .banc-tabs-single-line {
+      display: flex;
+      flex-direction: row;
+      flex-wrap: nowrap;
+      gap: 0.5rem;
+      width: 100%;
+      margin-bottom: 0.85rem;
+    }
+    .banc-tabs-single-line .banc-tab {
+      flex: 1 1 0;
+      min-width: 0;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 0.55rem 0.35rem;
+      white-space: nowrap;
+    }
     .banc-tab {
       font-family: "Cinzel", serif;
       font-size: 0.6875rem;
       text-transform: uppercase;
-      letter-spacing: 0.14em;
+      letter-spacing: 0.12em;
       padding: 0.5rem 0.95rem;
-      background-color: #161310;
+      background-color: #14110e;
       border: 1px solid #382f22;
       border-radius: 2px;
       color: #a89f91;
@@ -224,23 +244,35 @@
     .banc-tab:hover {
       border-color: #8f6e2b;
       color: #f5efe4;
+      background-color: #1c1813;
     }
     .banc-tab.active {
       border-color: #d4af37;
-      background-color: #221b14;
+      background-color: #241c14;
       color: #f3e5ab;
-      box-shadow: 0 0 18px rgba(212, 175, 55, 0.18);
+      box-shadow: 0 0 18px rgba(212, 175, 55, 0.22), inset 0 0 10px rgba(212, 175, 55, 0.05);
     }
     .banc-viewer {
       position: relative;
       width: 100%;
-      height: 480px;
-      max-height: 500px;
+      height: 520px;
       background-color: #0b0a09;
       border: 1px solid #382f22;
       border-radius: 3px;
       overflow: hidden;
       box-shadow: 0 16px 40px rgba(0, 0, 0, 0.5), inset 0 0 24px rgba(212, 175, 55, 0.04);
+    }
+    @media (max-width: 640px) {
+      .banc-viewer {
+        height: 380px;
+      }
+      .banc-tabs-single-line {
+        overflow-x: auto;
+      }
+      .banc-tabs-single-line .banc-tab {
+        flex: 0 0 auto;
+        padding: 0.5rem 0.75rem;
+      }
     }
     .banc-viewer::after {
       content: "";
@@ -572,28 +604,23 @@
         <!-- Banc IV -->
         <article class="banc-card banc-featured md:col-span-2 lg:col-span-3 p-6 sm:p-8 rounded-xs bg-atelier-card brass-border flex flex-col">
           <div class="banc-showcase">
-            <div class="flex flex-col">
+            <div class="flex flex-col justify-start">
               <span class="font-cinzel text-xs uppercase tracking-widest text-atelier-gold">Banc IV</span>
               <h3 class="font-cinzel text-xl sm:text-2xl text-atelier-ivory mt-1">Le Banc de Qualité Typographique &amp; d'Épreuve</h3>
               <p class="banc-menu">Menu Correcteur — Vues I &amp; II</p>
-              <p class="banc-subtitle">L'indice de qualité, l'inspection minutieuse des règles aldines et la retouche d'épreuve en diptyque.</p>
-              <ul class="banc-points">
-                <li><span class="banc-point-key">Rôle :</span> Évaluation globale de la qualité typographique et inspection rigoureuse des canons aldins.</li>
-                <li><span class="banc-point-key">Fonctionnalités de la page de gauche (Synthèse) :</span> Tableau de bord par chapitre, jauge de l'indice de qualité, classification pondérée des anomalies (critiques, style, mineures) et regroupement par catégories (ponctuation, dialogues, ligatures, hygiène spatiale).</li>
-                <li><span class="banc-point-key">Fonctionnalités de la page de droite (Registre) :</span> Navigation par feuillets à travers les 18 contrôles actifs, fiches de règles détaillées et comptage précis des occurrences.</li>
-                <li><span class="banc-point-key">Fonctionnalités de la Vue II (Épreuve &amp; Retouche) :</span> Diptyque d'épreuve synchronisé avec la Synthèse, surlignage doré des anomalies et réglet de retouche Markdown appliqué au texte vivant — correction typographique immédiate, sans quitter l'établi.</li>
-                <li><span class="banc-point-key">Définition de l'Indice de Qualité :</span> Métrique d'excellence reflétant la pureté typographique du volume et pondérant les écarts selon leur gravité.</li>
-                <li><span class="banc-point-key">Définition de l'Usage Typographique Aldin :</span> Application souveraine des règles humanistes de haute typographie (espaces fines, guillemets français, ponctuation soignée) et consignation au registre de l'atelier.</li>
-              </ul>
+              <p class="banc-subtitle">L'indice de qualité, l'inspection minutieuse des règles aldines et la retouche chirurgicale d'épreuve.</p>
+              <p class="text-atelier-bistre text-base leading-relaxed mt-5">
+                Véritable cœur orthotypographique de l'atelier, le Banc IV scelle l'alliance entre le diagnostic global de la pureté typographique — jauge d'excellence du volume et registre exhaustif des 18 règles aldines — et le diptyque de correction interactive permettant la retouche chirurgicale directement au sein du manuscrit vivant.
+              </p>
             </div>
 
             <!-- Pupitre d'exposition à onglets -->
             <div class="flex flex-col" data-banc-viewer="banc-4">
-              <div class="banc-tabs" role="tablist" aria-label="Vues de l'épreuve du Banc IV">
-                <button type="button" role="tab" class="banc-tab active" data-banc-tab="synthese" aria-selected="true" onclick="selectBancView('banc-4','synthese')">Synthèse &amp; Qualité</button>
-                <button type="button" role="tab" class="banc-tab" data-banc-tab="regles" aria-selected="false" onclick="selectBancView('banc-4','regles')">Registre des Règles</button>
-                <button type="button" role="tab" class="banc-tab" data-banc-tab="epreuve" aria-selected="false" onclick="selectBancView('banc-4','epreuve')">Épreuve &amp; Surlignage</button>
-                <button type="button" role="tab" class="banc-tab" data-banc-tab="retouche" aria-selected="false" onclick="selectBancView('banc-4','retouche')">Modification du Texte</button>
+              <div class="banc-tabs-single-line" role="tablist" aria-label="Vues de l'épreuve du Banc IV">
+                <button type="button" role="tab" class="banc-tab active" data-banc-tab="synthese" aria-selected="true" onclick="selectBancView('banc-4','synthese')">1. Synthèse</button>
+                <button type="button" role="tab" class="banc-tab" data-banc-tab="regles" aria-selected="false" onclick="selectBancView('banc-4','regles')">2. Registre</button>
+                <button type="button" role="tab" class="banc-tab" data-banc-tab="epreuve" aria-selected="false" onclick="selectBancView('banc-4','epreuve')">3. Épreuve</button>
+                <button type="button" role="tab" class="banc-tab" data-banc-tab="retouche" aria-selected="false" onclick="selectBancView('banc-4','retouche')">4. Retouche</button>
               </div>
 
               <div class="banc-viewer" id="banc-4-viewer">
