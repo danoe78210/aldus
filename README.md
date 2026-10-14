@@ -33,17 +33,16 @@ la typographie humaniste.
 
 ---
 
-## ✦ Banc III — L'Écritoire
+## ✨ Nouveautés de la version 1.3.0 — Banc III : L'Écritoire
 
-L'Écritoire accompagne la rédaction du manuscrit sans quitter le registre :
-
-- Choisissez un chapitre `.md` du dossier source ou créez-en un directement depuis l'atelier.
-- Rédigez dans l'éditeur ébène ; les changements sont automatiquement consignés dans le fichier.
-- Consultez en direct **La Feuille Composée**, avec titres, exergues, notes de bas de page,
-  séparateurs de scène, corps de texte justifié et lettrine selon les réglages du manuscrit.
-- Ouvrez le **Manuel du Scribe** pour les conventions Markdown adaptées au roman.
-
-Le réglet insère au curseur `« »`, une espace insécable, `—`, `’`, `œ` ou `Œ`.
+- **Studio d'écriture Markdown natif :** création et sélection précise de chapitres `.md`
+  directement dans le dossier source du projet, avec sauvegarde automatique.
+- **Diptyque de rédaction :** éditeur Markdown épuré aux tons ébène et or de la charte *Dark Atelier*
+  sur le feuillet gauche ; prévisualisation typographique en temps réel sur le feuillet droit.
+- **Réglet typographique :** insertion au curseur des guillemets français (`« »`), espaces
+  insécables, tirets cadratins (`—`), apostrophes courbes (`’`) et ligatures (`œ/Œ`).
+- **Manuel du Scribe :** aide intégrée à la syntaxe Markdown romanesque, avec exemples de titres,
+  dialogues, exergues, notes de bas de page et séparateurs de scène.
 
 ---
 
@@ -51,7 +50,7 @@ Le réglet insère au curseur `« »`, une espace insécable, `—`, `’`, `œ
 
 Téléchargez Aldus depuis la [Release GitHub v1.3.0](https://github.com/danoe78210/aldus/releases/tag/v1.3.0) :
 
-- **Windows (64 bits) :** [Installateur `.exe`](https://github.com/danoe78210/aldus/releases/download/v1.3.0/Aldus_1.3.0_x64-setup.exe) ou [paquet `.msi`](https://github.com/danoe78210/aldus/releases/download/v1.3.0/Aldus_1.3.0_x64_en-US.msi). Le manifeste Winget `Danoe.Aldus` n'est pas publié pour cette version.
+- **Windows (64 bits) :** [Installateur `.exe`](https://github.com/danoe78210/aldus/releases/download/v1.3.0/Aldus_1.3.0_x64-setup.exe) ou [paquet `.msi`](https://github.com/danoe78210/aldus/releases/download/v1.3.0/Aldus_1.3.0_x64_en-US.msi). La commande prévue est `winget install Danoe.Aldus`, mais le manifeste Winget v1.3.0 n'est pas encore publié ; utilisez les installateurs ci-dessus en attendant.
 - **macOS (Intel et Apple Silicon) :** [Image disque universelle `.dmg`](https://github.com/danoe78210/aldus/releases/download/v1.3.0/Aldus_1.3.0_universal.dmg).
 - **Linux (amd64) :** [`.AppImage`](https://github.com/danoe78210/aldus/releases/download/v1.3.0/Aldus_1.3.0_amd64.AppImage), [paquet Debian/Ubuntu `.deb`](https://github.com/danoe78210/aldus/releases/download/v1.3.0/Aldus_1.3.0_amd64.deb) ou [paquet Fedora/RHEL `.rpm`](https://github.com/danoe78210/aldus/releases/download/v1.3.0/Aldus-1.3.0-1.x86_64.rpm).
 
