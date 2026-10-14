@@ -17,12 +17,45 @@ la typographie humaniste.
   la composition du livre.
 - **Réglette & Calibreur de Dos KDP :** calcul dynamique de l'épaisseur du dos (papier blanc, crème
   ou couleur) et génération du gabarit de couverture complet avec marges de fond perdu (3,2 mm).
+- **Banc III — L'Écritoire :** sélection de chapitres Markdown existants ou création de nouveaux
+  fichiers `.md` dans le dossier source du projet, avec sauvegarde automatique.
+- **Diptyque d'écriture :** éditeur Markdown épuré sur le feuillet gauche et prévisualisation
+  typographique instantanée sur le feuillet droit, selon les réglages du manuscrit.
+- **Réglet & Manuel du Scribe :** insertion rapide de guillemets français (`« »`), espaces
+  insécables, cadratins (`—`), apostrophes courbes (`’`) et ligatures (`œ/Œ`) ; aide intégrée pour
+  les titres, dialogues, exergues, notes de bas de page et séparateurs de scène.
 - **Correcteur Humaniste :** traitement conforme au *Code typographique* et au *Lexique des règles
   typographiques en usage à l'Imprimerie nationale* (espaces insécables et fines insécables, tirets
   cadratins, apostrophes courbes, ligatures `œ`/`æ`, majuscules accentuées, gloses marginales).
 - **Le Pressoir Final :** tirage cérémoniel en trois temps (encrage, serrage, massicotage) et export
   vers les formes d'édition validées — PDF d'impression prêt-à-imprimer (gabarit KDP), ePub 3
   reflowable, gabarit de jaquette.
+
+---
+
+## ✦ Banc III — L'Écritoire
+
+L'Écritoire accompagne la rédaction du manuscrit sans quitter le registre :
+
+- Choisissez un chapitre `.md` du dossier source ou créez-en un directement depuis l'atelier.
+- Rédigez dans l'éditeur ébène ; les changements sont automatiquement consignés dans le fichier.
+- Consultez en direct **La Feuille Composée**, avec titres, exergues, notes de bas de page,
+  séparateurs de scène, corps de texte justifié et lettrine selon les réglages du manuscrit.
+- Ouvrez le **Manuel du Scribe** pour les conventions Markdown adaptées au roman.
+
+Le réglet insère au curseur `« »`, une espace insécable, `—`, `’`, `œ` ou `Œ`.
+
+---
+
+## 📥 Téléchargements & Installation (v1.3.0)
+
+Téléchargez Aldus depuis la [Release GitHub v1.3.0](https://github.com/danoe78210/aldus/releases/tag/v1.3.0) :
+
+- **Windows (64 bits) :** [Installateur `.exe`](https://github.com/danoe78210/aldus/releases/download/v1.3.0/Aldus_1.3.0_x64-setup.exe) ou [paquet `.msi`](https://github.com/danoe78210/aldus/releases/download/v1.3.0/Aldus_1.3.0_x64_en-US.msi). Le manifeste Winget `Danoe.Aldus` n'est pas publié pour cette version.
+- **macOS (Intel et Apple Silicon) :** [Image disque universelle `.dmg`](https://github.com/danoe78210/aldus/releases/download/v1.3.0/Aldus_1.3.0_universal.dmg).
+- **Linux (amd64) :** [`.AppImage`](https://github.com/danoe78210/aldus/releases/download/v1.3.0/Aldus_1.3.0_amd64.AppImage), [paquet Debian/Ubuntu `.deb`](https://github.com/danoe78210/aldus/releases/download/v1.3.0/Aldus_1.3.0_amd64.deb) ou [paquet Fedora/RHEL `.rpm`](https://github.com/danoe78210/aldus/releases/download/v1.3.0/Aldus-1.3.0-1.x86_64.rpm).
+
+Les empreintes SHA-256 de chaque fichier sont affichées dans la page des Releases.
 
 ---
 
