@@ -97,7 +97,7 @@ Sept onglets de répertoire, **ordre imposé** :
 |---|---|
 | **Réglages** | Format de coupe KDP, corps de texte, polices, interligne, alignement, lettrines, dossiers de sources, journal d'erreurs, correcteur linguistique (région, mode pointilleux, règles). |
 | **Informations** | Métadonnées du roman — **dédoublé sur les deux feuillets** (§4). |
-| **Écritoire** | Banc III sur deux feuillets : *Feuillet III* (éditeur Markdown, réglet typographique et création de chapitres) et *Feuillet IV* (prévisualisation live du manuscrit) — voir §4.4. |
+| **Écritoire** | Banc III sur deux feuillets : *Feuillet III* (éditeur Markdown, réglet typographique et création de chapitres) et *Feuillet IV — La Feuille Composée* (prévisualisation live du manuscrit) — voir §4.4. |
 | **Organisation** | Banc IV, registre de composition sur **deux feuillets** : *Feuillet V* (table des matières, rangs romains, réorganisation) et *Feuillet VI* (imposition & calibrage KDP) — voir §4.3. |
 | **Correcteur** | Banc V, relecture sur **deux feuillets** : *Feuillet IX* (examen typographique aldin) et *Feuillet X* (épreuves annotées par le correcteur linguistique) — voir §4.4. |
 | **Couverture** | Banc VI, *Atelier de reliure & marbre de montage* : *Feuillet VII* (épreuve 2D / volume 3D) et *Feuillet VIII* (matière, finitions, métriques, plat IV) — voir §4.4. |
@@ -147,7 +147,7 @@ fichier de projet (journalisation de l'opération).
 
 | Onglet | Feuillet (gauche) | Feuillet (droite) |
 |---|---|---|
-| **Écritoire** | **III. L’Écritoire** — sélection et création de chapitres Markdown dans le dossier source, édition en ébène, réglet de guillemets français, cadratins, espaces insécables et ligatures, avec sauvegarde automatique. | **IV. Épreuve de lecture** — rendu Markdown mis à jour en direct, corps justifié, marges éditoriales et lettrine selon les réglages du manuscrit. Le Manuel du Scribe documente titres, dialogues, notes et séparateurs de scène. |
+| **Écritoire** | **III. L’Écritoire** — sélectionner un chapitre source ou en créer un `.md` sans écraser l’existant ; éditer en ébène avec sauvegarde automatique. Le réglet insère guillemets français, cadratins, espaces insécables, apostrophes courbes et ligatures `œ/Œ`. | **IV. La Feuille Composée** — rendu Markdown live avec corps justifié, marges éditoriales et lettrine selon les réglages du manuscrit. Le Manuel du Scribe documente titres, dialogues, exergues, notes de bas de page et séparateurs de scène. |
 | **Couverture** | **VII. Le Marbre de Montage** — ardoise veinée, bascule d'épreuve `[ Planche Dépliée 2D ]` / `[ Volume Relié 3D ]` (repères de coupe, fond perdu, réserve code-barres, ombre de reliure), bannière de dérive et dialogue de conformité pré-export. | **VIII. Calibrage de la Reliure** — pagination déclarée, papier, pelliculage, visuels des plats + inspection DPI, texte de tranche et dégradé, métriques temps réel et contrôle du plat IV / code-barres. |
 | **Correcteur** | **IX. Examen Typographique Aldin** — vérifications automatiques et annotations en marge : **rouge carmin** (fautes critiques) / **bistre** (conseils de style). | **X. Épreuves & Annotations Marginales** — éditeur décoré in-situ par le correcteur linguistique, suggestions, localisation, journal de session et application de l’Usage Aldin. |
 ---

@@ -32,7 +32,7 @@ import {
 import { isImageFile, splitSourceFiles } from "./utils/sources";
 import { finalizeExit, onCloseRequested } from "./utils/shutdown";
 import { EXPORT_FORMS, PRESS_STAGES, PRESS_TOTAL_MS, type ExportFormId } from "./utils/exportEngine";
-import { createChapterFile, listChapterFiles as listNativeChapterFiles, readChapterFile, writeChapterFile } from "./utils/projectApi";
+import { createChapterFile, listSourceFiles, readChapterFile, saveChapterFile } from "./utils/projectApi";
 import { showSpaces } from "./utils/proofLayout";
 import {
   ALL_RULES,
@@ -257,7 +257,7 @@ const App: React.FC = () => {
   const writingSaveQueueRef = useRef<Promise<void>>(Promise.resolve());
 
   const persistWritingText = useCallback((chapter: string, text: string) => {
-    const queuedWrite = writingSaveQueueRef.current.then(() => writeChapterFile(chapter, text));
+    const queuedWrite = writingSaveQueueRef.current.then(() => saveChapterFile(chapter, text));
     writingSaveQueueRef.current = queuedWrite.catch(() => undefined);
     return queuedWrite;
   }, []);
@@ -1090,7 +1090,7 @@ const App: React.FC = () => {
         [...new Set([...current, filename])].sort((left, right) => left.localeCompare(right)),
       );
       addLog("success", `Nouveau chapitre créé : ${filename}.`);
-      void listNativeChapterFiles().then(setChapterFiles).catch(() => {
+      void listSourceFiles().then(setChapterFiles).catch(() => {
         addLog("warning", "Le chapitre est créé, mais la liste n’a pas pu être actualisée.");
       });
       await handleLoadWritingChapter(filename);
@@ -1195,7 +1195,7 @@ const App: React.FC = () => {
       return;
     }
     try {
-      await writeChapterFile(proofChapter, proofText);
+      await saveChapterFile(proofChapter, proofText);
       addLog("success", `Chapitre consigné au registre : ${proofChapter}.`);
     } catch (cause) {
       addLog("error", `Consignation impossible : ${String(cause)}`);
@@ -1216,7 +1216,7 @@ const App: React.FC = () => {
         return;
       }
       try {
-        await writeChapterFile(proofChapter, next);
+        await saveChapterFile(proofChapter, next);
         setProofText(next);
         addLog("success", `Retouches consignées dans ${proofChapter} — analyse relancée.`);
       } catch (cause) {

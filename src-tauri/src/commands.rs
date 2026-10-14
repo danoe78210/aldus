@@ -444,7 +444,7 @@ fn normalize_markdown_filename(filename: &str) -> Result<String, String> {
 }
 
 #[tauri::command]
-pub fn list_chapter_files(app: tauri::AppHandle) -> Result<Vec<String>, String> {
+pub fn list_source_files(app: tauri::AppHandle) -> Result<Vec<String>, String> {
     let root = configured_sources_directory(&app)?;
     let mut files = std::fs::read_dir(&root)
         .map_err(|error| format!("Lecture du dossier source impossible : {error}"))?
@@ -465,6 +465,11 @@ pub fn list_chapter_files(app: tauri::AppHandle) -> Result<Vec<String>, String> 
         .collect::<Vec<_>>();
     files.sort_by_key(|name| name.to_lowercase());
     Ok(files)
+}
+
+#[tauri::command]
+pub fn list_chapter_files(app: tauri::AppHandle) -> Result<Vec<String>, String> {
+    list_source_files(app)
 }
 
 #[tauri::command]
@@ -538,12 +543,12 @@ mod chapter_filename_tests {
 /// **écriture atomique** (`.tmp` puis `rename`) : aucune corruption possible si
 /// l'application est fermée pendant la sauvegarde.
 #[tauri::command]
-pub async fn write_chapter_file(
+pub async fn save_chapter_file(
     app: tauri::AppHandle,
     filename: String,
     content: String,
 ) -> Result<(), String> {
-    println!("──────── write_chapter_file ────────");
+    println!("──────── save_chapter_file ────────");
     println!("fichier : {filename} ({} octets)", content.len());
     let payload = load_persisted_payload(&app)?;
     let root = payload
@@ -570,6 +575,15 @@ pub async fn write_chapter_file(
             path.display()
         )
     })
+}
+
+#[tauri::command]
+pub async fn write_chapter_file(
+    app: tauri::AppHandle,
+    filename: String,
+    content: String,
+) -> Result<(), String> {
+    save_chapter_file(app, filename, content).await
 }
 
 /// Ferme **proprement** l'application, à l'issue de l'animation 3D de fermeture

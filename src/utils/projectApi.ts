@@ -15,12 +15,18 @@ export const readChapterFile = (filename: string): Promise<string> =>
  * Écriture **atomique** côté Rust (`.tmp` + `rename`) : le fichier source n'est
  * jamais corrompu si l'application est fermée pendant la sauvegarde.
  */
-export const writeChapterFile = (filename: string, content: string): Promise<void> =>
-  invokeCommand<void>("write_chapter_file", { filename, content });
+export const saveChapterFile = (filename: string, content: string): Promise<void> =>
+  invokeCommand<void>("save_chapter_file", { filename, content });
+
+/** Alias conservé pour les modules historiques. */
+export const writeChapterFile = saveChapterFile;
 
 /** Liste les fichiers Markdown du dossier source configuré côté projet. */
-export const listChapterFiles = (): Promise<string[]> =>
-  invokeCommand<string[]>("list_chapter_files");
+export const listSourceFiles = (): Promise<string[]> =>
+  invokeCommand<string[]>("list_source_files");
+
+/** Alias conservé pour les modules historiques. */
+export const listChapterFiles = listSourceFiles;
 
 /** Crée un nouveau fichier Markdown sans écraser un fichier existant. */
 export const createChapterFile = (filename: string): Promise<string> =>

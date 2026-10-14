@@ -1,4 +1,10 @@
 # Registre des Évolutions — Aldus
+## [1.3.0] - L’Écritoire
+### Ajouté
+- Banc III — L’Écritoire : édition Markdown à gauche et composition live à droite, avec sélection et création de chapitres dans le dossier source.
+- Réglet typographique (guillemets français, cadratin, espace insécable, apostrophe courbe, ligatures) et Manuel du Scribe pour titres, dialogues, exergues, notes et séparateurs de scène.
+- Commandes Tauri `list_source_files`, `read_chapter_file`, `save_chapter_file` et `create_chapter_file`, avec alias de compatibilité pour le listing et la sauvegarde.
+
 ## [1.2.0] - Clôture Correcteur, Export & Ex-Libris
 ### Livré & testé
 - Correcteur en deux diptyques synchronisés (VII — Indice de Pureté / VIII — Le Banc d'Épreuve) : bascule partagée via `StudioContext`, grille des règles en colonne unique paginée (3 × 6), « Conseils de l'Imprimeur », `[ ⌖ Localiser ]` et mode `[ ✍ Retouche ]`.

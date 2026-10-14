@@ -3,7 +3,7 @@ import { Check, Eraser, Feather, Loader2, PanelRight, SpellCheck } from "lucide-
 import { useStudio } from "./StudioContext";
 import { CorrectorSidebar } from "./CorrectorSidebar";
 import { ChapterEditor, type ChapterEditorHandle } from "./ChapterEditor";
-import { readChapterFile, writeChapterFile } from "../utils/projectApi";
+import { readChapterFile, saveChapterFile } from "../utils/projectApi";
 import { applyAldineUsage } from "../utils/typographyEngine";
 import type { CorrectionMatch } from "../utils/correctorApi";
 import type { AppliedCorrection } from "../types";
@@ -75,7 +75,7 @@ export const CorrectorView: React.FC = () => {
         return;
       }
       try {
-        await writeChapterFile(chapter, next);
+        await saveChapterFile(chapter, next);
         setSaved(true);
         clearSaveTimer();
         saveTimer.current = window.setTimeout(() => {

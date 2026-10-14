@@ -9,7 +9,9 @@ const TYPOGRAPHIC_INSERTIONS = [
   { label: "« »", title: "Insérer des guillemets français", before: "«\u00a0", after: "\u00a0»" },
   { label: "—", title: "Insérer un cadratin de dialogue", before: "—\u00a0", after: "" },
   { label: "NBSP", title: "Insérer une espace insécable", before: "\u00a0", after: "" },
+  { label: "’", title: "Insérer une apostrophe courbe", before: "’", after: "" },
   { label: "œ", title: "Insérer la ligature œ", before: "œ", after: "" },
+  { label: "Œ", title: "Insérer la ligature Œ", before: "Œ", after: "" },
   { label: "æ", title: "Insérer la ligature æ", before: "æ", after: "" },
 ] as const;
 
@@ -59,6 +61,11 @@ const MarkdownManual: React.FC<{ onClose: () => void }> = ({ onClose }) => {
           <section>
             <h3 className="mb-2 font-serif text-base text-[#d4af37]">Mise en relief</h3>
             <p className="text-[#c6bcad]">Entourez un mot d’un astérisque pour l’italique (<code className="text-[#e6c878]">*mot*</code>) ou de deux pour le gras (<code className="text-[#e6c878]">**mot**</code>).</p>
+          </section>
+          <section>
+            <h3 className="mb-2 font-serif text-base text-[#d4af37]">Exergues</h3>
+            <pre className="overflow-x-auto rounded-sm border border-[#3a3022] bg-[#0f0d0b] p-3 text-xs text-[#eee5d5]">{`> « Il faut cultiver notre jardin. »\n> — Voltaire`}</pre>
+            <p className="mt-2 text-[#c6bcad]">Le chevron en début de ligne compose une citation ou une épigraphe en retrait.</p>
           </section>
           <section>
             <h3 className="mb-2 font-serif text-base text-[#d4af37]">Notes de bas de page</h3>
@@ -233,7 +240,7 @@ export const WritingPreview: React.FC = () => {
     <div className="flex h-full min-h-0 flex-col">
       <header className="mb-3 flex shrink-0 items-center gap-2 border-b border-[#382f22] pb-3">
         <BookOpen size={18} className="text-[#c5a059]" />
-        <h2 className="font-serif text-base tracking-[0.14em] text-[#d4af37] uppercase">IV. Épreuve de lecture</h2>
+        <h2 className="font-serif text-base tracking-[0.14em] text-[#d4af37] uppercase">IV. La Feuille Composée</h2>
         <span className="ml-auto max-w-[45%] truncate text-xs text-[#a89f91]" title={writingChapter}>{writingChapter || "Aucun chapitre"}</span>
       </header>
       <div className="min-h-0 flex-1 overflow-y-auto rounded-sm border border-[#4a3e2c] bg-[#f5efe4] shadow-[inset_0_0_24px_rgba(70,48,20,0.08)]">

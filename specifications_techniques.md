@@ -119,7 +119,7 @@ contexte, sans réinitialiser le flipbook.
 | `export.rs` / `export/*` | Moteur Word (`docx-rs`) |
 | `pdf/*` | Moteur PDF Typst (`generator.rs`, `compiler.rs`) |
 | `epub.rs` | Moteur EPUB 3 (`epub-builder`) |
-| `commands.rs` | Commandes Tauri (exports, `render_pdf`, fichiers, sortie) |
+| `commands.rs` | Commandes Tauri (exports, `render_pdf`, gestion des fichiers sources Markdown, sortie) |
 | `cover/*` | Cover Studio côté natif (géométrie, inspection, couleurs, Typst) |
 | `corrector/*` | Client LanguageTool, options, dictionnaires |
 
@@ -327,11 +327,12 @@ partir de `300 DPI`. Le DPI d'une image raster ne peut être relevé par l'expor
   corps, de justification et de lettrine du manuscrit.
 - `StudioContext` partage `writingChapter`, `writingText` et les états de
   lecture/sauvegarde entre les deux pages. L’écriture différée est sérialisée et
-  passe par `write_chapter_file`.
-- Commandes natives : `list_chapter_files` énumère les `.md` du dossier source
+  passe par `save_chapter_file`.
+- Commandes natives : `list_source_files` énumère les `.md` du dossier source
   configuré ; `create_chapter_file` crée un fichier sans écrasement et refuse
   les noms contenant un chemin ou une extension différente de `.md`. La lecture
-  utilise `read_chapter_file`.
+  utilise `read_chapter_file`. `list_chapter_files` et `write_chapter_file`
+  restent disponibles comme alias de compatibilité.
 
 ## 9. Évolutions v1.2.0 — Commandes, état partagé & styles
 
