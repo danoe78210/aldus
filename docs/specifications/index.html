@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="theme-color" content="#181614">
-  <meta name="description" content="Découvrez les sept Bancs d'Aldus, son atelier de couverture KDP et ses moteurs de composition et d'export.">
+  <meta name="description" content="Découvrez les huit Bancs d'Aldus, dont L'Écritoire, son atelier de couverture KDP et ses moteurs de composition et d'export.">
   <link rel="canonical" href="https://aldus.danoeecrivain.net/specifications/">
   <link rel="icon" type="image/x-icon" href="../favicon.ico">
   <title>Spécifications — Aldus, Atelier du Livre Moderne</title>
@@ -169,6 +169,18 @@
     .banc-card:last-child { grid-column: 1 / -1; display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr); }
     .banc-visual { position: relative; overflow: hidden; background: var(--ebony-deep); }
     .banc-visual img { width: 100%; aspect-ratio: 16 / 9; object-fit: cover; object-position: top center; }
+    .writing-visual { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; padding: 12px; aspect-ratio: 16 / 9; }
+    .writing-visual::after { display: none; }
+    .writing-pane { min-width: 0; overflow: hidden; padding: 12px; font-size: 11px; line-height: 1.55; }
+    .writing-pane-label { display: block; margin-bottom: 10px; font-family: var(--sans); font-size: 8px; font-weight: 700; letter-spacing: 0.15em; text-transform: uppercase; }
+    .writing-source { border: 1px solid var(--line); background: #13110f; color: var(--ivory); font-family: var(--serif); }
+    .writing-source .writing-pane-label { color: var(--gold); }
+    .writing-source pre { margin: 0; white-space: pre-wrap; font: inherit; }
+    .writing-output { border: 1px solid rgba(166,139,90,0.6); background: #f5efe4; color: #29251f; font-family: var(--serif); }
+    .writing-output .writing-pane-label { color: #8f6e2b; }
+    .writing-output h4 { margin: 0 0 10px; font-size: 16px; font-weight: 600; text-align: center; }
+    .writing-output p { margin: 0 0 5px; color: inherit; font-size: inherit; }
+    .writing-output blockquote { margin: 10px 0 0; padding-left: 8px; border-left: 2px solid #a68b5a; font-style: italic; }
     .banc-card:last-child .banc-visual img { height: 100%; aspect-ratio: auto; object-fit: cover; }
     .banc-visual::after { content: ""; position: absolute; inset: 55% 0 0; background: linear-gradient(transparent, rgba(17,16,14,0.4)); pointer-events: none; }
     .banc-content { padding: 22px 24px 25px; }
@@ -298,7 +310,7 @@
   <main class="wrap">
     <section class="intro" aria-labelledby="page-title">
       <div>
-        <p class="eyebrow">Registre public · Édition 1.2.0</p>
+        <p class="eyebrow">Registre public · Édition 1.3.0</p>
         <h1 id="page-title">L'atelier qui façonne le livre.</h1>
         <div class="intro-rule"></div>
         <p class="intro-copy">Aldus réunit dans un même atelier la préparation d'un manuscrit, sa composition, sa relecture et la fabrication de ses fichiers de publication. Chaque étape se déroule sur un Banc d'atelier, du premier réglage jusqu'au tirage.</p>
@@ -306,15 +318,15 @@
       </div>
       <figure class="intro-figure">
         <img src="../assets/screenshots/Couverture01.png" alt="Marbre de montage 2D d'une couverture complète, avec les plats, le dos, les repères et la réserve ISBN" fetchpriority="high">
-        <figcaption><span>Le marbre de montage</span><span>Feuillet V · Épreuve 2D</span></figcaption>
+        <figcaption><span>Le marbre de montage</span><span>Feuillet VII · Épreuve 2D</span></figcaption>
       </figure>
     </section>
 
     <section class="section" id="bancs" aria-labelledby="bancs-title">
       <div class="section-heading">
         <span class="section-kicker">Du manuscrit au volume</span>
-        <h2 id="bancs-title">Les sept Bancs de l'atelier</h2>
-        <p>Six menus organisent le travail; les sept Bancs décrivent le parcours complet, avec certaines étapes réparties sur les deux feuillets du registre.</p>
+        <h2 id="bancs-title">Les huit Bancs de l'atelier</h2>
+        <p>Sept menus organisent le travail; les huit Bancs décrivent le parcours complet, avec certaines étapes réparties sur les deux feuillets du registre.</p>
       </div>
       <div class="banc-grid">
         <article class="banc-card">
@@ -326,31 +338,41 @@
           <div class="banc-content"><span class="banc-index">Banc II</span><h3>Identité &amp; Colophon</h3><span class="banc-menu">Menu Informations</span><p>Rassemblez le titre, la série, les auteurs et les mentions d'édition. Ces informations alimentent les pages liminaires et le justificatif d'achevé d'imprimer.</p></div>
         </article>
         <article class="banc-card">
+          <figure class="banc-visual writing-visual" role="img" aria-label="Aperçu du diptyque L'Écritoire : édition Markdown et page composée">
+            <div class="writing-pane writing-source"><span class="writing-pane-label">L'Écritoire · Markdown</span><pre># Le passage
+
+— Vous voilà enfin.
+— Je vous l'avais promis.</pre></div>
+            <div class="writing-pane writing-output"><span class="writing-pane-label">La Feuille Composée</span><h4>Le passage</h4><p>— Vous voilà enfin.</p><p>— Je vous l'avais promis.</p><blockquote>« La nuit tombe. »</blockquote></div>
+          </figure>
+          <div class="banc-content"><span class="banc-index">Banc III</span><h3>L'Écritoire</h3><span class="banc-menu">Menu Écritoire · Feuillets III &amp; IV</span><p>Sélectionnez ou créez un chapitre Markdown dans le dossier source. Le feuillet gauche réunit l'éditeur ébène et le réglet typographique ; le feuillet droit affiche la composition en temps réel. Le Manuel du Scribe accompagne titres, dialogues, exergues, notes et séparateurs de scène.</p></div>
+        </article>
+        <article class="banc-card">
           <figure class="banc-visual"><img src="../assets/screenshots/banc-3-architecture.png" alt="Organisation narrative des actes, chapitres et pièces liminaires" loading="lazy"></figure>
-          <div class="banc-content"><span class="banc-index">Banc III</span><h3>Imposition &amp; Architecture</h3><span class="banc-menu">Menu Organisation</span><p>Structurez actes, chapitres, illustrations et pages spéciales, puis réordonnez-les. Les outils contrôlent pagination, cahiers et ouvertures de chapitre sur une belle page.</p></div>
+          <div class="banc-content"><span class="banc-index">Banc IV</span><h3>Imposition &amp; Architecture</h3><span class="banc-menu">Menu Organisation · Feuillets V &amp; VI</span><p>Structurez actes, chapitres, illustrations et pages spéciales, puis réordonnez-les. Les outils contrôlent pagination, cahiers et ouvertures de chapitre sur une belle page.</p></div>
         </article>
         <article class="banc-card">
           <figure class="banc-visual"><img src="../assets/screenshots/Correcteur03.png" alt="Diptyque de lecture et de conseils, avec une anomalie typographique repérée en or" loading="lazy"></figure>
-          <div class="banc-content"><span class="banc-index">Banc IV</span><h3>Qualité Typographique &amp; d'Épreuve</h3><span class="banc-menu">Menu Correcteur · Vues I &amp; II</span><p>Examinez l'indice de qualité et les 18 règles typographiques, puis lisez le chapitre face à ses annotations. Localisez les anomalies, appliquez une suggestion ou retouchez le Markdown en direct.</p></div>
+          <div class="banc-content"><span class="banc-index">Banc V</span><h3>Qualité Typographique &amp; d'Épreuve</h3><span class="banc-menu">Menu Correcteur · Feuillets IX &amp; X</span><p>Examinez l'indice de qualité et les 18 règles typographiques, puis lisez le chapitre face à ses annotations. Localisez les anomalies, appliquez une suggestion ou retouchez le Markdown en direct.</p></div>
         </article>
         <article class="banc-card">
           <figure class="banc-visual"><img src="../assets/screenshots/Couverture03.png" alt="Aperçu tridimensionnel orbital d'un livre relié" loading="lazy"></figure>
-          <div class="banc-content"><span class="banc-index">Banc V</span><h3>Mise en couverture</h3><span class="banc-menu">Menu Couverture</span><p>Calibrez le papier et le dos, importez les plats, puis inspectez la planche à plat ou le volume relié en 3D. Les repères et alertes aident à vérifier le gabarit avant export.</p></div>
+          <div class="banc-content"><span class="banc-index">Banc VI</span><h3>Mise en couverture</h3><span class="banc-menu">Menu Couverture · Feuillets VII &amp; VIII</span><p>Calibrez le papier et le dos, importez les plats, puis inspectez la planche à plat ou le volume relié en 3D. Les repères et alertes aident à vérifier le gabarit avant export.</p></div>
         </article>
         <article class="banc-card">
           <figure class="banc-visual"><img src="../assets/screenshots/Export01.png" alt="Dossier de fabrication et sélection des formes d'édition" loading="lazy"></figure>
-          <div class="banc-content"><span class="banc-index">Banc VI</span><h3>Inspection Pré-Presse</h3><span class="banc-menu">Menu Export · Feuillet IX</span><p>Préparez le dossier de fabrication, sélectionnez une ou plusieurs formes de sortie et consultez le bilan d'intégrité avant de lancer la génération.</p></div>
+          <div class="banc-content"><span class="banc-index">Banc VII</span><h3>Inspection Pré-Presse</h3><span class="banc-menu">Menu Export · Feuillet XI</span><p>Préparez le dossier de fabrication, sélectionnez une ou plusieurs formes de sortie et consultez le bilan d'intégrité avant de lancer la génération.</p></div>
         </article>
         <article class="banc-card">
           <figure class="banc-visual"><img src="../assets/screenshots/Export02.png" alt="Feuillet de tirage avec justificatif, action de presse et ouverture des épreuves" loading="lazy"></figure>
-          <div class="banc-content"><span class="banc-index">Banc VII</span><h3>Tirage sous Presse</h3><span class="banc-menu">Menu Export · Feuillet X</span><p>Relisez le justificatif, actionnez la presse et ouvrez le dossier des épreuves ou le volume composé. Le tirage clôt le parcours sans modifier le manuscrit source.</p></div>
+          <div class="banc-content"><span class="banc-index">Banc VIII</span><h3>Tirage sous Presse</h3><span class="banc-menu">Menu Export · Feuillet XII</span><p>Relisez le justificatif, actionnez la presse et ouvrez le dossier des épreuves ou le volume composé. Le tirage clôt le parcours sans modifier le manuscrit source.</p></div>
         </article>
       </div>
     </section>
 
     <section class="section" id="couverture" aria-labelledby="cover-title">
       <div class="section-heading">
-        <span class="section-kicker">Cover Studio · Banc V</span>
+        <span class="section-kicker">Cover Studio · Banc VI</span>
         <h2 id="cover-title">La couverture, au millimètre.</h2>
         <p>Le Cover Studio calcule la jaquette complète à partir du format de coupe, de la pagination et du type de papier choisi.</p>
       </div>

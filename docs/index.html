@@ -569,7 +569,7 @@
     <!-- CTA Principal -->
     <div class="flex flex-col sm:flex-row items-center justify-center gap-4 mt-8">
       <a href="#telechargement" class="w-full sm:w-auto px-8 py-3.5 bg-gradient-to-r from-[#221b14] via-[#2d241a] to-[#221b14] border border-atelier-brass text-atelier-ivory font-cinzel text-xs uppercase tracking-[0.2em] rounded-xs hover:border-atelier-gold hover:text-atelier-gold transition-all shadow-lg">
-        Obtenir Aldus v1.2.0 ›
+        Obtenir Aldus v1.3.0 ›
       </a>
       <a href="https://github.com/danoe78210/aldus" target="_blank" rel="noopener noreferrer" class="w-full sm:w-auto px-8 py-3.5 border border-atelier-border text-atelier-bistre font-cinzel text-xs uppercase tracking-[0.2em] rounded-xs hover:border-atelier-brass hover:text-atelier-ivory transition-all">
         Code Source GitHub ↗
@@ -675,33 +675,39 @@
       </a>
     </li>
     <li>
-      <a href="#banc-3" class="bancs-nav-item" data-banc-target="banc-3" aria-label="Banc III — Imposition &amp; Architecture">
+      <a href="#banc-ecritoire" class="bancs-nav-item" data-banc-target="banc-ecritoire" aria-label="Banc III — L'Écritoire">
         <span class="bancs-nav-numeral">[ III ]</span>
-        <span class="bancs-nav-tooltip">Banc III — Imposition &amp; Architecture</span>
+        <span class="bancs-nav-tooltip">Banc III — L'Écritoire</span>
       </a>
     </li>
     <li>
-      <a href="#banc-4" class="bancs-nav-item" data-banc-target="banc-4" aria-label="Banc IV — Qualité Typographique &amp; Épreuve">
+      <a href="#banc-3" class="bancs-nav-item" data-banc-target="banc-3" aria-label="Banc IV — Imposition &amp; Architecture">
         <span class="bancs-nav-numeral">[ IV ]</span>
-        <span class="bancs-nav-tooltip">Banc IV — Qualité Typographique &amp; Épreuve</span>
+        <span class="bancs-nav-tooltip">Banc IV — Imposition &amp; Architecture</span>
       </a>
     </li>
     <li>
-      <a href="#banc-5" class="bancs-nav-item" data-banc-target="banc-5" aria-label="Banc V — Mise en couverture">
+      <a href="#banc-4" class="bancs-nav-item" data-banc-target="banc-4" aria-label="Banc V — Qualité Typographique &amp; Épreuve">
         <span class="bancs-nav-numeral">[ V ]</span>
-        <span class="bancs-nav-tooltip">Banc V — Mise en couverture</span>
+        <span class="bancs-nav-tooltip">Banc V — Qualité Typographique &amp; Épreuve</span>
       </a>
     </li>
     <li>
-      <a href="#banc-6" class="bancs-nav-item" data-banc-target="banc-6" aria-label="Banc VI — Inspection Pré-Presse">
+      <a href="#banc-5" class="bancs-nav-item" data-banc-target="banc-5" aria-label="Banc VI — Mise en couverture">
         <span class="bancs-nav-numeral">[ VI ]</span>
-        <span class="bancs-nav-tooltip">Banc VI — Inspection Pré-Presse</span>
+        <span class="bancs-nav-tooltip">Banc VI — Mise en couverture</span>
       </a>
     </li>
     <li>
-      <a href="#banc-7" class="bancs-nav-item" data-banc-target="banc-7" aria-label="Banc VII — Tirage sous Presse">
+      <a href="#banc-6" class="bancs-nav-item" data-banc-target="banc-6" aria-label="Banc VII — Inspection Pré-Presse">
         <span class="bancs-nav-numeral">[ VII ]</span>
-        <span class="bancs-nav-tooltip">Banc VII — Tirage sous Presse</span>
+        <span class="bancs-nav-tooltip">Banc VII — Inspection Pré-Presse</span>
+      </a>
+    </li>
+    <li>
+      <a href="#banc-7" class="bancs-nav-item" data-banc-target="banc-7" aria-label="Banc VIII — Tirage sous Presse">
+        <span class="bancs-nav-numeral">[ VIII ]</span>
+        <span class="bancs-nav-tooltip">Banc VIII — Tirage sous Presse</span>
       </a>
     </li>
   </ul>
@@ -712,7 +718,7 @@
       <div class="text-center mb-16">
         <span class="text-atelier-gold text-xl">❦</span>
         <h2 class="font-cinzel text-2xl sm:text-3xl tracking-[0.2em] uppercase text-atelier-ivory mt-2">Les Bancs de l'Atelier</h2>
-        <p class="text-atelier-muted text-sm mt-1 uppercase tracking-widest">Les sept bancs d'ingénierie éditoriale, du calibrage au tirage</p>
+        <p class="text-atelier-muted text-sm mt-1 uppercase tracking-widest">Les huit bancs d'ingénierie éditoriale, du calibrage au tirage</p>
       </div>
 
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -783,7 +789,44 @@
           </div>
         </article>
 
-        <!-- Banc III -->
+        <!-- Banc III — L'Écritoire -->
+        <article id="banc-ecritoire" class="banc-card banc-featured md:col-span-2 lg:col-span-3 p-6 sm:p-8 rounded-xs bg-atelier-card brass-border flex flex-col">
+          <div class="banc-showcase">
+            <div class="flex flex-col">
+              <span class="font-cinzel text-xs uppercase tracking-widest text-atelier-gold">Banc IV</span>
+              <h3 class="font-cinzel text-xl sm:text-2xl text-atelier-ivory mt-1">L'Écritoire</h3>
+              <p class="banc-menu">Menu Écritoire · Feuillets III &amp; IV</p>
+              <p class="banc-subtitle">Le manuscrit vivant, de la première ligne à l'épreuve composée</p>
+              <ul class="banc-points">
+                <li><span class="banc-point-key">Gestion des chapitres :</span> sélectionnez un fichier Markdown existant ou créez un nouveau chapitre `.md` dans le dossier source du projet ; les modifications sont sauvegardées automatiquement.</li>
+                <li><span class="banc-point-key">Diptyque de rédaction :</span> éditez sur le feuillet gauche, dans une page ébène et or, et suivez la prévisualisation typographique en temps réel sur le feuillet droit.</li>
+                <li><span class="banc-point-key">Réglet &amp; Manuel du Scribe :</span> insérez guillemets français, espaces insécables, cadratins, apostrophes courbes et ligatures ; consultez les exemples Markdown de narration romanesque.</li>
+              </ul>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3" aria-label="Aperçu du diptyque de l'Écritoire">
+              <div class="rounded-xs border border-atelier-border bg-[#13110f] p-4">
+                <span class="font-cinzel text-[10px] uppercase tracking-widest text-atelier-gold">L'Écritoire · Markdown</span>
+                <pre class="mt-4 whitespace-pre-wrap font-serif text-sm leading-relaxed text-[#e2dbce]"># Le passage
+
+— Vous voilà enfin.
+— Je vous l'avais promis.
+
+« La nuit tombe. »</pre>
+              </div>
+              <div class="rounded-xs border border-[#a68b5a]/60 bg-[#f5efe4] p-4 text-[#29251f]">
+                <span class="font-cinzel text-[10px] uppercase tracking-widest text-[#8f6e2b]">La Feuille Composée</span>
+                <div class="mt-4 font-serif text-sm leading-relaxed">
+                  <h4 class="mb-3 text-center text-lg">Le passage</h4>
+                  <p class="mb-2">— Vous voilà enfin.</p>
+                  <p class="mb-2">— Je vous l'avais promis.</p>
+                  <blockquote class="mt-4 border-l-2 border-[#a68b5a] pl-3 italic">« La nuit tombe. »</blockquote>
+                </div>
+              </div>
+            </div>
+          </div>
+        </article>
+
+        <!-- Banc IV — ancien Banc III -->
         <article id="banc-3" class="banc-card banc-featured md:col-span-2 lg:col-span-3 p-6 sm:p-8 rounded-xs bg-atelier-card brass-border flex flex-col">
           <div class="banc-showcase">
             <div class="flex flex-col">
@@ -799,7 +842,7 @@
 
             <!-- Pupitre d'exposition à onglets -->
             <div class="flex flex-col" data-banc-viewer="banc-3">
-              <div class="banc-tabs" role="tablist" aria-label="Vues de l'épreuve du Banc III">
+              <div class="banc-tabs" role="tablist" aria-label="Vues de l'épreuve du Banc IV">
                 <button type="button" role="tab" class="banc-tab active" data-banc-tab="architecture" aria-selected="true" onclick="selectBancView('banc-3','architecture')">Architecture &amp; Pièces liminaires</button>
                 <button type="button" role="tab" class="banc-tab" data-banc-tab="calibrage" aria-selected="false" onclick="selectBancView('banc-3','calibrage')">Calibrage &amp; Critères KDP</button>
               </div>
@@ -821,7 +864,7 @@
         <article id="banc-4" class="banc-card banc-featured md:col-span-2 lg:col-span-3 p-6 sm:p-8 rounded-xs bg-atelier-card brass-border flex flex-col">
           <div class="banc-showcase">
             <div class="flex flex-col justify-start">
-              <span class="font-cinzel text-xs uppercase tracking-widest text-atelier-gold">Banc IV</span>
+              <span class="font-cinzel text-xs uppercase tracking-widest text-atelier-gold">Banc V</span>
               <h3 class="font-cinzel text-xl sm:text-2xl text-atelier-ivory mt-1">Le Banc de Qualité Typographique &amp; d'Épreuve</h3>
               <p class="banc-menu">Menu Correcteur — Vues I &amp; II</p>
               <div id="banc-4-narrative" class="banc-narrative-box">
@@ -834,7 +877,7 @@
 
             <!-- Pupitre d'exposition à onglets -->
             <div class="flex flex-col" data-banc-viewer="banc-4">
-              <div class="banc-tabs-single-line" role="tablist" aria-label="Vues de l'épreuve du Banc IV">
+              <div class="banc-tabs-single-line" role="tablist" aria-label="Vues de l'épreuve du Banc V">
                 <button type="button" role="tab" class="banc-tab active" data-banc-tab="synthese" aria-selected="true" onclick="selectBancView('banc-4','synthese')">1. Synthèse</button>
                 <button type="button" role="tab" class="banc-tab" data-banc-tab="regles" aria-selected="false" onclick="selectBancView('banc-4','regles')">2. Registre</button>
                 <button type="button" role="tab" class="banc-tab" data-banc-tab="epreuve" aria-selected="false" onclick="selectBancView('banc-4','epreuve')">3. Épreuve</button>
@@ -860,7 +903,7 @@
         <article id="banc-5" class="banc-card banc-featured md:col-span-2 lg:col-span-3 p-6 sm:p-8 rounded-xs bg-atelier-card brass-border flex flex-col">
           <div class="banc-showcase">
             <div class="flex flex-col justify-start">
-              <span class="font-cinzel text-xs uppercase tracking-widest text-atelier-gold">Banc V</span>
+              <span class="font-cinzel text-xs uppercase tracking-widest text-atelier-gold">Banc VI</span>
               <h3 class="font-cinzel text-xl sm:text-2xl text-atelier-ivory mt-1">Le Banc de mise en couverture</h3>
               <p class="banc-menu">Menu Couverture</p>
               <div id="banc-5-narrative" class="banc-narrative-box">
@@ -873,7 +916,7 @@
 
             <!-- Pupitre d'exposition à onglets -->
             <div class="flex flex-col" data-banc-viewer="banc-5">
-              <div class="banc-tabs-single-line" role="tablist" aria-label="Vues de l'épreuve du Banc V">
+              <div class="banc-tabs-single-line" role="tablist" aria-label="Vues de l'épreuve du Banc VI">
                 <button type="button" role="tab" class="banc-tab active" data-banc-tab="calibrage" aria-selected="true" onclick="selectBancView('banc-5','calibrage')">1. Calibrage &amp; Matières</button>
                 <button type="button" role="tab" class="banc-tab" data-banc-tab="marbre" aria-selected="false" onclick="selectBancView('banc-5','marbre')">2. Marbre 2D &amp; Gabarit</button>
                 <button type="button" role="tab" class="banc-tab" data-banc-tab="volume3d" aria-selected="false" onclick="selectBancView('banc-5','volume3d')">3. Volume Relié 3D</button>
@@ -897,7 +940,7 @@
         <article id="banc-6" class="banc-card banc-featured md:col-span-2 lg:col-span-3 p-6 sm:p-8 rounded-xs bg-atelier-card brass-border flex flex-col">
           <div class="banc-showcase">
             <div class="flex flex-col justify-start">
-              <span class="font-cinzel text-xs uppercase tracking-widest text-atelier-gold">Banc VI</span>
+              <span class="font-cinzel text-xs uppercase tracking-widest text-atelier-gold">Banc VII</span>
               <h3 class="font-cinzel text-xl sm:text-2xl text-atelier-ivory mt-1">L'Inspection Pré-Presse</h3>
               <p class="banc-menu">Menu Export — Vue I</p>
               <div id="banc-6-narrative" class="banc-narrative-box">
@@ -926,7 +969,7 @@
         <article id="banc-7" class="banc-card banc-featured md:col-span-2 lg:col-span-3 p-6 sm:p-8 rounded-xs bg-atelier-card brass-border flex flex-col">
           <div class="banc-showcase">
             <div class="flex flex-col justify-start">
-              <span class="font-cinzel text-xs uppercase tracking-widest text-atelier-gold">Banc VII</span>
+              <span class="font-cinzel text-xs uppercase tracking-widest text-atelier-gold">Banc VIII</span>
               <h3 class="font-cinzel text-xl sm:text-2xl text-atelier-ivory mt-1">Le Tirage sous Presse</h3>
               <p class="banc-menu">Menu Export — Vue II</p>
               <div id="banc-7-narrative" class="banc-narrative-box">
@@ -954,45 +997,44 @@
       </div>
     </section>
 
-    <!-- Section Nouveautés v1.2.0 -->
+    <!-- Section Nouveautés v1.3.0 -->
     <section id="nouveautes" class="pt-32 text-left">
       <div class="text-center mb-16">
         <span class="text-atelier-gold text-xl">❦</span>
-        <h2 class="font-cinzel text-2xl sm:text-3xl tracking-[0.2em] uppercase text-atelier-ivory mt-2">Nouveautés de la Mouture 1.2.0</h2>
-        <p class="text-atelier-muted text-sm mt-1 uppercase tracking-widest">Clôture Correcteur, Export &amp; Ex-Libris</p>
+        <h2 class="font-cinzel text-2xl sm:text-3xl tracking-[0.2em] uppercase text-atelier-ivory mt-2">Nouveautés de la version 1.3.0 — Banc III : L'Écritoire</h2>
+        <p class="text-atelier-muted text-sm mt-1 uppercase tracking-widest">Un studio Markdown natif au cœur du registre</p>
       </div>
 
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
         <div class="p-8 rounded-xs bg-atelier-card brass-border flex flex-col gap-3">
-          <span class="text-xs font-cinzel uppercase tracking-widest text-atelier-gold">Banc IV — Vues I &amp; II</span>
-          <h3 class="font-cinzel text-lg text-atelier-ivory">Les Diptyques Synchronisés</h3>
+          <span class="text-xs font-cinzel uppercase tracking-widest text-atelier-gold">Création &amp; sélection</span>
+          <h3 class="font-cinzel text-lg text-atelier-ivory">Les chapitres à portée de plume</h3>
           <p class="text-atelier-bistre text-base">
-            Les deux volets du Correcteur — l'Indice de Qualité Typographique et le Banc d'Épreuve — basculent désormais d'une seule main : bascule partagée via le contexte de l'atelier, grille des règles en colonne unique paginée, « Conseils de l'Imprimeur », repère [ ⌖ Localiser ] et mode [ ✍ Retouche ].
+            Sélectionnez un chapitre existant ou créez un nouveau fichier `.md` directement dans le dossier source du projet. L'Écritoire sauvegarde les modifications dans le manuscrit.
           </p>
         </div>
 
         <div class="p-8 rounded-xs bg-atelier-card brass-border flex flex-col gap-3">
-          <span class="text-xs font-cinzel uppercase tracking-widest text-atelier-gold">Composition</span>
-          <h3 class="font-cinzel text-lg text-atelier-ivory">Édition Directe &amp; Règle Typographique</h3>
+          <span class="text-xs font-cinzel uppercase tracking-widest text-atelier-gold">Feuillets III &amp; IV</span>
+          <h3 class="font-cinzel text-lg text-atelier-ivory">Le diptyque de rédaction</h3>
           <p class="text-atelier-bistre text-base">
-            Le banc de composition s'ouvre à l'édition directe en Markdown : règle typographique appliquée à la frappe, insertion automatique des espaces insécables et des tirets cadratins, à la manière des casses de plomb vénitiennes.
+            Le feuillet gauche accueille un éditeur Markdown aux tons ébène et or de la charte <em>Dark Atelier</em> ; le feuillet droit compose le texte en temps réel selon les réglages du manuscrit.
           </p>
         </div>
 
         <div class="p-8 rounded-xs bg-atelier-card brass-border flex flex-col gap-3">
-          <span class="text-xs font-cinzel uppercase tracking-widest text-atelier-gold">Export &amp; Tirage</span>
-          <h3 class="font-cinzel text-lg text-atelier-ivory">Manuscrit DOCX Consolidé</h3>
+          <span class="text-xs font-cinzel uppercase tracking-widest text-atelier-gold">Réglet typographique</span>
+          <h3 class="font-cinzel text-lg text-atelier-ivory">Les signes au bout du doigt</h3>
           <p class="text-atelier-bistre text-base">
-            Le dossier de fabrication en tête du Banc VI réunit la forme Word DOCX réintégrée, le bouton [ OUVRIR LE DOSSIER DES ÉPREUVES ] natif et le sceau de presse qui s'efface de lui-même après trente secondes.
+            Insérez en un clic les guillemets français « », les espaces insécables, les tirets cadratins —, les apostrophes courbes ’ et les ligatures œ/Œ à l'emplacement du curseur.
           </p>
         </div>
 
         <div class="p-8 rounded-xs bg-atelier-card brass-border flex flex-col gap-3">
-          <span class="text-xs font-cinzel uppercase tracking-widest text-atelier-gold">Identité</span>
-          <h3 class="font-cinzel text-lg text-atelier-ivory">Sceau d'Atelier &amp; Ex-Libris</h3>
+          <span class="text-xs font-cinzel uppercase tracking-widest text-atelier-gold">Aide intégrée</span>
+          <h3 class="font-cinzel text-lg text-atelier-ivory">Le Manuel du Scribe</h3>
           <p class="text-atelier-bistre text-base">
-            Icône officielle vénitienne déployée pour Tauri et les favicons, et Ex-Libris « Dragon Danoë » relié à l'auteur —
-            <a href="https://danoeecrivain.net/" target="_blank" rel="noopener noreferrer" class="text-atelier-gold underline hover:text-atelier-goldhover">danoeecrivain.net</a>.
+            Une page d'aide claire donne les repères Markdown de la narration romanesque : titres, dialogues, exergues, notes de bas de page et séparateurs de scène.
           </p>
         </div>
       </div>
@@ -1008,7 +1050,7 @@
       <div class="mb-12">
         <span class="text-atelier-gold text-xl">❦</span>
         <h2 class="font-cinzel text-3xl sm:text-4xl tracking-[0.2em] uppercase text-atelier-ivory mt-2">Prendre Place dans l'Atelier</h2>
-        <p class="text-atelier-muted text-sm mt-1 uppercase tracking-widest">Version 1.2.0 (Stable) — Clôture Correcteur, Export &amp; Ex-Libris</p>
+        <p class="text-atelier-muted text-sm mt-1 uppercase tracking-widest">Version 1.3.0 (Stable) — Banc III : L'Écritoire</p>
       </div>
 
       <div class="grid grid-cols-1 md:grid-cols-3 gap-6 text-left max-w-4xl mx-auto">
@@ -1024,20 +1066,21 @@
             </div>
           </div>
           <div class="space-y-2 pt-4 border-t border-atelier-border/50">
-            <a href="https://github.com/danoe78210/aldus/releases/download/v1.2.0/Aldus_1.2.0_x64-setup.exe" class="block w-full py-2 text-center bg-[#1f1913] border border-atelier-brass text-atelier-ivory font-cinzel text-xs uppercase tracking-wider rounded-xs hover:border-atelier-gold hover:text-atelier-gold transition-colors">
+            <a href="https://github.com/danoe78210/aldus/releases/download/v1.3.0/Aldus_1.3.0_x64-setup.exe" class="block w-full py-2 text-center bg-[#1f1913] border border-atelier-brass text-atelier-ivory font-cinzel text-xs uppercase tracking-wider rounded-xs hover:border-atelier-gold hover:text-atelier-gold transition-colors">
               Télécharger .EXE (13 Mo)
             </a>
-            <a href="https://github.com/danoe78210/aldus/releases/download/v1.2.0/Aldus_1.2.0_x64_en-US.msi" class="block w-full py-1.5 text-center border border-atelier-border text-atelier-muted font-cinzel text-[11px] uppercase tracking-wider rounded-xs hover:border-atelier-brass hover:text-atelier-bistre transition-colors">
+            <a href="https://github.com/danoe78210/aldus/releases/download/v1.3.0/Aldus_1.3.0_x64_en-US.msi" class="block w-full py-1.5 text-center border border-atelier-border text-atelier-muted font-cinzel text-[11px] uppercase tracking-wider rounded-xs hover:border-atelier-brass hover:text-atelier-bistre transition-colors">
               Paquet .MSI (18 Mo)
             </a>
 
             <!-- Installation en ligne de commande -->
             <div class="terminal-install-box">
-              <span class="terminal-label">Installation en ligne de commande</span>
+              <span class="terminal-label">Installation en ligne de commande · manifeste à venir</span>
               <div class="terminal-command-line">
                 <code id="winget-command">winget install Danoe.Aldus</code>
                 <button type="button" onclick="copyWingetCommand(this)" title="Copier la commande" aria-label="Copier la commande winget">📋</button>
               </div>
+              <p class="mt-2 text-[10px] text-atelier-muted">Le manifeste Winget v1.3.0 n'est pas encore publié ; utilisez l'installateur EXE ou MSI ci-dessus.</p>
             </div>
           </div>
         </div>
@@ -1053,7 +1096,7 @@
             </div>
           </div>
           <div class="pt-4 border-t border-atelier-border/50">
-            <a href="https://github.com/danoe78210/aldus/releases/download/v1.2.0/Aldus_1.2.0_universal.dmg" class="block w-full py-2 text-center bg-[#1f1913] border border-atelier-brass text-atelier-ivory font-cinzel text-xs uppercase tracking-wider rounded-xs hover:border-atelier-gold hover:text-atelier-gold transition-colors">
+            <a href="https://github.com/danoe78210/aldus/releases/download/v1.3.0/Aldus_1.3.0_universal.dmg" class="block w-full py-2 text-center bg-[#1f1913] border border-atelier-brass text-atelier-ivory font-cinzel text-xs uppercase tracking-wider rounded-xs hover:border-atelier-gold hover:text-atelier-gold transition-colors">
               Télécharger .DMG (39 Mo)
             </a>
           </div>
@@ -1070,14 +1113,14 @@
             </div>
           </div>
           <div class="space-y-2 pt-4 border-t border-atelier-border/50">
-            <a href="https://github.com/danoe78210/aldus/releases/download/v1.2.0/Aldus_1.2.0_amd64.AppImage" class="block w-full py-2 text-center bg-[#1f1913] border border-atelier-brass text-atelier-ivory font-cinzel text-xs uppercase tracking-wider rounded-xs hover:border-atelier-gold hover:text-atelier-gold transition-colors">
+            <a href="https://github.com/danoe78210/aldus/releases/download/v1.3.0/Aldus_1.3.0_amd64.AppImage" class="block w-full py-2 text-center bg-[#1f1913] border border-atelier-brass text-atelier-ivory font-cinzel text-xs uppercase tracking-wider rounded-xs hover:border-atelier-gold hover:text-atelier-gold transition-colors">
               AppImage Portable (94 Mo)
             </a>
             <div class="grid grid-cols-2 gap-2">
-              <a href="https://github.com/danoe78210/aldus/releases/download/v1.2.0/Aldus_1.2.0_amd64.deb" class="py-1 text-center border border-atelier-border text-atelier-muted font-cinzel text-[10px] uppercase tracking-wider rounded-xs hover:border-atelier-brass hover:text-atelier-bistre transition-colors">
+              <a href="https://github.com/danoe78210/aldus/releases/download/v1.3.0/Aldus_1.3.0_amd64.deb" class="py-1 text-center border border-atelier-border text-atelier-muted font-cinzel text-[10px] uppercase tracking-wider rounded-xs hover:border-atelier-brass hover:text-atelier-bistre transition-colors">
                 .DEB
               </a>
-              <a href="https://github.com/danoe78210/aldus/releases/download/v1.2.0/Aldus-1.2.0-1.x86_64.rpm" class="py-1 text-center border border-atelier-border text-atelier-muted font-cinzel text-[10px] uppercase tracking-wider rounded-xs hover:border-atelier-brass hover:text-atelier-bistre transition-colors">
+              <a href="https://github.com/danoe78210/aldus/releases/download/v1.3.0/Aldus-1.3.0-1.x86_64.rpm" class="py-1 text-center border border-atelier-border text-atelier-muted font-cinzel text-[10px] uppercase tracking-wider rounded-xs hover:border-atelier-brass hover:text-atelier-bistre transition-colors">
                 .RPM
               </a>
             </div>
@@ -1088,7 +1131,7 @@
 
       <p class="text-xs text-atelier-muted mt-8">
         Tous les installeurs sont compilés de manière reproductible via GitHub Actions. Consultez le
-        <a href="https://github.com/danoe78210/aldus/releases/tag/v1.2.0" class="text-atelier-gold underline hover:text-atelier-goldhover">journal de version complet</a>.
+        <a href="https://github.com/danoe78210/aldus/releases/tag/v1.3.0" class="text-atelier-gold underline hover:text-atelier-goldhover">journal de version complet</a>.
       </p>
     </section>
 
