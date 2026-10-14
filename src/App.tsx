@@ -32,7 +32,7 @@ import {
 import { isImageFile, splitSourceFiles } from "./utils/sources";
 import { finalizeExit, onCloseRequested } from "./utils/shutdown";
 import { EXPORT_FORMS, PRESS_STAGES, PRESS_TOTAL_MS, type ExportFormId } from "./utils/exportEngine";
-import { readChapterFile, writeChapterFile } from "./utils/projectApi";
+import { createChapterFile, listChapterFiles as listNativeChapterFiles, readChapterFile, writeChapterFile } from "./utils/projectApi";
 import { showSpaces } from "./utils/proofLayout";
 import {
   ALL_RULES,
@@ -157,6 +157,7 @@ const DEFAULT_COVER: CoverStudioState = {
 const MENU_ORDER: ActiveMenu[] = [
   'reglages',
   'infos',
+  'ecritoire',
   'organisation',
   'correcteur',
   'couverture',
@@ -210,7 +211,7 @@ const App: React.FC = () => {
   const [pressStage, setPressStage] = useState(-1);
   const [isPressing, setIsPressing] = useState(false);
   const [pressDone, setPressDone] = useState(false);
-  // Correcteur (Feuillets VII & VIII) : la bascule d'en-tête, les règles actives,
+  // Correcteur (Feuillets IX & X) : la bascule d'en-tête, les règles actives,
   // le chapitre/texte en épreuve et la pagination du banc sont **partagés** entre
   // la page gauche et la page droite du livre (les deux volets du diptyque).
   const [proofTab, setProofTab] = useState<ProofTab>("purete");
@@ -245,6 +246,21 @@ const App: React.FC = () => {
   const [imageFiles, setImageFiles] = useState<string[]>([]);
   // État persistant du module Couverture (synchronisé dans le fichier `.danoe`).
   const [cover, setCover] = useState<CoverStudioState>(DEFAULT_COVER);
+  const [writingChapter, setWritingChapter] = useState("");
+  const [writingText, setWritingText] = useState("");
+  const [writingLoading, setWritingLoading] = useState(false);
+  const [writingError, setWritingError] = useState<string | null>(null);
+  const [writingDirty, setWritingDirty] = useState(false);
+  const [writingSaveState, setWritingSaveState] = useState<"idle" | "saving" | "saved">("idle");
+  const writingRequestRef = useRef(0);
+  const writingLatestRef = useRef({ chapter: "", text: "" });
+  const writingSaveQueueRef = useRef<Promise<void>>(Promise.resolve());
+
+  const persistWritingText = useCallback((chapter: string, text: string) => {
+    const queuedWrite = writingSaveQueueRef.current.then(() => writeChapterFile(chapter, text));
+    writingSaveQueueRef.current = queuedWrite.catch(() => undefined);
+    return queuedWrite;
+  }, []);
   // Payload figé de l'aperçu interactif (null = fermé) : capturé à l'ouverture
   // pour une identité stable (évite toute re-génération au re-rendu).
   const [previewPayload, setPreviewPayload] = useState<unknown | null>(null);
@@ -426,6 +442,19 @@ const App: React.FC = () => {
       cover,
     ],
   );
+
+  const persistCurrentProject = useCallback(async () => {
+    if (!hydrated) {
+      throw new Error("Le projet n’est pas encore chargé.");
+    }
+    const method = await saveProject(
+      JSON.stringify(buildCurrentProject(), null, 2),
+      projectFilePath,
+    );
+    if (method === "error") {
+      throw new Error("Impossible de préparer le dossier source du projet.");
+    }
+  }, [buildCurrentProject, hydrated, projectFilePath]);
 
   // Ouvre l'aperçu interactif : fige le payload courant (généré en mémoire par Typst).
   const handlePreview = useCallback(() => {
@@ -1004,6 +1033,104 @@ const App: React.FC = () => {
     }
   }, []);
 
+  // ───────────────── Écritoire (Feuillets III & IV) ────────────────────────
+  const handleLoadWritingChapter = useCallback(async (file: string) => {
+    if (writingDirty && writingChapter && writingChapter !== file) {
+      try {
+        await persistWritingText(writingChapter, writingText);
+      } catch (cause) {
+        setWritingError(cause instanceof Error ? cause.message : String(cause));
+        return;
+      }
+    }
+    const request = ++writingRequestRef.current;
+    writingLatestRef.current = { chapter: file, text: "" };
+    setWritingChapter(file);
+    setWritingError(null);
+    setWritingDirty(false);
+    setWritingSaveState("idle");
+    if (!file) {
+      setWritingText("");
+      setWritingLoading(false);
+      return;
+    }
+    setWritingLoading(true);
+    try {
+      await persistCurrentProject();
+      const content = await readChapterFile(file);
+      if (request === writingRequestRef.current) {
+        writingLatestRef.current = { chapter: file, text: content };
+        setWritingText(content);
+      }
+    } catch (cause) {
+      if (request === writingRequestRef.current) {
+        setWritingText("");
+        setWritingError(cause instanceof Error ? cause.message : String(cause));
+      }
+    } finally {
+      if (request === writingRequestRef.current) {
+        setWritingLoading(false);
+      }
+    }
+  }, [persistCurrentProject, persistWritingText, writingChapter, writingDirty, writingText]);
+
+  const handleWritingTextChange = useCallback((text: string) => {
+    writingLatestRef.current = { chapter: writingLatestRef.current.chapter, text };
+    setWritingText(text);
+    setWritingDirty(true);
+    setWritingSaveState("idle");
+  }, []);
+
+  const handleCreateWritingChapter = useCallback(async (name: string) => {
+    setWritingError(null);
+    try {
+      await persistCurrentProject();
+      const filename = await createChapterFile(name);
+      setChapterFiles((current) =>
+        [...new Set([...current, filename])].sort((left, right) => left.localeCompare(right)),
+      );
+      addLog("success", `Nouveau chapitre créé : ${filename}.`);
+      void listNativeChapterFiles().then(setChapterFiles).catch(() => {
+        addLog("warning", "Le chapitre est créé, mais la liste n’a pas pu être actualisée.");
+      });
+      await handleLoadWritingChapter(filename);
+    } catch (cause) {
+      const message = cause instanceof Error ? cause.message : String(cause);
+      setWritingError(message);
+      addLog("error", `Création du chapitre impossible : ${message}`);
+    }
+  }, [addLog, handleLoadWritingChapter, persistCurrentProject]);
+
+  useEffect(() => {
+    if (!writingDirty || !writingChapter || !hydrated) {
+      return;
+    }
+    const chapter = writingChapter;
+    const text = writingText;
+    const timer = window.setTimeout(() => {
+      setWritingSaveState("saving");
+      void persistWritingText(chapter, text).then(() => {
+        if (writingLatestRef.current.chapter === chapter && writingLatestRef.current.text === text) {
+          setWritingDirty(false);
+          setWritingSaveState("saved");
+        }
+      }).catch((cause: unknown) => {
+        if (writingLatestRef.current.chapter === chapter && writingLatestRef.current.text === text) {
+          setWritingError(cause instanceof Error ? cause.message : String(cause));
+          setWritingSaveState("idle");
+        }
+      });
+    }, 650);
+    return () => window.clearTimeout(timer);
+  }, [hydrated, persistWritingText, writingChapter, writingDirty, writingText]);
+
+  useEffect(() => {
+    if (writingChapter === "" && chapterFiles.length > 0 && sourceConfig.directory) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- ouvre le premier chapitre disponible après l’hydratation du dossier source
+      void handleLoadWritingChapter(chapterFiles[0]);
+    }
+  }, [chapterFiles, handleLoadWritingChapter, sourceConfig.directory, writingChapter]);
+
   /** Bascule le diptyque du Correcteur (VII — Indice de Qualité Typographique / VIII — Banc d'Épreuve). */
   const handleProofTabChange = useCallback((tab: ProofTab) => setProofTab(tab), []);
 
@@ -1148,6 +1275,14 @@ const App: React.FC = () => {
     imposeProofUsage: handleImposeProofUsage,
     persistProofChapter: () => handlePersistProofChapter(),
     saveProofRevisions: (next: string) => handleSaveProofRevisions(next),
+    writingChapter,
+    writingText,
+    writingLoading,
+    writingError,
+    writingSaveState,
+    loadWritingChapter: handleLoadWritingChapter,
+    onWritingTextChange: handleWritingTextChange,
+    createWritingChapter: handleCreateWritingChapter,
     isAtelierOpen,
     isTransitioning,
     onEnterAtelier: enterAtelier,

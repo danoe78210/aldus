@@ -19,18 +19,18 @@ const CARD_FAMILIES: TypographyFamily[] = ["punctuation", "dialogue", "letters",
  * **Page gauche du Correcteur** — porte la bascule d'en-tête (partagée avec la
  * page droite du livre) et déploie l'un des deux diptyques in-folio :
  *
- * * **Feuillet VII — Indice de Qualité Typographique** : sceau d'intégrité (jauge circulaire),
+ * * **Feuillet IX — Indice de Qualité Typographique** : sceau d'intégrité (jauge circulaire),
  *   cartouche de synthèse (mots, anomalies, gravités), inventaire des règles par
  *   famille, et les ordres majeurs `[ Imposer l'Usage Typographique Aldin › ]`
  *   et `[ Consigner le chapitre au registre ]` (la grille des règles activables,
  *   « Les Règles Analysées », siège sur la page droite).
- * * **Feuillet VIII — Banc d'Épreuve** : pupitre de lecture (sélecteur de
+ * * **Feuillet X — Banc d'Épreuve** : pupitre de lecture (sélecteur de
  *   chapitre stylisé en laiton, `[ Recharger ]`, pagination de feuillet, filtre
  *   « feuillets à anomalies ») et **grand feuillet de lecture** en vélin chaud,
  *   texte aéré en Garamond 16 px avec surlignages discrets à l'encre.
  *
  * Le moteur est `src/utils/typographyEngine.ts` ; les conseils de l'Imprimeur
- * sont composés sur la page droite du Feuillet VIII (`ProofWorkbench.tsx`).
+ * sont composés sur la page droite du Feuillet X (`ProofWorkbench.tsx`).
  */
 export const ProofExaminer: React.FC = () => {
   const {
@@ -73,16 +73,16 @@ export const ProofExaminer: React.FC = () => {
       <div className="mb-4 shrink-0">
         <ProofTabToggle tab={proofTab} onChange={onProofTabChange} />
         <h2 className="mt-3 shrink-0 text-center font-cinzel text-sm sm:text-base tracking-[0.25em] text-[#d4af37] uppercase">
-          {proofTab === "purete" ? "VII. Indice de Qualité Typographique" : "VIII. Le Banc d'Épreuve"}
+          {proofTab === "purete" ? "IX. Indice de Qualité Typographique" : "X. Le Banc d'Épreuve"}
         </h2>
       </div>
 
       {proofTab === "purete" ? (
-        /* ═══════ Feuillet VII — Indice de Qualité Typographique (volet gauche) ═══════ */
+        /* ═══════ Feuillet IX — Indice de Qualité Typographique (volet gauche) ═══════ */
         <>
           {/* [1] Sélecteur de chapitre — même pupitre que le banc : le changement de
               chapitre met immédiatement à jour l'indice, les anomalies et la
-              jauge, tout en restant synchronisé avec le Feuillet VIII. */}
+              jauge, tout en restant synchronisé avec le Feuillet X. */}
           <div className="mb-3 flex shrink-0 flex-wrap items-center gap-2">
             <ScrollText size={14} className="shrink-0 text-[#8f6e2b]" />
             <select
@@ -213,7 +213,7 @@ export const ProofExaminer: React.FC = () => {
           </div>
         </>
       ) : (
-        /* ═══════ Feuillet VIII — Le Banc d'Épreuve (volet gauche) ═══════ */
+        /* ═══════ Feuillet X — Le Banc d'Épreuve (volet gauche) ═══════ */
         <>
           {/* [1] Pupitre : sélecteur de chapitre en laiton & rechargement */}
           <div className="mb-3 flex shrink-0 flex-wrap items-center gap-2">

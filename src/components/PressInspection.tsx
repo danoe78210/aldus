@@ -23,11 +23,11 @@ const Cartouche: React.FC<{ index: number; title: string; children: React.ReactN
 );
 
 /**
- * **Feuillet IX — Inspection Pré-Presse & Formes** (page de gauche de l'onglet
+ * **Feuillet XI — Inspection Pré-Presse & Formes** (page de gauche de l'onglet
  * Export) : choix des formes d'édition, **bilan d'intégrité KDP** calculé sur
  * l'état réel du projet, dossier de fabrication et jauge d'encrage.
  *
- * L'ordre de tirage se donne au marbre de pressage (Feuillet X).
+ * L'ordre de tirage se donne au marbre de pressage (Feuillet XII).
  */
 export const PressInspection: React.FC = () => {
   const {
@@ -192,7 +192,7 @@ export const PressInspection: React.FC = () => {
           />
         </div>
         <p className="mt-1 font-serif text-[10px] italic text-[#786c59]">
-          L&rsquo;ordre de tirage se donne au marbre de pressage (Feuillet X).
+          L&rsquo;ordre de tirage se donne au marbre de pressage (Feuillet XII).
         </p>
       </section>
     </div>

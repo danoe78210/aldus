@@ -1,6 +1,7 @@
 export type ActiveMenu =
   | 'reglages'
   | 'infos'
+  | 'ecritoire'
   | 'organisation'
   | 'couverture'
   | 'correcteur'

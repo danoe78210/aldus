@@ -5,7 +5,7 @@ import type { ProofLine } from "../../utils/proofLayout";
 interface ProofReaderProps {
   /** Texte brut du chapitre (source des décorations en surlignage). */
   text: string;
-  /** Rapport d'analyse typographique (Feuillet VII — moteur aldin). */
+  /** Rapport d'analyse typographique (Feuillet IX — moteur aldin). */
   report: TypographyAnalysis;
   /** Lignes du feuillet courant (gabarit vélin). */
   currentLines: ProofLine[];
@@ -22,7 +22,7 @@ interface ProofReaderProps {
 }
 
 /**
- * **Grand feuillet de lecture du Banc d'Épreuve** (Feuillet VIII, page gauche
+ * **Grand feuillet de lecture du Banc d'Épreuve** (Feuillet X, page gauche
  * du livre) : papier/vélin chaud `#f4efe6`, encre `#1e1913`, Garamond 16 px
  * aéré, justification pleine et alinéa de premier rang. Les anomalies y sont
  * soulignées à l'encre — ondulé carmin (critiques) / pointillé or (style) —

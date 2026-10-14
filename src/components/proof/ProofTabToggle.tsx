@@ -1,10 +1,10 @@
 import React from "react";
 import type { ProofTab } from "../StudioContext";
 
-/** Feuillets proposés par la bascule d'en-tête du Correcteur (diptyques VII & VIII). */
+/** Feuillets proposés par la bascule d'en-tête du Correcteur (diptyques IX & X). */
 const PROOF_TABS: { id: ProofTab; label: string }[] = [
-  { id: "purete", label: "VII. Indice de Qualité Typographique" },
-  { id: "banc", label: "VIII. Le Banc d'Épreuve" },
+  { id: "purete", label: "IX. Indice de Qualité Typographique" },
+  { id: "banc", label: "X. Le Banc d'Épreuve" },
 ];
 
 interface ProofTabToggleProps {
@@ -18,7 +18,7 @@ interface ProofTabToggleProps {
  * **Bascule d'en-tête du Correcteur** — même modèle que le marbre de montage de
  * la couverture (`[ Épreuve à plat 2D ] | [ Volume relié 3D ]`) : l'état est
  * partagé entre la page gauche et la page droite du livre, qui basculent de
- * concert entre le Feuillet VII (Indice de Qualité Typographique) et le Feuillet VIII
+ * concert entre le Feuillet IX (Indice de Qualité Typographique) et le Feuillet X
  * (Banc d'Épreuve).
  */
 export const ProofTabToggle: React.FC<ProofTabToggleProps> = ({ tab, onChange }) => (

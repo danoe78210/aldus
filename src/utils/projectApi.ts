@@ -17,3 +17,11 @@ export const readChapterFile = (filename: string): Promise<string> =>
  */
 export const writeChapterFile = (filename: string, content: string): Promise<void> =>
   invokeCommand<void>("write_chapter_file", { filename, content });
+
+/** Liste les fichiers Markdown du dossier source configuré côté projet. */
+export const listChapterFiles = (): Promise<string[]> =>
+  invokeCommand<string[]>("list_chapter_files");
+
+/** Crée un nouveau fichier Markdown sans écraser un fichier existant. */
+export const createChapterFile = (filename: string): Promise<string> =>
+  invokeCommand<string>("create_chapter_file", { filename });

@@ -7,6 +7,7 @@ import {
   Share2,
   SpellCheck,
   LogOut,
+  Feather,
 } from "lucide-react";
 import aldusEmblem from "../assets/aldus-emblem.png";
 import { InfoIdentityPanel } from "./InfoView";
@@ -15,6 +16,7 @@ import { CoverPlate } from "./cover/CoverPlate";
 import { PressInspection } from "./PressInspection";
 import { ProofExaminer } from "./ProofExaminer";
 import { ExLibrisBadge } from "./navigation/ExLibrisBadge";
+import { WritingEditor } from "./WritingStudio";
 import { useStudio } from "./StudioContext";
 import { placeChapters } from "../data/imposition";
 import type { ActiveMenu } from "../types";
@@ -43,6 +45,7 @@ interface TabItem {
 const tabs: TabItem[] = [
   { id: "reglages", label: "Réglages", icon: Settings, color: "bg-linear-to-r from-[#2c1a0e] to-[#1c1209]", text: "text-[#ecd8b0]" },
   { id: "infos", label: "Informations", icon: Info, color: "bg-linear-to-r from-[#121c26] to-[#0b1219]", text: "text-[#d6e3f0]" },
+  { id: "ecritoire", label: "L'Écritoire", icon: Feather, color: "bg-linear-to-r from-[#183027] to-[#0d1b15]", text: "text-[#d0e5d6]" },
   { id: "organisation", label: "Organisation", icon: ListTree, color: "bg-linear-to-r from-[#122117] to-[#0a140e]", text: "text-[#d0e5d6]" },
   { id: "correcteur", label: "Correcteur", icon: SpellCheck, color: "bg-linear-to-r from-[#332408] to-[#1f1604]", text: "text-[#f2e2be]" },
   { id: "couverture", label: "Couverture", icon: BookMarked, color: "bg-linear-to-r from-[#300d0d] to-[#1f0808]", text: "text-[#eed0d0]" },
@@ -182,11 +185,13 @@ export const LeftPage: React.FC<LeftPageProps> = ({
 
       {activeMenu === "infos" ? (
         <InfoIdentityPanel />
+      ) : activeMenu === "ecritoire" ? (
+        <WritingEditor />
       ) : activeMenu === "organisation" ? (
-        /* Feuillet III — Table des matières & feuillets (registre de composition). */
+        /* Feuillet V — Table des matières & feuillets (registre de composition). */
         <div className="animate-ink-reveal flex h-full w-full flex-col">
           <h2 className="mb-5 text-center font-serif text-lg tracking-[0.25em] text-[#d4af37] uppercase">
-            III. Table des Matières &amp; Feuillets
+            V. Table des Matières &amp; Feuillets
           </h2>
           <OrganizationView
             items={structure}
@@ -211,13 +216,13 @@ export const LeftPage: React.FC<LeftPageProps> = ({
           />
         </div>
       ) : activeMenu === "couverture" ? (
-        /* Feuillet V — marbre de montage 2D/3D (le calibreur est à droite). */
+        /* Feuillet VII — marbre de montage 2D/3D (le calibreur est à droite). */
         <CoverPlate />
       ) : activeMenu === "correcteur" ? (
-        /* Feuillet VII — l'Examen Aldin (le banc d'épreuve est à droite). */
+        /* Feuillet IX — l'Examen Aldin (le banc d'épreuve est à droite). */
         <ProofExaminer />
       ) : activeMenu === "export" ? (
-        /* Feuillet IX — inspection pré-presse (le tirage est à droite). */
+        /* Feuillet XI — inspection pré-presse (le tirage est à droite). */
         <PressInspection />
       ) : (
         <Frontispice leaving={isTransitioning} />

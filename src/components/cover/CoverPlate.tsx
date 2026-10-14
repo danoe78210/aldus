@@ -21,7 +21,7 @@ import { BRASS_BUTTON } from "./coverButtons";
 /** Extensions acceptées pour les visuels de couverture (plats et logo). */
 const COVER_IMAGE_EXTENSIONS = ["png", "jpg", "jpeg", "tif", "tiff"];
 
-/** Bascule d'épreuve du marbre de montage (Feuillet V). */
+/** Bascule d'épreuve du marbre de montage (Feuillet VII). */
 const SUB_TABS = [
   { id: "canvas2d", label: "Épreuve à plat 2D" },
   { id: "preview3d", label: "Volume relié 3D" },
@@ -30,7 +30,7 @@ const SUB_TABS = [
 type SubTab = (typeof SUB_TABS)[number]["id"];
 
 /**
- * **Feuillet V — Le Marbre de Montage 2D/3D** (page de gauche de l'atelier de
+ * **Feuillet VII — Le Marbre de Montage 2D/3D** (page de gauche de l'atelier de
  * couverture) : table d'encrage en ardoise sombre, grille de composition
  * millimétrique en filigrane, bascule d'épreuve `[ Épreuve à plat 2D ]` /
  * `[ Volume relié 3D ]`, bannière de dérive (§10) et dialogue de conformité
@@ -118,11 +118,11 @@ export const CoverPlate: React.FC = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [frontPath, backPath, trimSize]);
 
-  // Demande d'export émise depuis le calibreur (Feuillet VI) : le marbre ouvre
+  // Demande d'export émise depuis le calibreur (Feuillet VIII) : le marbre ouvre
   // son dialogue de conformité pré-export.
   useEffect(() => {
     if (coverExportRequest > 0) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect -- réponse à une demande d'export externe (Feuillet VI)
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- réponse à une demande d'export externe (Feuillet VIII)
       setModalOpen(true);
     }
   }, [coverExportRequest]);
@@ -242,12 +242,12 @@ export const CoverPlate: React.FC = () => {
   const canExport = Boolean(frontPath && backPath && geometry) && !busy;
 
   return (
-    /* **Feuillet V — Le Marbre de Montage** : table d'encrage en ardoise sombre ;
+    /* **Feuillet VII — Le Marbre de Montage** : table d'encrage en ardoise sombre ;
        la grille millimétrique n'existe qu'à l'intérieur du marbre d'épreuve
        (cf. `CoverCanvas2D`), jamais derrière le titre ni les commandes. */
     <div className="relative flex h-full min-h-0 flex-col gap-3 rounded-xs border-2 border-[#382f22] bg-[#1a1815] p-6 shadow-2xl">
       <h2 className="relative shrink-0 text-center font-serif text-lg tracking-[0.25em] text-[#d4af37] uppercase">
-        V. Le Marbre de Montage
+        VII. Le Marbre de Montage
       </h2>
 
       {/* Bascule d'épreuve — commutateur laiton discret */}

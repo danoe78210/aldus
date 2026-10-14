@@ -14,7 +14,7 @@ interface PressSealAnimationProps {
 }
 
 /**
- * **Animation d'achevé d'imprimer** (Feuillet X — Le Tirage sous presse) :
+ * **Animation d'achevé d'imprimer** (Feuillet XII — Le Tirage sous presse) :
  * estampe filaire en veilleuse avant le tirage, pulsation d'or liquide pendant
  * la presse, puis **descente et frappe solennelle de l'emblème** à l'achèvement
  * (onde dorée d'impact + cartouche « Festina Lente »).

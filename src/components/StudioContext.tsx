@@ -69,6 +69,16 @@ export interface StudioContextValue {
   onPickSourcesDirectory: () => void;
   onImportIntoFolder: (id: string) => void;
 
+  // --- Écritoire (Feuillets III & IV) ---
+  writingChapter: string;
+  writingText: string;
+  writingLoading: boolean;
+  writingError: string | null;
+  writingSaveState: 'idle' | 'saving' | 'saved';
+  loadWritingChapter: (file: string) => Promise<void>;
+  onWritingTextChange: (text: string) => void;
+  createWritingChapter: (name: string) => Promise<void>;
+
   // --- Couverture (Cover Studio) ---
   /** État persistant du module Couverture (autosauvegardé dans `.danoe`). */
   cover: CoverStudioState;
@@ -78,11 +88,11 @@ export interface StudioContextValue {
   structureSignature: string;
   /**
    * Compteur de demandes d'export du gabarit de couverture : incrémenté depuis le
-   * Feuillet VI, écouté par le marbre de montage (Feuillet V) qui ouvre son
+  * Feuillet VIII, écouté par le marbre de montage (Feuillet VII) qui ouvre son
    * dialogue de conformité pré-export.
    */
   coverExportRequest: number;
-  /** Demande l'export du gabarit KDP certifié (Feuillet VI). */
+  /** Demande l'export du gabarit KDP (Feuillet VIII). */
   onRequestCoverExport: () => void;
 
   // --- Export ---
@@ -171,17 +181,17 @@ export interface StudioContextValue {
   /** Filtre « Afficher uniquement les feuillets contenant des anomalies ». */
   proofOnlyAnomalies: boolean;
   setProofOnlyAnomalies: (value: boolean) => void;
-  /** Corrige une seule occurrence depuis les conseils de l'Imprimeur (Feuillet VIII). */
+  /** Corrige une seule occurrence depuis les conseils de l'Imprimeur (Feuillet X). */
   applyProofAnomaly: (anomaly: TypographyAnomaly) => void;
   /** Anomalie ciblée par la commande « Localiser » (surbrillance or vénitien). */
   activeAnomalyId: string | null;
   /** Cible (ou oublie) l'anomalie à surligner dans le feuillet de lecture. */
   setActiveAnomalyId: (id: string | null) => void;
-  /** Ordre majeur : impose l'Usage typographique aldin sur tout le chapitre (Feuillet VII). */
+  /** Ordre majeur : impose l'Usage typographique aldin sur tout le chapitre (Feuillet IX). */
   imposeProofUsage: () => void;
   /** Consigne le chapitre justifié dans son fichier (écriture atomique). */
   persistProofChapter: () => Promise<void>;
-  /** Consigne les retouches du vélin (Feuillet VIII) : texte partagé mis à jour, fichier écrit, analyse relancée. */
+  /** Consigne les retouches du vélin (Feuillet X) : texte partagé mis à jour, fichier écrit, analyse relancée. */
   saveProofRevisions: (next: string) => Promise<void>;
 }
 

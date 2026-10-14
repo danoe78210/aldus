@@ -103,6 +103,7 @@ Fichiers : `src/index.css` (tokens `@theme`), `index.html` (webfonts).
 | `components/MenuFlipBook.tsx` / `MenuPage.tsx` | Livre virtuel des onglets, routage des vues |
 | `components/StudioContext.tsx` | Contexte applicatif consommé par les pages |
 | `components/cover/*`, `CoverPlate.tsx`, `CoverCalibration.tsx` | Cover Studio v1.2.0 (marbre 2D/3D, calibrage, inspection, pré-export) |
+| `components/WritingStudio.tsx` | Banc III L’Écritoire : édition Markdown et épreuve de lecture synchronisées |
 | `utils/*` | Ponts Tauri, projet (`.danoe`), sources, correcteur, arrêt propre |
 
 `MenuPage` est créé une fois (référence stable) : le contenu reste vivant via le
@@ -243,7 +244,7 @@ Fonctions pures exportées : `romanNumeral`, `estimateKdpPages`
 répartition uniforme ; belle page = page impaire), `misplacedChapters`,
 `paginationDrift`. Couvertes par `src/data/__tests__/imposition.test.ts`.
 
-Consommé par `src/components/ImpositionPanel.tsx` (Feuillet IV, page de droite
+Consommé par `src/components/ImpositionPanel.tsx` (Feuillet VI, page de droite
 de l'onglet Organisation) et par `OrganizationView` (rangs romains des lignes).
 
 ### 8.2 Pupitre supérieur & journal d'atelier
@@ -253,7 +254,7 @@ de l'onglet Organisation) et par `OrganizationView` (rangs romains des lignes).
 | `TopBar.tsx` (pupitre) | `bg-[#141210] border-b border-[#382f22] text-[#e2dbce]` ; statut `text-[#9e9587]` + accent or `#d4af37` ; réglette `bg-[#1c1814] border-[#2e261b] h-3 rounded-xs` ; curseur `bg-linear-to-r from-[#8f6e2b] via-[#c5a059] to-[#8f6e2b]` ; tirets millimétriques tous les 10 % en filigrane. Au repos (`running === false`) : devise `~ OFFICINA ALDINA · COMPOSITIO LIBRORUM ~` et graduations `opacity-30`. |
 | `StatusBar.tsx` (journal) | `bg-[#12100e] border-t border-[#382f22]` ; horodatage `text-[#786c59] font-mono text-[11px]` ; logs `text-[#bda888] font-serif text-xs` ; succès `text-[#c5a059]` ; avertissement `#c8a06a` ; erreur `text-[#a83232]` (aucun vert néon) ; témoin d'enregistrement = **sceau de laiton poli** `bg-[#d4af37] shadow-[0_0_6px_rgba(212,175,55,0.4)]`. **Au repos** : barre d'**une seule ligne** (`h-8`, ~32 px) — statut courant + dernier log tronqué ; **volet déroulant** (`absolute bottom-full z-40`, en surimpression) révélant l'historique complet (`h-40`) sans écraser l'établi. |
 
-### 8.3 Module Couverture (Feuillets V & VI)
+### 8.3 Module Couverture (Feuillets VII & VIII)
 
 - `src/data/coverMetrics.ts` — miroir frontend des métriques de reliure
   (`src-tauri/src/cover/geometry.rs`) : `BLEED_MM = 3.2` (norme KDP 3,175 mm /
@@ -261,11 +262,11 @@ de l'onglet Organisation) et par `OrganizationView` (rangs romains des lignes).
   `BARCODE_SAFETY_MARGIN_MM = 6.4`; fonctions `coverMetrics`, `trimToMm`,
   `blurbFit` (contrôle d'empiètement de la prière d'insérer sur la zone de
   code-barres).
-- `src/components/CoverCalibration.tsx` (Feuillet VI) : pagination, papier,
+- `src/components/CoverCalibration.tsx` (Feuillet VIII) : pagination, papier,
   **pelliculage** (`cover.finish`, `CoverFinish = 'mat' | 'glossy'`), visuels des
   plats + inspection DPI, métriques temps réel, texte du dos et plat IV
   (`cover.blurb`, contrôle d'empiètement sur la réserve ISBN).
-- `src/components/CoverPlate.tsx` (Feuillet V) : marbre, bascule 2D/3D
+- `src/components/CoverPlate.tsx` (Feuillet VII) : marbre, bascule 2D/3D
   (`SUB_TABS`), repères, bannière de dérive, checklist et dialogue pré-export ;
   génération par `export_kdp_cover_pdf`.
 - `cover.finish` et `cover.blurb` sont **optionnels** dans `CoverStudioState`
@@ -279,7 +280,7 @@ page et coefficient papier. Le repère de préparation des plats `2138 × 3076 p
 effective depuis le fichier et le format de coupe sélectionné, avec validation à
 partir de `300 DPI`. Le DPI d'une image raster ne peut être relevé par l'export.
 
-### 8.4 Module Correcteur (Feuillets VII & VIII)
+### 8.4 Module Correcteur (Feuillets IX & X)
 
 - `src/utils/typographyEngine.ts` — moteur **Usage Aldin** pur et testé
   (`src/utils/__tests__/typographyEngine.test.ts`) : 18 règles du *Code
@@ -296,11 +297,11 @@ partir de `300 DPI`. Le DPI d'une image raster ne peut être relevé par l'expor
   `applyAldineUsage` (ordre majeur, substitutions de la fin vers le début),
   `applyAnomaly` (occurrence isolée).
 - `src/components/ProofExaminer.tsx` (page gauche du Correcteur) : porte la
-  **bascule d'en-tête** `[ VII. Indice de Pureté ] | [ VIII. Le Banc d'Épreuve ]`
-  (état `proofTab` partagé avec la page droite) et déploie le Feuillet VII
+  **bascule d'en-tête** `[ IX. Indice de Pureté ] | [ X. Le Banc d'Épreuve ]`
+  (état `proofTab` partagé avec la page droite) et déploie le Feuillet IX
   (jauge circulaire d'indice de pureté, synthèse mots/anomalies/gravités,
   cartouches d'inventaire par famille, `[ Imposer l'Usage Typographique Aldin › ]`
-  et consignation au registre) ou le Feuillet VIII (pupitre de lecture : sélecteur
+  et consignation au registre) ou le Feuillet X (pupitre de lecture : sélecteur
   de chapitre, `[ Recharger ]`, pagination, filtre « feuillets à anomalies » et
   **grand feuillet vélin** — `proof/ProofReader.tsx`, Garamond 16 px aéré).
 - `src/components/ProofWorkbench.tsx` (page droite du Correcteur) : même bascule
@@ -314,9 +315,23 @@ partir de `300 DPI`. Le DPI d'une image raster ne peut être relevé par l'expor
   pagination, filtre « feuillets à anomalies », rendu des espaces) partagé entre
   les deux pages du diptyque.
 - `src/components/proof/ProofTabToggle.tsx` : commutateur d'en-tête des
-  diptyques VII & VIII (modèle du marbre de couverture).
+  diptyques IX & X (modèle du marbre de couverture).
 - `onNotify(level, message)` (contexte) alimente le journal inférieur
   (`StatusBar`) depuis n'importe quelle page.
+
+### 8.5 Banc III — L’Écritoire (Feuillets III & IV)
+
+- `src/components/WritingStudio.tsx` : éditeur Markdown sur la page gauche,
+  réglet typographique, sélecteur/création de chapitres et dialogue « Manuel du
+  Scribe » ; la page droite rend une épreuve Markdown live avec les réglages de
+  corps, de justification et de lettrine du manuscrit.
+- `StudioContext` partage `writingChapter`, `writingText` et les états de
+  lecture/sauvegarde entre les deux pages. L’écriture différée est sérialisée et
+  passe par `write_chapter_file`.
+- Commandes natives : `list_chapter_files` énumère les `.md` du dossier source
+  configuré ; `create_chapter_file` crée un fichier sans écrasement et refuse
+  les noms contenant un chemin ou une extension différente de `.md`. La lecture
+  utilise `read_chapter_file`.
 
 ## 9. Évolutions v1.2.0 — Commandes, état partagé & styles
 
@@ -324,17 +339,18 @@ partir de `300 DPI`. Le DPI d'une image raster ne peut être relevé par l'expor
 
 | Commande | Comportement |
 |---|---|
-| `open_proofs_directory(app, path)` | Crée le dossier s'il n'existe pas (`std::fs::create_dir_all`) puis l'ouvre dans le gestionnaire natif (« explorer » / « open » / « xdg-open »). Destinataire : bouton `[ OUVRIR LE DOSSIER DES ÉPREUVES ]` (Feuillet X). |
+| `open_proofs_directory(app, path)` | Crée le dossier s'il n'existe pas (`std::fs::create_dir_all`) puis l'ouvre dans le gestionnaire natif (« explorer » / « open » / « xdg-open »). Destinataire : bouton `[ OUVRIR LE DOSSIER DES ÉPREUVES ]` (Feuillet XII). |
 | `open_author_website()` | Lance le navigateur du système vers `https://danoeecrivain.net/` (`rundll32 url.dll,FileProtocolHandler` / « open » / « xdg-open »). Destinataire : **Ex-Libris de l'Auteur** (tranche gauche). |
 
 ### 9.2 État partagé — `StudioContext`
 
-Centralisation de l'état des diptyques du Correcteur et de l'Export :
+Centralisation de l'état des diptyques de l’Écritoire, du Correcteur et de l'Export :
 `proofTab`, `proofEnabledRules`, `proofChapter`, `proofText`, `proofPage`,
 `proofOnlyAnomalies`, `activeAnomalyId` (commande « Localiser »), `pressDone`
 (sceau d'achevé d'imprimer) et `exportDirectory` (dossier de fabrication) —
 synchronisation **bidirectionnelle** entre la page gauche et la page droite du
-livre (les feuillets de droite lisent le même contexte que la page gauche).
+livre (les feuillets de droite lisent le même contexte que la page gauche). Le
+texte de l’Écritoire et son état de sauvegarde sont partagés de la même manière.
 
 ### 9.3 Styles & performance
 

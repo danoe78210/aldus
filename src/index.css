@@ -107,6 +107,15 @@ body {
   color: #9e9587;
 }
 
+.writing-preview__drop-cap::first-letter {
+  float: left;
+  padding-right: 0.12em;
+  color: #8f6e2b;
+  font-family: "Cormorant Garamond", Georgia, serif;
+  font-size: 3.2em;
+  line-height: 0.82;
+}
+
 /* Boutons d'action (dégradés cuivre/laiton) : laiton patiné. */
 .menu-flipbook__page button[class*="bg-linear-to-b"] {
   background-image: linear-gradient(to bottom, #8a5d2c, #5e3c1a);

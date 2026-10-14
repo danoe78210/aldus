@@ -7,6 +7,7 @@ import { ImpositionPanel } from "./ImpositionPanel";
 import { CoverCalibration } from "./CoverCalibration";
 import { ProofWorkbench } from "./ProofWorkbench";
 import { PressWorkshop } from "./PressWorkshop";
+import { WritingPreview } from "./WritingStudio";
 
 /**
  * Page du livre virtuel : rend la **vue correspondant au menu** en lisant l'état
@@ -38,19 +39,21 @@ export const MenuPage: React.FC<{ menu: ActiveMenu }> = ({ menu }) => {
       );
     case "infos":
       return <InfoEditionPanel />;
+    case "ecritoire":
+      return <WritingPreview />;
     case "organisation":
-      /* Feuillet IV : imposition & calibrage KDP — la table des matières
-         (Feuillet III) est composée sur la page de gauche. */
+      /* Feuillet VI : imposition & calibrage KDP — la table des matières
+         (Feuillet V) est composée sur la page de gauche. */
       return <ImpositionPanel />;
     case "couverture":
-      /* Feuillet VI (droite) : calibreur KDP — le marbre de montage 2D/3D est
-         composé sur la page de gauche (Feuillet V). */
+      /* Feuillet VIII (droite) : calibreur KDP — le marbre de montage 2D/3D est
+         composé sur la page de gauche (Feuillet VII). */
       return <CoverCalibration />;
     case "correcteur":
       return <ProofWorkbench />;
     case "export":
-      /* Feuillet X (droite) : marbre de pressage — l'inspection pré-presse est
-         composée sur la page de gauche (Feuillet IX). */
+      /* Feuillet XII (droite) : marbre de pressage — l'inspection pré-presse est
+         composée sur la page de gauche (Feuillet XI). */
       return <PressWorkshop />;
   }
 };

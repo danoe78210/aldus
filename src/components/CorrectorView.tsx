@@ -168,7 +168,7 @@ export const CorrectorView: React.FC = () => {
       <header className="flex items-center gap-3 border-b border-[#382f22] pb-3">
         <SpellCheck size={20} strokeWidth={1.75} className="text-[#c5a059]" />
         <h2 className="flex-1 font-serif text-lg tracking-[0.25em] text-[#d4af37] uppercase">
-          VIII. Épreuves &amp; Annotations Marginales
+          X. Épreuves &amp; Annotations Marginales
         </h2>
         <button
           type="button"

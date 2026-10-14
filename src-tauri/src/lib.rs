@@ -425,6 +425,8 @@ pub fn run() {
             corrector::add_place,
             commands::read_chapter_file,
             commands::write_chapter_file,
+            commands::list_chapter_files,
+            commands::create_chapter_file,
             commands::finalize_exit,
             commands::open_proofs_directory,
             commands::open_author_website,

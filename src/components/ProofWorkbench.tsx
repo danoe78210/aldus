@@ -34,11 +34,11 @@ const TOTAL_RULES_FOLIOS = 3;
  * page gauche (`ProofExaminer.tsx`) ; ici, chaque feuillet s'ouvre directement
  * sur son titre :
  *
- * * **Feuillet VII — Les Règles Analysées** : colonne unique pleine largeur des
+ * * **Feuillet IX — Les Règles Analysées** : colonne unique pleine largeur des
  *   règles activables, **paginée sur trois feuillets de six règles** (cartes
  *   `min-h-[58px]`, coche or antique, libellé bistre). Le réglage est partagé :
  *   l'analyse « Indice de Qualité Typographique » (page gauche) suit le filtre désigné ici.
- * * **Feuillet VIII — Conseils de l'Imprimeur** : liste défilante sombre des
+ * * **Feuillet X — Conseils de l'Imprimeur** : liste défilante sombre des
  *   signalements du feuillet actif, correctif unitaire `[ Corriger ]` et
  *   explication `[ Règle ]` ; la bascule `[ Relecture linguistique ]` conserve
  *   l'épreuve LanguageTool (`CorrectorView`).
@@ -98,7 +98,7 @@ export const ProofWorkbench: React.FC = () => {
   }
 
   if (proofTab === "purete") {
-    /* ═══════ Feuillet VII — Les Règles Analysées (volet droit) ═══════ */
+    /* ═══════ Feuillet IX — Les Règles Analysées (volet droit) ═══════ */
     const currentRules = ALL_RULES.slice(
       (rulesPage - 1) * RULES_PER_PAGE,
       rulesPage * RULES_PER_PAGE,
@@ -193,7 +193,7 @@ export const ProofWorkbench: React.FC = () => {
     );
   }
 
-  /* ═══════ Feuillet VIII — Conseils de l'Imprimeur (volet droit) ═══════ */
+  /* ═══════ Feuillet X — Conseils de l'Imprimeur (volet droit) ═══════ */
   return (
     <div className="animate-ink-reveal flex h-full min-h-0 flex-col overflow-hidden">
       <div className="flex shrink-0 items-center justify-between border-b border-[#382f22] pb-3 mb-4">

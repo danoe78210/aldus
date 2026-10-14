@@ -403,6 +403,89 @@ fn load_persisted_payload(app: &tauri::AppHandle) -> Result<ProjectPayload, Stri
     serde_json::from_str(&raw).map_err(|e| format!("Projet persistant illisible : {e}"))
 }
 
+fn configured_sources_directory(app: &tauri::AppHandle) -> Result<std::path::PathBuf, String> {
+    let payload = load_persisted_payload(app)?;
+    let root = payload
+        .directories
+        .sources
+        .as_deref()
+        .map(str::trim)
+        .filter(|value| !value.is_empty())
+        .ok_or_else(|| "Dossier des sources non configuré (onglet Réglages).".to_string())?;
+    let path = std::path::PathBuf::from(root);
+    if !path.is_dir() {
+        return Err(format!(
+            "Dossier des sources introuvable : {}",
+            path.display()
+        ));
+    }
+    Ok(path)
+}
+
+fn normalize_markdown_filename(filename: &str) -> Result<String, String> {
+    let filename = filename.trim();
+    if filename.is_empty()
+        || filename == "."
+        || filename == ".."
+        || filename.contains(['/', '\\'])
+        || filename.chars().any(|character| {
+            character.is_control() || ['<', '>', ':', '"', '|', '?', '*'].contains(&character)
+        })
+        || filename.ends_with([' ', '.'])
+    {
+        return Err("Nom de chapitre invalide : utilisez un nom de fichier simple.".to_string());
+    }
+    let path = std::path::Path::new(filename);
+    match path.extension().and_then(|extension| extension.to_str()) {
+        Some(extension) if extension.eq_ignore_ascii_case("md") => Ok(filename.to_string()),
+        Some(_) => Err("Le nouveau chapitre doit utiliser l’extension .md.".to_string()),
+        None => Ok(format!("{filename}.md")),
+    }
+}
+
+#[tauri::command]
+pub fn list_chapter_files(app: tauri::AppHandle) -> Result<Vec<String>, String> {
+    let root = configured_sources_directory(&app)?;
+    let mut files = std::fs::read_dir(&root)
+        .map_err(|error| format!("Lecture du dossier source impossible : {error}"))?
+        .filter_map(Result::ok)
+        .filter_map(|entry| {
+            let path = entry.path();
+            let is_markdown = path.is_file()
+                && path
+                    .extension()
+                    .and_then(|extension| extension.to_str())
+                    .is_some_and(|extension| extension.eq_ignore_ascii_case("md"));
+            if is_markdown {
+                path.file_name()?.to_str().map(str::to_string)
+            } else {
+                None
+            }
+        })
+        .collect::<Vec<_>>();
+    files.sort_by_key(|name| name.to_lowercase());
+    Ok(files)
+}
+
+#[tauri::command]
+pub fn create_chapter_file(app: tauri::AppHandle, filename: String) -> Result<String, String> {
+    let name = normalize_markdown_filename(&filename)?;
+    let root = configured_sources_directory(&app)?;
+    let path = root.join(&name);
+    std::fs::OpenOptions::new()
+        .write(true)
+        .create_new(true)
+        .open(&path)
+        .map_err(|error| {
+            if error.kind() == std::io::ErrorKind::AlreadyExists {
+                format!("Un fichier nommé « {name} » existe déjà.")
+            } else {
+                format!("Création impossible « {} » : {error}", path.display())
+            }
+        })?;
+    Ok(name)
+}
+
 /// Lit le **texte brut** d'un chapitre (fichier de « Mes sources ») pour le
 /// Correcteur. Le dossier est celui du **projet persistant** (aucun chemin
 /// arbitraire n'est exposé). Une source introuvable est une erreur explicite.
@@ -422,6 +505,33 @@ pub fn read_chapter_file(app: tauri::AppHandle, filename: String) -> Result<Stri
         .ok_or_else(|| format!("Fichier source introuvable : {filename}"))?;
     std::fs::read_to_string(&path)
         .map_err(|e| format!("Lecture impossible « {} » : {e}", path.display()))
+}
+
+#[cfg(test)]
+mod chapter_filename_tests {
+    use super::normalize_markdown_filename;
+
+    #[test]
+    fn adds_markdown_extension_when_missing() {
+        assert_eq!(
+            normalize_markdown_filename("Chapitre 1").unwrap(),
+            "Chapitre 1.md"
+        );
+    }
+
+    #[test]
+    fn preserves_markdown_extension_case_insensitively() {
+        assert_eq!(
+            normalize_markdown_filename("Chapitre.MD").unwrap(),
+            "Chapitre.MD"
+        );
+    }
+
+    #[test]
+    fn rejects_paths_and_other_extensions() {
+        assert!(normalize_markdown_filename("../secret.md").is_err());
+        assert!(normalize_markdown_filename("chapitre.txt").is_err());
+    }
 }
 
 /// Écrit le **texte brut** d'un chapitre (fichier de « Mes sources ») via une

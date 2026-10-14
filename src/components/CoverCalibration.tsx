@@ -66,13 +66,13 @@ const FINISHES: { id: CoverFinish; title: string; note: string }[] = [
 ];
 
 /**
- * **Feuillet VI — Calibrage du Volume & Reliure** (page de droite de l'atelier de
+ * **Feuillet VIII — Calibrage du Volume & Reliure** (page de droite de l'atelier de
  * couverture) : matière & finitions, métriques temps réel de la forme complète
  * et composition du plat IV (prière d'insérer + cartouche code-barres KDP).
  *
  * Les métriques proviennent du miroir `data/coverMetrics.ts` (source de vérité :
  * `src-tauri/src/cover/geometry.rs`) ; l'épreuve 2D/3D et l'export sont sur le
- * Feuillet V (marbre de montage).
+ * Feuillet VII (marbre de montage).
  */
 export const CoverCalibration: React.FC = () => {
   const { cover, onCoverChange, manuscriptConfig, onRequestCoverExport } = useStudio();
@@ -125,7 +125,7 @@ export const CoverCalibration: React.FC = () => {
   return (
     <div className="animate-ink-reveal mx-auto flex h-full w-full max-w-2xl flex-col overflow-y-auto px-2 pr-1">
       <h2 className="mb-6 text-center font-serif text-lg tracking-[0.25em] text-[#d4af37] uppercase">
-        VI. Calibrage du Volume &amp; Reliure
+        VIII. Calibrage du Volume &amp; Reliure
       </h2>
 
       <Section index={1} title="Matière & Finitions">
@@ -352,7 +352,7 @@ export const CoverCalibration: React.FC = () => {
         </p>
       </Section>
 
-      {/* Export du gabarit certifié (l'épreuve 2D/3D est sur le Feuillet V) */}
+      {/* Export du gabarit (l'épreuve 2D/3D est sur le Feuillet VII) */}
       <button
         type="button"
         onClick={onRequestCoverExport}

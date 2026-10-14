@@ -7,7 +7,7 @@ import { findTrimPreset } from "../data/trimSizes";
 import { sheetsOf } from "../data/imposition";
 
 /**
- * **Feuillet X — Le Tirage sous Presse** (page de droite de l'onglet Export) :
+ * **Feuillet XII — Le Tirage sous Presse** (page de droite de l'onglet Export) :
  * marbre de pressage sous fer (gravure de la presse d'Alde Manuce), colophon
  * d'achevé d'imprimer composé dynamiquement, et l'action cérémonielle
  * `[ Actionner la Presse & Tirer le Volume › ]` avec sa cinématique en trois
@@ -156,7 +156,7 @@ export const PressWorkshop: React.FC = () => {
       <p className="mt-4 flex items-start gap-2 border-t border-dotted border-[#5a4f3f] pt-3 font-serif text-[11px] italic text-[#786c59]">
         <Stamp size={12} className="mt-0.5 shrink-0 text-[#8f6e2b]" />
         Le tirage consigne chaque forme dans les archives et referme le cycle de
-        fabrication : inspection (Feuillet IX) puis pressage, sans jamais modifier le
+        fabrication : inspection (Feuillet XI) puis pressage, sans jamais modifier le
         manuscrit vérifié.
       </p>
 

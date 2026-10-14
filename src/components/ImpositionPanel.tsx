@@ -40,7 +40,7 @@ const Row: React.FC<{ label: string; value: React.ReactNode }> = ({ label, value
 );
 
 /**
- * **Feuillet IV — Imposition & Calibrage KDP** (page de droite de l'onglet
+ * **Feuillet VI — Imposition & Calibrage KDP** (page de droite de l'onglet
  * Organisation) : répartition en cahiers, épaisseur de dos, zones de sécurité
  * et détection d'anomalies de mise en page.
  *
@@ -75,7 +75,7 @@ export const ImpositionPanel: React.FC = () => {
   return (
     <div className="animate-ink-reveal mx-auto flex h-full w-full max-w-2xl flex-col overflow-y-auto px-2 pr-1">
       <h2 className="mb-6 text-center font-serif text-lg tracking-[0.25em] text-[#d4af37] uppercase">
-        IV. Imposition &amp; Calibrage KDP
+        VI. Imposition &amp; Calibrage KDP
       </h2>
 <Panel title="Pagination de référence" icon={<BookOpen size={13} />}>
         <Row label="Pagination déclarée (atelier de couverture)" value={`${totalPages} pages`} />

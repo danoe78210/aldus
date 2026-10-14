@@ -81,9 +81,9 @@ s'affiche avec son décroché `-translate-x-1.5` et sa bordure or.
 
 ## 3. Navigation du registre
 
-Six onglets de répertoire, **ordre imposé** :
+Sept onglets de répertoire, **ordre imposé** :
 
-`Réglages → Informations → Organisation → Correcteur → Couverture → Export`
+`Réglages → Informations → Écritoire → Organisation → Correcteur → Couverture → Export`
 
 - Onglets latéraux en **cuir patiné et or**, débordant sur la tranche gauche.
 - **Ruban permanent « Quitter l'atelier »** sous les onglets (fermeture
@@ -97,10 +97,11 @@ Six onglets de répertoire, **ordre imposé** :
 |---|---|
 | **Réglages** | Format de coupe KDP, corps de texte, polices, interligne, alignement, lettrines, dossiers de sources, journal d'erreurs, correcteur linguistique (région, mode pointilleux, règles). |
 | **Informations** | Métadonnées du roman — **dédoublé sur les deux feuillets** (§4). |
-| **Organisation** | Registre de composition sur **deux feuillets** : *Feuillet III* (table des matières, rangs romains, réorganisation) et *Feuillet IV* (imposition & calibrage KDP) — voir §4.3. |
-| **Correcteur** | Relecture sur **deux feuillets** : *Feuillet VII* (examen typographique aldin) et *Feuillet VIII* (épreuves annotées par le correcteur linguistique) — voir §4.4. |
-| **Couverture** | *Atelier de reliure & marbre de montage* : *Feuillet V* (matière, finitions, métriques, plat IV) et *Feuillet VI* (épreuve 2D / volume 3D) — voir §4.4. |
-| **Export** | Lancement Word / PDF / EPUB, aperçu paginé, progression, journal. |
+| **Écritoire** | Banc III sur deux feuillets : *Feuillet III* (éditeur Markdown, réglet typographique et création de chapitres) et *Feuillet IV* (prévisualisation live du manuscrit) — voir §4.4. |
+| **Organisation** | Banc IV, registre de composition sur **deux feuillets** : *Feuillet V* (table des matières, rangs romains, réorganisation) et *Feuillet VI* (imposition & calibrage KDP) — voir §4.3. |
+| **Correcteur** | Banc V, relecture sur **deux feuillets** : *Feuillet IX* (examen typographique aldin) et *Feuillet X* (épreuves annotées par le correcteur linguistique) — voir §4.4. |
+| **Couverture** | Banc VI, *Atelier de reliure & marbre de montage* : *Feuillet VII* (épreuve 2D / volume 3D) et *Feuillet VIII* (matière, finitions, métriques, plat IV) — voir §4.4. |
+| **Export** | Bancs VII et VIII : lancement Word / PDF / EPUB, aperçu paginé, progression, journal et tirage — Feuillets XI & XII. |
 
 ---
 
@@ -130,24 +131,25 @@ En-tête : **II. Édition & Mentions Légales**.
 Chaque champ est validé au `blur` et **sauvegardé automatiquement** dans le
 fichier de projet (journalisation de l'opération).
 
-### 4.3 Feuillets III & IV — onglet Organisation
+### 4.3 Feuillets V & VI — onglet Organisation
 
 | Page | Feuillet | Contenu |
 |---|---|---|
-| **Gauche** | **III. Table des Matières & Feuillets** | Registre de composition : chaque ligne porte son **rang en chiffres romains**, une **ligne de pointillés traditionnelle** et une **poignée de réorganisation en fer forgé** (`#5a4f3f` → `#d4af37` au survol). Le glisser-déposer réordonne la structure (multi-pages), et les commandes d'ajout (Acte, Chapitre, Image, Page spéciale), de renommage, de rôle et d'import de sources restent disponibles. |
-| **Droite** | **IV. Imposition & Calibrage KDP** | Panneaux techniques : pagination de référence (déclarée vs estimation KDP `24 + 20 × chapitres`), **répartition en cahiers** (16 / 20 / 24 pages, multiples de 4), **calculateur d'épaisseur de dos** (`Pages × Coeff. papier` : 0,0572 mm blanc · 0,0635 mm crème · 0,0596 mm couleur) avec **schéma proportionnel** du dos et **zones de sécurité de 1,6 mm (≈ 0,0625 po)**, et **détection d'anomalies** : tout chapitre ouvrant sur un feuillet **pair** (page de gauche) au lieu d'une **belle page impaire** est signalé avec sa page de départ. |
+| **Gauche** | **V. Table des Matières & Feuillets** | Registre de composition : chaque ligne porte son **rang en chiffres romains**, une **ligne de pointillés traditionnelle** et une **poignée de réorganisation en fer forgé** (`#5a4f3f` → `#d4af37` au survol). Le glisser-déposer réordonne la structure (multi-pages), et les commandes d'ajout (Acte, Chapitre, Image, Page spéciale), de renommage, de rôle et d'import de sources restent disponibles. |
+| **Droite** | **VI. Imposition & Calibrage KDP** | Panneaux techniques : pagination de référence (déclarée vs estimation KDP `24 + 20 × chapitres`), **répartition en cahiers** (16 / 20 / 24 pages, multiples de 4), **calculateur d'épaisseur de dos** (`Pages × Coeff. papier` : 0,0572 mm blanc · 0,0635 mm crème · 0,0596 mm couleur) avec **schéma proportionnel** du dos et **zones de sécurité de 1,6 mm (≈ 0,0625 po)**, et **détection d'anomalies** : tout chapitre ouvrant sur un feuillet **pair** (page de gauche) au lieu d'une **belle page impaire** est signalé avec sa page de départ. |
 
 > Modèle d'estimation : les pages liminaires (`24`) précèdent la répartition
 > uniforme de la pagination déclarée sur les chapitres ; le recto KDP (belle
 > page) est la page **impaire**. La pagination per-chapitre exacte sera
 > disponible lorsque le moteur Rust exposera les comptes de mots au frontend.
 
-### 4.4 Feuillets V à VIII — Couverture & Correcteur
+### 4.4 Feuillets III à X — Écritoire, Couverture & Correcteur
 
 | Onglet | Feuillet (gauche) | Feuillet (droite) |
 |---|---|---|
-| **Couverture** | **V. Calibrage de la Reliure** — pagination déclarée, papier (crème 0,0635 / blanc 0,0572 / couleur 0,0596 mm), **pelliculage** (mat velouté / brillant éclatant), visuels des plats + inspection DPI, texte de tranche et dégradé, **métriques temps réel** (dos = pages × coefficient, largeur dépliée = 2 × plat + dos + 2 × fond perdu, hauteur = plat + 2 × fond perdu), **plat IV** : prière d'insérer + contrôle d'absence de texte dans la **zone code-barres** (50,8 × 30,5 mm, marge 6,4 mm). | **VI. Le Marbre de Montage** — ardoise veinée `#121316`, filet fer patiné `#2a2c33`, **bascule d'épreuve** `[ Planche Dépliée 2D ]` / `[ Volume Relié 3D ]` (repères de coupe, bleed, réserve code-barres, ombre de reliure), plus la bannière de dérive et le dialogue de conformité pré-export. |
-| **Correcteur** | **VII. Examen Typographique Aldin** — vérifications automatiques : insécables avant `: ; ! ?` et dans les guillemets `« »`, cadratins des incises, doubles espaces et blancs de tête, césures orphelines, lignes veuves. Annotations en marge : **rouge carmin** (fautes critiques) / **bistre** (conseils de style). | **VIII. Épreuves & Annotations Marginales** — éditeur décoré in-situ par le correcteur linguistique (soulignements colorés par catégorie), suggestions, localisation, journal de session, et **`[ Justifier selon l'Usage Aldin › ]`** : application en un clic des règles typographiques au chapitre courant, relance de l'analyse et sauvegarde.
+| **Écritoire** | **III. L’Écritoire** — sélection et création de chapitres Markdown dans le dossier source, édition en ébène, réglet de guillemets français, cadratins, espaces insécables et ligatures, avec sauvegarde automatique. | **IV. Épreuve de lecture** — rendu Markdown mis à jour en direct, corps justifié, marges éditoriales et lettrine selon les réglages du manuscrit. Le Manuel du Scribe documente titres, dialogues, notes et séparateurs de scène. |
+| **Couverture** | **VII. Le Marbre de Montage** — ardoise veinée, bascule d'épreuve `[ Planche Dépliée 2D ]` / `[ Volume Relié 3D ]` (repères de coupe, fond perdu, réserve code-barres, ombre de reliure), bannière de dérive et dialogue de conformité pré-export. | **VIII. Calibrage de la Reliure** — pagination déclarée, papier, pelliculage, visuels des plats + inspection DPI, texte de tranche et dégradé, métriques temps réel et contrôle du plat IV / code-barres. |
+| **Correcteur** | **IX. Examen Typographique Aldin** — vérifications automatiques et annotations en marge : **rouge carmin** (fautes critiques) / **bistre** (conseils de style). | **X. Épreuves & Annotations Marginales** — éditeur décoré in-situ par le correcteur linguistique, suggestions, localisation, journal de session et application de l’Usage Aldin. |
 ---
 ## 5. Évolutions livrées — v1.2.0
 
@@ -226,9 +228,9 @@ est partagée entre les deux pages du livre via `StudioContext` (état
    remplissage, le foyer et les braises continuent d'animer la lettrine.
 3. Le bouton `[ Entrer dans l'atelier › ]` n'est cliquable qu'une fois la lettre
    comblée ; un clic pendant la coulée bascule immédiatement à l'état prêt.
-4. Les six onglets sont intégralement lisibles, jamais tronqués, et l'ordre
-   Réglages → Informations → Organisation → Correcteur → Couverture → Export
-   est respecté.
+4. Les sept onglets sont intégralement lisibles, jamais tronqués, et l'ordre
+  Réglages → Informations → Écritoire → Organisation → Correcteur → Couverture → Export
+  est respecté.
 5. L'onglet Informations affiche le **Feuillet I à gauche** et le
    **Feuillet II à droite**, sans double ascenseur de page.
 6. La fermeture (ruban ou croix native) déclenche la cinématique de fermeture du
@@ -238,28 +240,33 @@ est partagée entre les deux pages du livre via `StudioContext` (état
 
 ---
 
-## 8. Inventaire fonctionnel des sept Bancs de l'Atelier
+## 8. Inventaire fonctionnel des huit Bancs de l'Atelier
 
-Les sept Bancs sont les parcours éditoriaux présentés par la vitrine. Dans
-l'application, ils sont distribués sur six rubans : Réglages, Informations,
-Organisation, Correcteur, Couverture et Export. Les Feuillets gauche/droite
+Les huit Bancs sont les parcours éditoriaux présentés par la vitrine. Dans
+l'application, ils sont distribués sur sept rubans : Réglages, Informations,
+Écritoire, Organisation, Correcteur, Couverture et Export. Les Feuillets gauche/droite
 forment un seul parcours fonctionnel et partagent le contexte du projet.
 
 | Banc | Entrée et interactions | Résultat / contrôles |
 |---|---|---|
 | **I — Calibrage & Gabarits** | Menu Réglages : choisir le format KDP, les paramètres de composition (corps, police, interligne, alignement, lettrines), les dossiers de sources et options de journal/correcteur. Importer ou gérer les fichiers depuis les panneaux concernés. | Les paramètres décrivent le manuscrit exporté, pas l'interface. Les formats et réglages sont repris par les calculs d'imposition et les exports. |
 | **II — Identité & Colophon** | Menu Informations : renseigner titre/sous-titre, saga et tome, auteur et collaborateurs, éditeur, ISBN, date, lieu et bibliographie sur les deux feuillets. Validation au blur et sauvegarde automatique. | Métadonnées persistées dans le projet, réutilisées pour les pages liminaires et le colophon de tirage. |
-| **III — Imposition & Architecture Narrative** | Menu Organisation : créer/importer actes, chapitres, images et pages spéciales, renommer, régler le rôle, puis réordonner par glisser-déposer. Consulter la table des matières, l'estimation KDP, les cahiers et les ouvertures de chapitres. | Numérotation romaine et alertes de belle page paire ; calculs de pagination et dos avec coefficients de papier. Une illustration non liée peut bloquer l'export. |
-| **IV — Qualité Typographique & Épreuve** | Menu Correcteur : sélectionner un chapitre, examiner la jauge de qualité et les anomalies pondérées, activer/désactiver les 18 règles, parcourir les signalements dans le diptyque, localiser une occurrence, puis corriger par suggestion ou dans la retouche Markdown. | Les vues I (examen/registre) et II (épreuve/conseils) partagent chapitre, texte, page et règles. La localisation surligne en or et recentre ; la retouche permet la mise en forme typographique et la sauvegarde. |
-| **V — Mise en couverture** | Menu Couverture : saisir la pagination, sélectionner papier crème/blanc/couleur, choisir Mat Velouté ou Brillant Éclatant, charger les plats, composer le texte et la couleur/dégradé du dos. Examiner le marbre 2D ou le volume 3D, puis passer la checklist avant export. | Calcul du dos et des dimensions dépliées, inspection DPI, repères de fond perdu/pliure/sécurité/code-barres et détection de dérive de pagination ou de structure. Les trois vues de vitrine décrivent les deux feuillets de Cover Studio. |
-| **VI — Inspection Pré-Presse** | Menu Export, Feuillet IX : choisir le dossier de fabrication et cocher une ou plusieurs formes, consulter le bilan d'intégrité KDP et lancer les formes retenues. | Quatre formes proposées : PDF intérieur prêt-à-imprimer, EPUB 3.2, couverture PDF 300 DPI et DOCX révisé. La mention « PDF/X » est un libellé de produit, pas une affirmation de validation PDF/X par un outil dédié. |
-| **VII — Tirage sous Presse** | Menu Export, Feuillet X : contrôler le justificatif d'achevé d'imprimer, actionner la presse, ouvrir le dossier des épreuves ou feuilleter le PDF composé. | Séquence de pressage à trois étapes, sceau temporaire, accès natif au dossier et aperçu paginé. Le tirage n'altère pas le manuscrit source. |
+| **III — L’Écritoire** | Éditer un chapitre Markdown du dossier source, le créer, utiliser le réglet typographique et consulter le Manuel du Scribe. | Sauvegarde automatique du fichier source et aperçu live mis en page avec les réglages du manuscrit. |
+| **IV — Imposition & Architecture Narrative** | Menu Organisation : créer/importer actes, chapitres, images et pages spéciales, renommer, régler le rôle, puis réordonner par glisser-déposer. Consulter la table des matières, l'estimation KDP, les cahiers et les ouvertures de chapitres. | Numérotation romaine et alertes de belle page paire ; calculs de pagination et dos avec coefficients de papier. Une illustration non liée peut bloquer l'export. |
+| **V — Qualité Typographique & Épreuve** | Menu Correcteur : sélectionner un chapitre, examiner la jauge de qualité et les anomalies pondérées, activer/désactiver les 18 règles, parcourir les signalements dans le diptyque, localiser une occurrence, puis corriger par suggestion ou dans la retouche Markdown. | Les vues IX (examen/registre) et X (épreuve/conseils) partagent chapitre, texte, page et règles. |
+| **VI — Mise en couverture** | Menu Couverture : saisir la pagination, sélectionner papier crème/blanc/couleur, choisir Mat Velouté ou Brillant Éclatant, charger les plats, composer le texte et la couleur/dégradé du dos. Examiner le marbre 2D ou le volume 3D, puis passer la checklist avant export. | Calcul du dos et des dimensions dépliées, inspection DPI, repères de fond perdu/pliure/sécurité/code-barres et détection de dérive de pagination ou de structure. |
+| **VII — Inspection Pré-Presse** | Menu Export, Feuillet XI : choisir le dossier de fabrication et cocher une ou plusieurs formes, consulter le bilan d'intégrité KDP et lancer les formes retenues. | Quatre formes proposées : PDF intérieur prêt-à-imprimer, EPUB 3.2, couverture PDF 300 DPI et DOCX révisé. |
+| **VIII — Tirage sous Presse** | Menu Export, Feuillet XII : contrôler le justificatif d'achevé d'imprimer, actionner la presse, ouvrir le dossier des épreuves ou feuilleter le PDF composé. | Séquence de pressage à trois étapes, sceau temporaire, accès natif au dossier et aperçu paginé. Le tirage n'altère pas le manuscrit source. |
 
 ### 8.1 Sous-vues de la vitrine `docs/index.html`
 
-La vitrine associe chaque capture à une légende. Les Bancs IV et V affichent
-également un sous-titre et une description qui changent avec la vue; les Bancs VI
-et VII ont une description fixe. Le changement d'onglet synchronise l'état
+La vitrine statique conserve actuellement son ancien parcours de sept Bancs et
+ses ancres `#banc-1` à `#banc-7` ; son réordonnancement pour intégrer le nouveau
+Banc III relève d’une mise à jour distincte de `docs/index.html`.
+
+La vitrine associe chaque capture à une légende. Dans cet état historique, les
+Bancs IV et V affichent également un sous-titre et une description qui changent
+avec la vue; les Bancs VI et VII ont une description fixe. Le changement d'onglet synchronise l'état
 actif (`aria-selected`), l'image, sa légende et le texte descriptif avec un fondu.
 La visionneuse plein écran ouvre la capture de la vue courante. Les Bancs I, II
 et III ont deux vues, le Banc IV quatre vues et le Banc V trois vues. Les Bancs
