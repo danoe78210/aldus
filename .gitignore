@@ -4,6 +4,8 @@ dist/
 dist-ssr/
 .vite/
 *.local
+__pycache__/
+*.py[cod]
 
 # Tauri & Rust
 src-tauri/target/

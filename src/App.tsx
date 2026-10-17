@@ -6,7 +6,7 @@ import { MenuPage } from "./components/MenuPage";
 import { PreviewFlipbook } from "./components/PreviewFlipbook";
 import { StudioProvider, type ProofTab, type StudioContextValue } from "./components/StudioContext";
 import { Toast, type ToastMessage } from "./components/Toast";
-import type { ActiveMenu, BookInfoConfig, CoverStudioState, ErrorLogConfig, ImageColorMode, LogDiagnosticLevel, LogEntry, LogLevel, ManuscriptLayoutConfig, SourcesConfig, SpecialPageRole, StructureItem } from "./types";
+import type { ActiveMenu, AudioGenerationProgress, BookInfoConfig, CoverStudioState, ErrorLogConfig, ImageColorMode, LogDiagnosticLevel, LogEntry, LogLevel, ManuscriptLayoutConfig, SourcesConfig, SpecialPageRole, StructureItem } from "./types";
 import { findTrimPreset } from "./data/trimSizes";
 import { INHERIT_FONT, numberFr } from "./data/fonts";
 import { DEFAULT_SPECIAL_ROLE, specialRoleLabel } from "./data/specialPages";
@@ -162,6 +162,7 @@ const MENU_ORDER: ActiveMenu[] = [
   'correcteur',
   'couverture',
   'export',
+  'bibliotheque',
 ];
 
 // Pages du livre virtuel — identité **stable** (constante module) : leur contenu
@@ -270,6 +271,7 @@ const App: React.FC = () => {
   const [saveState, setSaveState] = useState<'idle' | 'saving' | 'saved'>('idle');
   const [hydrated, setHydrated] = useState(false);
   const timerRef = useRef<number | null>(null);
+  const audioProgressResetTimerRef = useRef<number | null>(null);
   const sourceHandleRef = useRef<FsDirectoryHandle | null>(null);
 
   const addLog = useCallback((level: LogLevel, message: string) => {
@@ -296,6 +298,44 @@ const App: React.FC = () => {
   // Croix native de la fenêtre → déclenche la même cinématique de fermeture.
   useEffect(() => {
     onCloseRequested(() => setIsClosing(true));
+  }, []);
+
+  useEffect(() => {
+    let unlisten: (() => void) | null = null;
+    let disposed = false;
+    void listenEvent<AudioGenerationProgress>("audio-generation-progress", (payload) => {
+      if (audioProgressResetTimerRef.current !== null) {
+        window.clearTimeout(audioProgressResetTimerRef.current);
+        audioProgressResetTimerRef.current = null;
+      }
+      setProgress(Math.min(100, Math.max(0, Math.round(payload.progress))));
+      setProgressLabel(payload.status || `Forge du chapitre ${payload.chapterIndex}…`);
+      const failed = payload.status.startsWith("Échec");
+      const finished = failed || payload.progress >= 100;
+      setRunning(!finished);
+      if (finished) {
+        audioProgressResetTimerRef.current = window.setTimeout(() => {
+          setProgress(0);
+          setProgressLabel("~ OFFICINA ALDINA · COMPOSITIO LIBRORUM ~");
+          setRunning(false);
+          audioProgressResetTimerRef.current = null;
+        }, 1600);
+      }
+    }).then((off) => {
+      if (disposed) {
+        off?.();
+      } else {
+        unlisten = off;
+      }
+    });
+    return () => {
+      disposed = true;
+      unlisten?.();
+      if (audioProgressResetTimerRef.current !== null) {
+        window.clearTimeout(audioProgressResetTimerRef.current);
+        audioProgressResetTimerRef.current = null;
+      }
+    };
   }, []);
 
   // Extinction du glow (~1 000 ms) puis fermeture native définitive.
@@ -1345,9 +1385,11 @@ const App: React.FC = () => {
               activeMenu={activeMenu}
               setActiveMenu={setActiveMenu}
               onExitApp={handleQuit}
+              navigationOnly={activeMenu === "bibliotheque"}
             />
           }
           bookPages={BOOK_PAGES}
+          fullWidthContent={activeMenu === "bibliotheque" ? <MenuPage menu="bibliotheque" /> : undefined}
           activeIndex={activeIndex}
           progress={progress}
           progressLabel={progressLabel}

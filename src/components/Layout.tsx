@@ -22,6 +22,7 @@ const LEATHER_COVER =
 interface LayoutProps {
   /** Contenu de la page de gauche (navigation & identité). */
   leftContent: ReactNode;
+  fullWidthContent?: ReactNode;
   /** Pages du livre virtuel de droite (une vue par menu). */
   bookPages: ReactNode[];
   /** Index de la page active (piloté par le ruban de navigation). */
@@ -42,6 +43,7 @@ interface LayoutProps {
 
 export const Layout: React.FC<LayoutProps> = ({
   leftContent,
+  fullWidthContent,
   bookPages,
   activeIndex,
   progress,
@@ -76,7 +78,17 @@ export const Layout: React.FC<LayoutProps> = ({
 
       {/* 2. Établi central portant le registre. `pl-40` réserve la gouttière
           franche à gauche où se déploient les signets (débord `-translate-x-full`). */}
-      <main className="main-layout relative z-10 flex flex-1 items-center justify-center p-6 pl-40">
+      <main className="main-layout relative z-10 flex min-h-0 flex-1 items-center justify-center p-6 pl-40">
+
+        {fullWidthContent ? (
+          <div className="relative h-full min-h-0 w-full" style={{ opacity: closing ? 0 : 1, transition: "opacity 1000ms ease" }}>
+            <div className="absolute inset-y-0 left-0 w-0">{leftContent}</div>
+            <section aria-label="Espace bibliothèque" className="h-full min-h-0 w-full overflow-hidden border-y border-[#3a3022] bg-[#181614]">
+              {fullWidthContent}
+            </section>
+          </div>
+        ) : (
+          <>
 
         {/* Le Registre — livre ancien : navigation à gauche, pages tournantes à droite.
             Perspective 3D (1400 px) : le volet droit se rabat vers la gauche à la fermeture. */}
@@ -180,6 +192,8 @@ export const Layout: React.FC<LayoutProps> = ({
             }}
           />
         </div>
+          </>
+        )}
       </main>
 
       {/* 3. Registre inférieur — bandeau continu indépendant */}

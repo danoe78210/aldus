@@ -14,6 +14,9 @@ Déposez ici les images suivantes (PNG recommandé, ratio ~16/10, largeur ≥ 96
 | `Couverture02.png` + `Couverture01.jpg` + `Couverture03.png` | Banc V — Le Banc de mise en couverture | Menu Couverture (3 vues) |
 | `Export01.png` | Banc VI — L'Inspection Pré-Presse | Menu Export — Vue I |
 | `Export02.png` | Banc VII — Le Tirage sous Presse | Menu Export — Vue II |
+| `studio-audio-chapter-selector.png` | Banc V — Studio Audio | Registre du Livre — choix de voix et sélecteur de chapitre |
+| `studio-audio-player.png` | Banc V — Studio Audio | Pupitre de lecture et badge AUDIO |
+| `studio-audio-progress.png` | Banc V — Studio Audio | Pupitre supérieur pendant une synthèse segmentée |
 
 > Tant qu'un fichier est absent, le cadre du banc affiche automatiquement un libellé
 > de remplacement (le nom du fichier attendu) : aucune image cassée n'est visible.

@@ -8,6 +8,7 @@ import { CoverCalibration } from "./CoverCalibration";
 import { ProofWorkbench } from "./ProofWorkbench";
 import { PressWorkshop } from "./PressWorkshop";
 import { WritingPreview } from "./WritingStudio";
+import { LibraryView } from "./LibraryView";
 
 /**
  * Page du livre virtuel : rend la **vue correspondant au menu** en lisant l'état
@@ -41,6 +42,8 @@ export const MenuPage: React.FC<{ menu: ActiveMenu }> = ({ menu }) => {
       return <InfoEditionPanel />;
     case "ecritoire":
       return <WritingPreview />;
+    case "bibliotheque":
+      return <LibraryView exportDirectory={studio.exportDirectory} sourceDirectory={studio.sourceConfig.directory} currentBookTitle={studio.bookInfo.title} currentCoverPath={studio.cover.frontPath} onPickExportDirectory={studio.onPickExportDirectory} />;
     case "organisation":
       /* Feuillet VI : imposition & calibrage KDP — la table des matières
          (Feuillet V) est composée sur la page de gauche. */

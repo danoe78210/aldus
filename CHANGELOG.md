@@ -1,4 +1,18 @@
 # Registre des Évolutions — Aldus
+## [1.4.0] - Studio Audio & Bibliothèque
+### Ajouté
+- **Banc IV — Bibliothèque** : rayons principaux et personnalisés, scan des exports, regroupement EPUB/PDF/DOCX, statistiques par format, suppression confirmée et préservation des sources partagées.
+- **Banc V — Studio Audio** : wrapper local XTTS v2 sur `127.0.0.1:8020`, profils français, assistant de mise en route et lecteur audio intégré.
+- Génération ciblée d'un chapitre ou de tous les chapitres; fusion incrémentale des pistes dans `library.json` sans écraser les autres index.
+- Découpage narratif à 240 caractères maximum, synthèse séquentielle des segments et assemblage FFmpeg en un MP3 par chapitre.
+- Progression audio centralisée dans le pupitre supérieur, avec chapitre/segment courant et bouton de forge animé/verrouillé.
+- Journalisation Tauri vers stdout et `%LOCALAPPDATA%\\net.danoe.aldus\\logs\\Aldus.log`; logs FastAPI avec traceback et réponses explicites pour les erreurs HTTP et mémoire.
+
+### Vérifié
+- Synthèse XTTS locale E2E, génération ciblée et conservation incrémentale des pistes.
+- Découpage réel d'un chapitre long : segments HTTP 200, MP3 final assemblé et décodable.
+- Tests de validation release : 22 tests React ciblés et 33 tests Rust bibliothèque.
+
 ## [1.3.0] - L’Écritoire
 ### Ajouté
 - Banc III — L’Écritoire : édition Markdown à gauche et composition live à droite, avec sélection et création de chapitres dans le dossier source.

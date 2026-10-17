@@ -17,6 +17,7 @@
 | Icônes | `lucide-react` · Animations UI : `framer-motion` |
 | DnD | `@dnd-kit/core` + `@dnd-kit/sortable` |
 | Aperçu PDF | `pdfjs-dist` + `react-pageflip` |
+| Lecture audio | élément natif HTML `<audio>` (MP3 par chapitre) |
 | Rendu Markdown | `react-markdown` |
 | Tests | **Vitest** (jsdom) + `cargo test` |
 
@@ -95,19 +96,25 @@ Fichiers : `src/index.css` (tokens `@theme`), `index.html` (webfonts).
 | Élément | Rôle |
 |---|---|
 | `App.tsx` | État global, orchestration des onglets, export, fermeture animée |
-| `components/Layout.tsx` | Registre double page, sous-main ébène, cinématique 3D |
+| `components/Layout.tsx` | Registre double page et cinématique 3D; l'onglet Bibliothèque utilise une branche pleine largeur sans flipbook |
 | `components/LeftPage.tsx` | Frontispice + onglets de cuir + ruban « Quitter l'atelier » |
 | `components/RightPage.tsx` | Accueil : hôte du creuset (clic = abréger la coulée) |
 | `components/GoldCrucible.tsx` | Creuset de fonderie de la lettrine « A » (§5) |
 | `components/InfoView.tsx` | `InfoIdentityPanel` (Feuillet I) / `InfoEditionPanel` (Feuillet II) |
 | `components/MenuFlipBook.tsx` / `MenuPage.tsx` | Livre virtuel des onglets, routage des vues |
 | `components/StudioContext.tsx` | Contexte applicatif consommé par les pages |
+| `components/LibraryView.tsx`, `Bookshelf.tsx`, `BookSpine.tsx` | Bibliothèque pleine largeur, rayons, badges de format et accès au Registre |
+| `components/LibraryBookDetail.tsx` | Registre du Livre, sélection de format, lecture audio et Studio Audio |
+| `components/AudioSetupDialog.tsx` / `AudioTrackPlayer.tsx` | Assistant XTTS de premier lancement et pupitre HTMLAudioElement par chapitre |
+| `components/LibraryDeleteDialog.tsx` | Confirmation de suppression physique des exports associés |
 | `components/cover/*`, `CoverPlate.tsx`, `CoverCalibration.tsx` | Cover Studio v1.2.0 (marbre 2D/3D, calibrage, inspection, pré-export) |
 | `components/WritingStudio.tsx` | Banc III L’Écritoire : édition Markdown et épreuve de lecture synchronisées |
 | `utils/*` | Ponts Tauri, projet (`.danoe`), sources, correcteur, arrêt propre |
 
 `MenuPage` est créé une fois (référence stable) : le contenu reste vivant via le
-contexte, sans réinitialiser le flipbook.
+contexte, sans réinitialiser le flipbook. L'onglet Bibliothèque est rendu dans
+`Layout.fullWidthContent`; la page gauche ne conserve que le ruban latéral et le
+flipbook est démonté pour ce parcours. Les autres onglets gardent le diptyque.
 
 ### 4.2 Backend `src-tauri/src/`
 
@@ -122,10 +129,112 @@ contexte, sans réinitialiser le flipbook.
 | `commands.rs` | Commandes Tauri (exports, `render_pdf`, gestion des fichiers sources Markdown, sortie) |
 | `cover/*` | Cover Studio côté natif (géométrie, inspection, couleurs, Typst) |
 | `corrector/*` | Client LanguageTool, options, dictionnaires |
+| `library.rs` / `library/metadata.rs` | Scan/agrégation EPUB-PDF-DOCX, statistiques et persistance `library.json` |
+| `library/audio.rs` | Extraction narrative et orchestration séquentielle d'un moteur TTS localhost |
+| `library/deletion.rs` | Suppression bornée au dossier d'export, restauration si persistance en échec |
 
 **Principes transverses** : découpage sans coupe de mot/UTF-8, écritures
 atomiques (`.tmp` + `rename`), « tolérance zéro » (toute erreur remontée en
 `Result::Err`), chemins résolus via le projet persistant.
+
+### 4.3 Banc V — Studio Audio (extension de la Bibliothèque)
+
+#### Modèle et commandes Tauri
+
+`Book.audio` dans `library.json` est absent tant qu'aucune édition audio n'a été
+générée. Une édition persistée contient le moteur local, `voiceId`, `voiceName`,
+un horodatage et une liste ordonnée de pistes `{ index, title, path }`. Le
+format AUDIO du frontend est dérivé de cette liste; il ne s'agit pas d'un
+fichier importé dans `Book.files`.
+
+| Commande | Contrat |
+|---|---|
+| `list_audio_voices()` | Interroge le moteur local et renvoie uniquement les voix explicitement identifiées en langue `fr*`. |
+| `list_book_audio_chapters(book_id)` | Extrait l'ouvrage avec le même moteur que la génération et renvoie la liste ordonnée `{ index, title }` (index 1-based). |
+| `generate_book_audio(book_id, export_directory, voice_id, chapter_index)` | `chapter_index: Option<u32>` cible une piste; `None` traite tous les chapitres. La fusion remplace le même index et conserve les autres pistes. `Book.audio` est persisté après succès de l'opération demandée. |
+| événement `audio-generation-progress` | `{ bookId, chapterIndex, chapterCount, chapterTitle, progress, status, segmentIndex?, segmentCount? }`, émis avant/après chaque segment, à l'assemblage et à la fin ou à l'échec. |
+
+Le menu du Studio propose **Tous les chapitres** ou un index extrait; le choix
+est désactivé tant que l'extraction des titres n'a pas abouti. Le progrès d'une
+sélection unitaire conserve l'index réel du chapitre dans `chapterIndex` et
+affiche son titre. Le lecteur et le formulaire restent disponibles ensemble,
+ce qui permet de réécouter une piste existante ou d'en générer une autre.
+
+Chaque chapitre est découpé à **240 caractères maximum**, en privilégiant les
+frontières de phrases et de paragraphes. Rust envoie les segments
+séquentiellement à `/synthesize`; le wrapper impose lui aussi cette limite et
+renvoie HTTP 422 au lieu de laisser XTTS tronquer un texte trop long. Les MP3
+temporaires sont assemblés par FFmpeg en une piste unique par chapitre, puis
+supprimés. Le client reqwest applique un timeout de connexion de 10 s et un
+timeout total de 900 s par segment. Les erreurs incluent le chapitre, le
+segment et, si présent, le statut HTTP et le corps de réponse du wrapper.
+
+`tauri-plugin-log` écrit les niveaux Rust dans stdout et dans
+`%LOCALAPPDATA%\\net.danoe.aldus\\logs\\Aldus.log`. Les erreurs de connexion
+et timeout nomment leur catégorie et l'URL; les HTTP 4xx sont des warnings et
+les 5xx des erreurs avec corps brut. Le texte du manuscrit n'est jamais consigné.
+Le wrapper journalise le contexte du segment, sa durée et les exceptions avec
+traceback. Les erreurs d'inférence génériques retournent HTTP 500; les erreurs
+de mémoire CUDA/hôte HTTP 503; les refus de validation restent des 4xx.
+
+#### Traçabilité et erreurs
+
+`tauri-plugin-log` écrit les niveaux Rust dans stdout et dans
+`%LOCALAPPDATA%\\net.danoe.aldus\\logs\\Aldus.log`. Un refus de connexion et un
+timeout indiquent l'URL et la catégorie; les réponses HTTP 4xx sont des
+warnings, les 5xx des erreurs avec statut et corps brut. Le message remonté à
+l'IHM distingue un wrapper arrêté d'une erreur d'inférence. Les logs ne
+contiennent jamais le texte narratif, uniquement sa longueur et le contexte
+livre/chapitre/segment.
+
+Le wrapper FastAPI journalise début, fin, durée et octets de chaque segment.
+Une erreur d'inférence ou de conversion MP3 produit un traceback console et
+HTTP 500 avec `detail`; CUDA OOM et `MemoryError` sont signalés en HTTP 503.
+Les refus de format, de langue ou de voix sont journalisés en warning. Un
+segment dépassant 240 caractères est refusé avant l'inférence en HTTP 422.
+
+La commande privilégie les sources dans l'ordre **EPUB → DOCX → PDF**. Pour un
+EPUB, elle suit le `spine` OPF, ignore les documents non linéaires, la couverture,
+le titre, la navigation/table des matières et les sections identifiées comme
+liminaires ou légales; les balises de navigation XHTML/NCX ne sont jamais
+narrées. Pour un DOCX, elle regroupe les paragraphes sous les styles de niveau 1
+(`Heading 1` / `Titre 1` et styles Word de nom équivalent). En l'absence de tels
+styles, le texte lisible devient un chapitre unique. Les PDF utilisent
+`lopdf::Document::extract_text`; sans couche texte (PDF scanné), l'extraction
+échoue explicitement et nécessite un OCR préalable.
+
+Le nettoyage enlève lignes vides, numéros de page isolés, URL, ISBN et mentions
+« Tous droits réservés » / « All rights reserved ». Les sorties sont écrites
+sous `<export_directory>/Audio/<titre>-<bookId>-<timestamp>/NNN-<chapitre>.mp3`.
+Un échec supprime le répertoire de génération courant et laisse l'édition audio
+précédemment persistée intacte. La suppression d'un livre supprime également ses
+pistes MP3/M4B référencées dans le dossier d'export.
+
+#### Adaptateur TTS local
+
+Aucun modèle neuronal ni serveur TTS n'est embarqué dans le binaire Aldus. Le
+wrapper XTTS v2, F5-TTS ou équivalent est un prérequis local, configurable par
+`ALDUS_TTS_URL` (défaut `http://127.0.0.1:8020`). Le client refuse tout hôte
+autre que `localhost`, `127.0.0.1` ou `::1` en HTTP : le manuscrit ne sort donc
+pas vers un service distant.
+
+À la première interrogation sans voix française, `AudioSetupDialog` présente
+deux parcours : reconnecter un wrapper déjà lancé, ou suivre les commandes de
+préparation XTTS dans un environnement Python 3.10 isolé. `scripts/requirements-xtts.txt`
+est séparé de `package.json` et `Cargo.toml`; PyTorch/torchaudio sont
+installés selon le matériel et FFmpeg (binaire système requis par pydub pour le
+MP3) reste lui aussi hors du bundle. La fermeture du dialogue laisse le Registre
+utilisable; son bouton d'état permet de le rouvrir.
+
+- `GET /voices` : tableau de voix ou `{ "voices": [...] }`, chaque entrée
+  portant `id`, `name` et éventuellement `language`.
+- `POST /synthesize` : JSON `{ "text", "voiceId", "language": "fr",
+  "outputFormat": "mp3" }`; réponse : octets MP3 bruts.
+- Timeout client : 900 secondes par chapitre. La qualité prosodique, la
+  ponctuation et les liaisons françaises relèvent du modèle/wrapper sélectionné.
+
+Le contrat d'intégration et un exemple de requêtes sont détaillés dans
+`docs/studio-audio-local-engine.md`.
 ---
 
 ## 5. Composant `GoldCrucible.tsx` (spécification impérative)
@@ -410,6 +519,10 @@ d'un chantier distinct si une certification PDF/X est requise.
 ## 9. Persistance
 
 - `app_data_dir/project.danoe` (JSON) — **jamais purgé**.
+- `app_data_dir/library.json` — rayons, livres, fichiers/statistiques par format
+  et métadonnées des pistes audio générées.
+- `<export_directory>/Audio/` — MP3 chapitrés; seule la commande explicite de
+  suppression d'un ouvrage efface ses pistes référencées.
 - `app_data_dir/{ignored_words,places,corrector_options}.json`.
 - `app_cache_dir/volatile` — purge synchrone à la fermeture.
 - Toute écriture passe par `.tmp` + `rename`.

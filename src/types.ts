@@ -2,10 +2,99 @@ export type ActiveMenu =
   | 'reglages'
   | 'infos'
   | 'ecritoire'
+  | 'bibliotheque'
   | 'organisation'
   | 'couverture'
   | 'correcteur'
   | 'export';
+
+export type ShelfId = string;
+
+export interface Shelf {
+  id: ShelfId;
+  label: string;
+  isCustom: boolean;
+  isVisible: boolean;
+}
+
+export interface Book {
+  id: string;
+  title: string;
+  tome?: string;
+  shelfId: ShelfId;
+  colorHex?: string;
+  files?: LibraryFile[];
+  coverPath?: string;
+  sourceDirectory?: string;
+  pageCount?: number | null;
+  chapterCount: number;
+  chapterCountAvailable?: boolean;
+  lastModified?: number | null;
+  fileStatistics?: Record<string, LibraryFileStatistics>;
+  audio?: AudioEdition;
+}
+
+export interface AudioEdition {
+  engine: string;
+  voiceId: string;
+  voiceName: string;
+  generatedAt: number;
+  chapters: AudioChapter[];
+}
+
+export interface AudioChapter {
+  index: number;
+  title: string;
+  path: string;
+}
+
+export interface AudioChapterChoice {
+  index: number;
+  title: string;
+}
+
+export interface AudioVoice {
+  id: string;
+  name: string;
+  language?: string | null;
+}
+
+export interface AudioGenerationProgress {
+  bookId: string;
+  chapterIndex: number;
+  chapterCount: number;
+  chapterTitle: string;
+  progress: number;
+  status: string;
+  segmentIndex?: number;
+  segmentCount?: number;
+}
+
+export interface LibraryFileStatistics {
+  pageCount?: number | null;
+  chapterCount?: number | null;
+  wordCount?: number | null;
+  metadataModified?: string | null;
+  lastModified?: number | null;
+  fileSize?: number | null;
+}
+
+export interface LibraryFile {
+  path: string;
+  format: "epub" | "pdf" | "docx" | "audio";
+}
+
+export interface ScannedBook {
+  title: string;
+  files: LibraryFile[];
+  coverPath?: string | null;
+  existingBookId?: string | null;
+}
+
+export interface LibraryConfig {
+  shelves: Shelf[];
+  books: Book[];
+}
 
 export type LogLevel = 'info' | 'success' | 'warning' | 'error';
 

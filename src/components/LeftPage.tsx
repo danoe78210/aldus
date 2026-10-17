@@ -4,6 +4,7 @@ import {
   Info,
   ListTree,
   BookMarked,
+  LibraryBig,
   Share2,
   SpellCheck,
   LogOut,
@@ -28,6 +29,7 @@ interface LeftPageProps {
   setActiveMenu: (menu: ActiveMenu) => void;
   /** Ferme proprement l'application (cinématique 3D puis sortie native). */
   onExitApp: () => void;
+  navigationOnly?: boolean;
 }
 
 interface TabItem {
@@ -50,6 +52,7 @@ const tabs: TabItem[] = [
   { id: "correcteur", label: "Correcteur", icon: SpellCheck, color: "bg-linear-to-r from-[#332408] to-[#1f1604]", text: "text-[#f2e2be]" },
   { id: "couverture", label: "Couverture", icon: BookMarked, color: "bg-linear-to-r from-[#300d0d] to-[#1f0808]", text: "text-[#eed0d0]" },
   { id: "export", label: "Export", icon: Share2, color: "bg-linear-to-r from-[#1c1421] to-[#110c14]", text: "text-[#e0d2e8]" },
+  { id: "bibliotheque", label: "Bibliothèque", icon: LibraryBig, color: "bg-linear-to-r from-[#2a1d17] to-[#17100c]", text: "text-[#e5d0b1]" },
 ];
 
 /**
@@ -100,6 +103,7 @@ export const LeftPage: React.FC<LeftPageProps> = ({
   activeMenu,
   setActiveMenu,
   onExitApp,
+  navigationOnly = false,
 }) => {
   const {
     isAtelierOpen,
@@ -181,7 +185,7 @@ export const LeftPage: React.FC<LeftPageProps> = ({
 
       {/* Feuillet d'écriture — recentré royalement (padding symétrique) dès lors
           que les signets sont absents, ou laissé vierge de tout élément parasite. */}
-      <div className="flex h-full w-full flex-col items-center justify-center px-10 py-10 text-center">
+      {!navigationOnly && <div className="flex h-full w-full flex-col items-center justify-center px-10 py-10 text-center">
 
       {activeMenu === "infos" ? (
         <InfoIdentityPanel />
@@ -227,7 +231,7 @@ export const LeftPage: React.FC<LeftPageProps> = ({
       ) : (
         <Frontispice leaving={isTransitioning} />
       )}
-      </div>
+      </div>}
     </div>
   );
 };

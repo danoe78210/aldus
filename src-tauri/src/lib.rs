@@ -5,6 +5,7 @@ mod corrector;
 pub mod cover;
 mod epub;
 mod export;
+mod library;
 pub mod kdp;
 mod markdown;
 pub mod pdf;
@@ -402,6 +403,11 @@ async fn clear_cache_and_exit(app: tauri::AppHandle) -> Result<(), String> {
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     let app = tauri::Builder::default()
+        .plugin(
+            tauri_plugin_log::Builder::new()
+                .level(log::LevelFilter::Info)
+                .build(),
+        )
         .plugin(tauri_plugin_dialog::init())
         // Fermeture de fenêtre **interceptée** : l'UI joue d'abord la cinématique
         // 3D (événement `app-close-requested`), puis appelle `finalize_exit`.
@@ -443,10 +449,23 @@ pub fn run() {
             import_file_into_folder,
             read_project_data,
             write_project_data,
+            library::get_library_config,
+            library::update_custom_shelf,
+            library::create_custom_shelf,
+            library::delete_custom_shelf,
+            library::move_book,
+            library::add_library_book,
+            library::scan_export_folder,
+            library::open_library_resource,
+            library::delete_book,
+            library::list_audio_voices,
+            library::list_book_audio_chapters,
+            library::generate_book_audio,
             clear_cache_and_exit
         ])
         .build(tauri::generate_context!())
         .expect("erreur au lancement d'Aldus");
+    log::info!("Aldus application initialized; file and console logging enabled");
 
     // **Nettoyage garanti & synchrone** : la purge du cache volatil s'exécute sur
     // `RunEvent::Exit`, quel que soit le chemin de fermeture (bouton de l'app,

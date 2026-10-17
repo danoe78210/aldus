@@ -19,6 +19,10 @@ la typographie humaniste.
   ou couleur) et génération du gabarit de couverture complet avec marges de fond perdu (3,2 mm).
 - **Banc III — L'Écritoire :** sélection de chapitres Markdown existants ou création de nouveaux
   fichiers `.md` dans le dossier source du projet, avec sauvegarde automatique.
+- **Banc IV — Bibliothèque :** rayons de livres, scan et regroupement EPUB/PDF/DOCX, statistiques
+  par format, gestion des exports et badge AUDIO sur les ouvrages narrés.
+- **Banc V — Studio Audio :** synthèse XTTS v2 locale, sélection ciblée par chapitre, génération
+  incrémentale, progression globale et lecteur intégré; le manuscrit reste sur la machine.
 - **Diptyque d'écriture :** éditeur Markdown épuré sur le feuillet gauche et prévisualisation
   typographique instantanée sur le feuillet droit, selon les réglages du manuscrit.
 - **Réglet & Manuel du Scribe :** insertion rapide de guillemets français (`« »`), espaces
@@ -33,6 +37,21 @@ la typographie humaniste.
 
 ---
 
+## ✨ Nouveautés de la version 1.4.0 — Bibliothèque & Studio Audio
+
+- **Banc IV — Bibliothèque :** scan des exports, regroupement des formats, statistiques, rayons
+  personnalisés et suppression confirmée qui préserve les sources partagées.
+- **Banc V — Studio Audio :** wrapper XTTS v2 local sur `127.0.0.1:8020`, voix françaises,
+  assistant de mise en route et lecteur par chapitre.
+- **Forge ciblée :** choisissez un chapitre ou toute l'œuvre; les nouvelles pistes sont fusionnées
+  dans `library.json` sans effacer celles des autres chapitres.
+- **Longs chapitres :** segmentation sous 240 caractères, synthèse séquentielle, assemblage MP3
+  et progression du chapitre/segment dans le pupitre supérieur.
+- **Journalisation :** erreurs HTTP, timeout, arrêt du wrapper et échecs d'inférence détaillés.
+
+Consultez le [Manuel du Scribe Audio](docs/manuel-scribe-audio.md) pour installer et vérifier le
+moteur local.
+
 ## ✨ Nouveautés de la version 1.3.0 — Banc III : L'Écritoire
 
 - **Studio d'écriture Markdown natif :** création et sélection précise de chapitres `.md`
@@ -46,13 +65,13 @@ la typographie humaniste.
 
 ---
 
-## 📥 Téléchargements & Installation (v1.3.0)
+## 📥 Téléchargements & Installation (v1.4.0)
 
-Téléchargez Aldus depuis la [Release GitHub v1.3.0](https://github.com/danoe78210/aldus/releases/tag/v1.3.0) :
+Téléchargez Aldus depuis la [Release GitHub v1.4.0](https://github.com/danoe78210/aldus/releases/tag/v1.4.0) :
 
-- **Windows (64 bits) :** [Installateur `.exe`](https://github.com/danoe78210/aldus/releases/download/v1.3.0/Aldus_1.3.0_x64-setup.exe) ou [paquet `.msi`](https://github.com/danoe78210/aldus/releases/download/v1.3.0/Aldus_1.3.0_x64_en-US.msi). La commande prévue est `winget install Danoe.Aldus`, mais le manifeste Winget v1.3.0 n'est pas encore publié ; utilisez les installateurs ci-dessus en attendant.
-- **macOS (Intel et Apple Silicon) :** [Image disque universelle `.dmg`](https://github.com/danoe78210/aldus/releases/download/v1.3.0/Aldus_1.3.0_universal.dmg).
-- **Linux (amd64) :** [`.AppImage`](https://github.com/danoe78210/aldus/releases/download/v1.3.0/Aldus_1.3.0_amd64.AppImage), [paquet Debian/Ubuntu `.deb`](https://github.com/danoe78210/aldus/releases/download/v1.3.0/Aldus_1.3.0_amd64.deb) ou [paquet Fedora/RHEL `.rpm`](https://github.com/danoe78210/aldus/releases/download/v1.3.0/Aldus-1.3.0-1.x86_64.rpm).
+- **Windows (64 bits) :** installateur `.exe` ou paquet `.msi` dans les assets de la release.
+- **macOS (Intel et Apple Silicon) :** image disque universelle `.dmg` dans les assets de la release.
+- **Linux (amd64) :** `.AppImage`, paquet Debian/Ubuntu `.deb` et paquet Fedora/RHEL `.rpm` dans les assets de la release.
 
 Les empreintes SHA-256 de chaque fichier sont affichées dans la page des Releases.
 
@@ -93,6 +112,7 @@ npm run tauri build
 
 - `specifications_fonctionnelles.md` — référence produit (identité, parcours, recette).
 - `specifications_techniques.md` — référence d'implémentation (stack, charte, composants).
+- `docs/manuel-scribe-audio.md` — mise en route du wrapper XTTS v2 local, sélection de chapitre et diagnostic audio.
 - `SPECIFICATIONS_COVER_STUDIO_v1.2.0.md` — atelier de reliure & marbre de montage.
 - `specifications_roman_kdp.md` — cahier des charges fonctionnel KDP.
 - `archive/` — documents v0, conservés pour traçabilité.
