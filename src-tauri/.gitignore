@@ -1,6 +1,7 @@
 # Cibles de compilation & schémas générés par Tauri.
 /target/
 /gen/schemas/
+/binaries/
 
 # Ressources binaires transmises par l'utilisateur (non versionnées).
 /assets/*.jpg

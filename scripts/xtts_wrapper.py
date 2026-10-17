@@ -9,11 +9,41 @@ from __future__ import annotations
 import json
 import logging
 import os
+import sys
 import tempfile
 import threading
 import time
 from pathlib import Path
 from typing import Any
+
+if os.environ.get("ALDUS_LOCAL_DATA_DIR"):
+    DATA_ROOT = Path(os.environ["ALDUS_LOCAL_DATA_DIR"]).expanduser().resolve()
+elif sys.platform == "win32":
+    DATA_ROOT = Path(os.environ.get("LOCALAPPDATA", Path.home() / "AppData/Local")) / "net.danoe.aldus"
+else:
+    DATA_ROOT = Path(os.environ.get("XDG_DATA_HOME", Path.home() / ".local/share")) / "net.danoe.aldus"
+
+MODEL_DIR = DATA_ROOT / "models"
+CACHE_DIR = DATA_ROOT / "cache"
+TEMP_DIR = DATA_ROOT / "temp"
+CONFIG_DIR = DATA_ROOT / "config"
+for directory in (MODEL_DIR, CACHE_DIR, TEMP_DIR, CONFIG_DIR):
+    directory.mkdir(parents=True, exist_ok=True)
+
+os.environ["ALDUS_LOCAL_DATA_DIR"] = str(DATA_ROOT)
+os.environ["TTS_HOME"] = str(MODEL_DIR)
+os.environ["HF_HOME"] = str(CACHE_DIR / "huggingface")
+os.environ["TRANSFORMERS_CACHE"] = str(CACHE_DIR / "transformers")
+os.environ["TORCH_HOME"] = str(CACHE_DIR / "torch")
+os.environ["XDG_CACHE_HOME"] = str(CACHE_DIR)
+os.environ["XDG_CONFIG_HOME"] = str(CONFIG_DIR)
+os.environ["MPLCONFIGDIR"] = str(CACHE_DIR / "matplotlib")
+os.environ["NUMBA_CACHE_DIR"] = str(CACHE_DIR / "numba")
+os.environ["HF_DATASETS_CACHE"] = str(CACHE_DIR / "huggingface" / "datasets")
+os.environ["TEMP"] = str(TEMP_DIR)
+os.environ["TMP"] = str(TEMP_DIR)
+os.environ["TMPDIR"] = str(TEMP_DIR)
+os.environ["PYTHONPYCACHEPREFIX"] = str(CACHE_DIR / "pycache")
 
 import torch
 from fastapi import FastAPI, HTTPException
@@ -22,6 +52,10 @@ from fastapi.responses import Response
 from pydantic import BaseModel, Field
 from pydub import AudioSegment
 from TTS.api import TTS
+
+FFMPEG_PATH = os.environ.get("ALDUS_FFMPEG_PATH")
+if FFMPEG_PATH:
+    AudioSegment.converter = FFMPEG_PATH
 
 MODEL_NAME = os.environ.get(
     "ALDUS_XTTS_MODEL", "tts_models/multilingual/multi-dataset/xtts_v2"
@@ -88,6 +122,11 @@ app.add_middleware(
     allow_methods=["GET", "POST"],
     allow_headers=["Content-Type"],
 )
+
+
+@app.get("/health")
+def health() -> dict[str, bool]:
+    return {"ready": True}
 
 
 class SynthesisRequest(BaseModel):

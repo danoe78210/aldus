@@ -6,6 +6,7 @@ use tauri::Manager;
 mod deletion;
 mod audio;
 mod metadata;
+pub use audio::AudioEngine;
 
 pub type ShelfId = String;
 
@@ -506,8 +507,16 @@ pub async fn delete_book(
 }
 
 #[tauri::command]
-pub async fn list_audio_voices() -> Result<Vec<audio::AudioVoice>, String> {
+pub async fn list_audio_voices(
+    app: tauri::AppHandle,
+) -> Result<Vec<audio::AudioVoice>, String> {
+    audio::ensure_bundled_engine(&app).await?;
     audio::list_voices().await
+}
+
+#[tauri::command]
+pub async fn accept_xtts_model_terms(app: tauri::AppHandle) -> Result<(), String> {
+    audio::accept_xtts_model_terms(&app)
 }
 
 #[tauri::command]

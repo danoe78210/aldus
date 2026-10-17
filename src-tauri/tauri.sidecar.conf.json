@@ -1,0 +1,17 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "bundle": {
+    "targets": ["msi"],
+    "externalBin": [
+      "binaries/aldus-audio-server",
+      "binaries/ffmpeg"
+    ],
+    "resources": [
+      "assets/**/*",
+      "binaries/FFmpeg-LGPLv2.1.txt"
+    ],
+    "windows": {
+      "bundleVCRuntime": true
+    }
+  }
+}

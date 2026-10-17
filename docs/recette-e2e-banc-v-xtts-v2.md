@@ -7,11 +7,17 @@
 
 L'interface, l'extraction EPUB/DOCX/PDF et l'orchestration Rust sont intégrées. Le serveur de référence maintenu par le dépôt est [`scripts/xtts_wrapper.py`](../scripts/xtts_wrapper.py), avec ses dépendances Python dans [`scripts/requirements-xtts.txt`](../scripts/requirements-xtts.txt). Utiliser ce wrapper plutôt que copier un second `server.py` : il implémente les profils de voix, le nettoyage des fichiers temporaires et le contrat attendu par Aldus.
 
-Le modèle et ses poids ne sont pas inclus dans Aldus. Le premier démarrage peut télécharger les poids XTTS v2 et nécessite un accès réseau. Vérifier et accepter les conditions de licence applicables au modèle avant tout usage.
+Le MSI Windows embarque le wrapper XTTS v2 et FFmpeg; les poids du modèle restent séparés et sont téléchargés au premier démarrage après acceptation explicite de la licence CPML. Les poids, caches, temporaires Python, fragments audio et journaux sont dirigés vers `%LOCALAPPDATA%\net.danoe.aldus\`. Seules les pistes finales sont écrites dans le dossier d'export choisi.
 
 Le wrapper écoute seulement sur `127.0.0.1:8020` par défaut. Aldus refuse les URLs TTS distantes, même si `ALDUS_TTS_URL` est modifiée.
 
-## 2. Préparer Windows
+## 2. Vérifier le MSI Windows
+
+Installer le MSI produit par le job Windows de la release, puis ouvrir **Bibliothèque → Registre du Livre → Studio Audio**. Vérifier que le premier démarrage présente la CPML, que l'acceptation démarre le moteur intégré et que les voix françaises apparaissent après le téléchargement du modèle.
+
+Pendant une génération, contrôler que les fragments sont créés sous `%LOCALAPPDATA%\net.danoe.aldus\temp\audio\`, puis supprimés; les MP3 assemblés doivent apparaître sous `<dossier-export>\Audio\`. Vérifier aussi `%LOCALAPPDATA%\net.danoe.aldus\logs\Aldus.log` et l'absence d'écritures du moteur sous `C:\Program Files\Aldus`.
+
+## 3. Mode développeur : préparer Windows
 
 Ouvrir PowerShell à la racine du dépôt. Vérifier que Python 3.10 est installé :
 
@@ -44,7 +50,7 @@ ffmpeg -version
 
 Si la commande échoue, installer FFmpeg, ajouter son dossier `bin` au `PATH`, puis rouvrir PowerShell.
 
-## 3. Configurer une voix XTTS
+## 4. Configurer une voix XTTS
 
 XTTS v2 clone une voix depuis un fichier de référence. Les noms `Claire` et `Jean` ne sont pas des identifiants de locuteurs intégrés garantis. Configurer au moins un fichier WAV de référence auquel l'utilisateur a le droit de recourir. Préférer un extrait clair, sans musique ni voix concurrente.
 
@@ -62,7 +68,7 @@ $env:ALDUS_TTS_VOICES = (@{
 
 Remplacer le chemin par celui d'un WAV existant. Plusieurs entrées peuvent être déclarées dans cet objet. Le serveur ne publie que les profils dont le fichier de référence existe et dont la langue commence par `fr`.
 
-## 4. Démarrer et vérifier le serveur
+## 5. Démarrer et vérifier le serveur
 
 Toujours depuis la racine du dépôt, lancer le wrapper dans le premier terminal :
 
@@ -96,7 +102,7 @@ ffprobe -v error -show_entries format=duration `
 
 Le MP3 doit avoir une taille non nulle et une durée lisible. Le corps de la requête utilise volontairement `voiceId` et `outputFormat`, comme Aldus. Le wrapper accepte au plus 240 caractères par requête; une requête de 241 caractères doit répondre HTTP 422 avec `string_too_long`.
 
-## 5. Recette dans Aldus
+## 6. Recette dans Aldus
 
 Dans le second terminal, définir l'URL locale puis lancer Aldus :
 
@@ -117,7 +123,7 @@ Dans l'application :
 
 Pour un PDF, utiliser un document avec une couche texte sélectionnable : Aldus le traite comme une section unique. Un PDF scanné sans OCR ne permet pas cette recette.
 
-## 6. Contrôles de robustesse
+## 7. Contrôles de robustesse
 
 | Contrôle | Résultat attendu |
 | --- | --- |
@@ -134,7 +140,7 @@ Pour un PDF, utiliser un document avec une couche texte sélectionnable : Aldus 
 
 Le nettoyage Rust est protégé par un garde RAII : toute sortie avant sauvegarde réussie supprime le dossier de la tentative, y compris l'abandon de la tâche. Le Studio ne propose pas encore de bouton d'annulation utilisateur; ne pas documenter un parcours d'annulation UI comme un contrôle disponible. Une terminaison forcée du processus système ne garantit pas l'exécution des destructeurs Rust.
 
-## 7. Dépannage rapide
+## 8. Dépannage rapide
 
 | Symptôme | Vérification |
 | --- | --- |
@@ -145,6 +151,6 @@ Le nettoyage Rust est protégé par un garde RAII : toute sortie avant sauvegard
 | Premier démarrage bloqué ou en erreur | Vérifier l'accès au téléchargement des poids, la licence du modèle, la mémoire disponible et la compatibilité PyTorch/CUDA. |
 | Le lecteur ne trouve pas de piste | Vérifier le succès complet de la génération, le dossier `Audio` du dossier d'export et les chemins des chapitres persistés dans `library.json`. |
 
-## 8. État de validation
+## 9. État de validation
 
 Les tests automatisés couvrent le contrat local, le filtrage des voix françaises, l'extraction des chapitres et le nettoyage des sorties incomplètes. La recette décrite ici reste à exécuter sur une machine équipée de Python 3.10, PyTorch, FFmpeg, du modèle XTTS v2 et d'un WAV de référence autorisé. Le test HTTP réel et la lecture dans Aldus ne sont pas remplacés par les tests simulés.

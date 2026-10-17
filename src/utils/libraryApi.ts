@@ -153,6 +153,9 @@ export const deleteLibraryBook = async (bookId: string, exportDirectory: string)
 export const listAudioVoices = (): Promise<AudioVoice[]> =>
   invokeCommand<AudioVoice[]>("list_audio_voices");
 
+export const acceptAudioModelTerms = (): Promise<void> =>
+  invokeCommand<void>("accept_xtts_model_terms");
+
 export const listBookAudioChapters = (bookId: string): Promise<AudioChapterChoice[]> =>
   invokeCommand<AudioChapterChoice[]>("list_book_audio_chapters", { bookId });
 

@@ -5,12 +5,197 @@ use std::collections::BTreeSet;
 use std::fs::File;
 use std::path::{Path, PathBuf};
 use std::process::Command;
-use std::time::{SystemTime, UNIX_EPOCH};
-use tauri::Emitter;
+use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::Mutex;
+use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
+use tauri::{Emitter, Manager};
+use tauri_plugin_shell::process::{CommandChild, CommandEvent};
+use tauri_plugin_shell::ShellExt;
 use zip::ZipArchive;
 
 const DEFAULT_TTS_ENDPOINT: &str = "http://127.0.0.1:8020";
 const MAX_TTS_SEGMENT_CHARS: usize = 240;
+
+#[derive(Default)]
+pub struct AudioEngine {
+    startup_lock: tokio::sync::Mutex<()>,
+    child: Mutex<Option<CommandChild>>,
+    ffmpeg_path: Mutex<Option<PathBuf>>,
+    running: AtomicBool,
+}
+
+#[derive(Deserialize)]
+struct EngineHealth {
+    ready: bool,
+}
+
+fn xtts_consent_path(app: &tauri::AppHandle) -> Result<PathBuf, String> {
+    Ok(app
+        .path()
+        .app_local_data_dir()
+        .map_err(|error| format!("Dossier Aldus local introuvable : {error}"))?
+        .join("consent")
+        .join("xtts-v2.json"))
+}
+
+pub fn accept_xtts_model_terms(app: &tauri::AppHandle) -> Result<(), String> {
+    let path = xtts_consent_path(app)?;
+    let parent = path
+        .parent()
+        .ok_or("Dossier de consentement XTTS invalide.")?;
+    std::fs::create_dir_all(parent)
+        .map_err(|error| format!("Création du dossier de consentement impossible : {error}"))?;
+    std::fs::write(&path, b"accepted=true\n")
+        .map_err(|error| format!("Enregistrement du consentement XTTS impossible : {error}"))
+}
+
+impl AudioEngine {
+    pub fn shutdown(&self) {
+        self.running.store(false, Ordering::SeqCst);
+        if let Ok(mut child) = self.child.lock() {
+            if let Some(child) = child.take() {
+                #[cfg(windows)]
+                let stopped = Command::new("taskkill")
+                    .args(["/PID", &child.pid().to_string(), "/T", "/F"])
+                    .output()
+                    .is_ok_and(|output| output.status.success());
+                #[cfg(not(windows))]
+                let stopped = false;
+                if !stopped {
+                    if let Err(error) = child.kill() {
+                        log::warn!("Unable to stop bundled XTTS sidecar: {error}");
+                    }
+                }
+            }
+        }
+    }
+}
+
+pub async fn ensure_bundled_engine(app: &tauri::AppHandle) -> Result<(), String> {
+    if !cfg!(all(windows, not(debug_assertions))) {
+        return Ok(());
+    }
+
+    let engine = app.state::<AudioEngine>();
+    let _startup = engine.startup_lock.lock().await;
+    let data_dir = app
+        .path()
+        .app_local_data_dir()
+        .map_err(|error| format!("Dossier Aldus local introuvable : {error}"))?;
+    let consent_path = xtts_consent_path(app)?;
+    if !consent_path.is_file() {
+        return Err("XTTS v2 nécessite votre acceptation de la licence Coqui Public Model License avant le premier téléchargement.".into());
+    }
+
+    if !engine.running.load(Ordering::SeqCst) {
+        let model_dir = data_dir.join("models");
+        let cache_dir = data_dir.join("cache");
+        let temp_dir = data_dir.join("temp");
+        let runtime_dir = data_dir.join("python-runtime");
+        for directory in [&model_dir, &cache_dir, &temp_dir, &runtime_dir] {
+            std::fs::create_dir_all(directory).map_err(|error| {
+                format!("Création du dossier audio local impossible : {error}")
+            })?;
+        }
+
+        let ffmpeg_command = app
+            .shell()
+            .sidecar("ffmpeg")
+            .map_err(|error| format!("Sidecar FFmpeg introuvable : {error}"))?;
+        let ffmpeg_command: Command = ffmpeg_command.into();
+        let ffmpeg_path = ffmpeg_command.get_program().to_string_lossy().into_owned();
+        *engine
+            .ffmpeg_path
+            .lock()
+            .map_err(|_| "État du sidecar FFmpeg indisponible.")? = Some(PathBuf::from(&ffmpeg_path));
+        let ffmpeg_dir = Path::new(&ffmpeg_path)
+            .parent()
+            .ok_or("Chemin du sidecar FFmpeg invalide.")?;
+        let mut path_entries = vec![ffmpeg_dir.to_string_lossy().into_owned()];
+        if let Some(existing_path) = std::env::var_os("PATH") {
+            path_entries.extend(std::env::split_paths(&existing_path).map(|path| {
+                path.to_string_lossy().into_owned()
+            }));
+        }
+        let process_path = std::env::join_paths(path_entries)
+            .map_err(|error| format!("PATH du moteur audio invalide : {error}"))?;
+
+        let (mut events, child) = app
+            .shell()
+            .sidecar("aldus-audio-server")
+            .map_err(|error| format!("Sidecar XTTS introuvable : {error}"))?
+            .current_dir(&data_dir)
+            .env("ALDUS_LOCAL_DATA_DIR", &data_dir)
+            .env("ALDUS_FFMPEG_PATH", &ffmpeg_path)
+            .env("TTS_HOME", &model_dir)
+            .env("HF_HOME", cache_dir.join("huggingface"))
+            .env("TRANSFORMERS_CACHE", cache_dir.join("transformers"))
+            .env("TORCH_HOME", cache_dir.join("torch"))
+            .env("XDG_CACHE_HOME", &cache_dir)
+            .env("TEMP", &temp_dir)
+            .env("TMP", &temp_dir)
+            .env("TMPDIR", &temp_dir)
+            .env("PYTHONPYCACHEPREFIX", cache_dir.join("pycache"))
+            .env("COQUI_TOS_AGREED", "1")
+            .env("PATH", process_path)
+            .spawn()
+            .map_err(|error| format!("Démarrage du moteur XTTS impossible : {error}"))?;
+
+        *engine
+            .child
+            .lock()
+            .map_err(|_| "État du moteur XTTS indisponible.")? = Some(child);
+        engine.running.store(true, Ordering::SeqCst);
+
+        let event_app = app.clone();
+        tauri::async_runtime::spawn(async move {
+            while let Some(event) = events.recv().await {
+                match event {
+                    CommandEvent::Stdout(line) => {
+                        log::info!("XTTS stdout: {}", String::from_utf8_lossy(&line).trim_end());
+                    }
+                    CommandEvent::Stderr(line) => {
+                        log::warn!("XTTS stderr: {}", String::from_utf8_lossy(&line).trim_end());
+                    }
+                    CommandEvent::Terminated(status) => {
+                        log::info!("XTTS sidecar terminated: {:?}", status);
+                    }
+                    _ => {}
+                }
+            }
+            let state = event_app.state::<AudioEngine>();
+            state.running.store(false, Ordering::SeqCst);
+            if let Ok(mut child) = state.child.lock() {
+                child.take();
+            };
+        });
+    }
+
+    let client = reqwest::Client::builder()
+        .timeout(Duration::from_secs(5))
+        .build()
+        .map_err(|error| format!("Client de santé XTTS impossible : {error}"))?;
+    let endpoint = format!("{DEFAULT_TTS_ENDPOINT}/health");
+    let deadline = Instant::now() + Duration::from_secs(30 * 60);
+    loop {
+        if !engine.running.load(Ordering::SeqCst) {
+            return Err("Le moteur XTTS intégré s'est arrêté. Consultez Aldus.log pour le détail.".into());
+        }
+        if let Ok(response) = client.get(&endpoint).send().await {
+            if response.status().is_success() {
+                if let Ok(health) = response.json::<EngineHealth>().await {
+                    if health.ready {
+                        return Ok(());
+                    }
+                }
+            }
+        }
+        if Instant::now() >= deadline {
+            return Err("Le moteur XTTS n'a pas terminé son démarrage dans les 30 minutes. Consultez Aldus.log.".into());
+        }
+        tokio::time::sleep(Duration::from_secs(2)).await;
+    }
+}
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -641,11 +826,35 @@ impl Drop for AudioOutputDirectory {
     }
 }
 
+struct AudioTempDirectory {
+    path: PathBuf,
+}
+
+impl AudioTempDirectory {
+    fn create(path: PathBuf) -> Result<Self, String> {
+        std::fs::create_dir_all(&path).map_err(|error| {
+            format!("Création du dossier temporaire audio impossible : {error}")
+        })?;
+        Ok(Self { path })
+    }
+
+    fn path(&self) -> &Path {
+        &self.path
+    }
+}
+
+impl Drop for AudioTempDirectory {
+    fn drop(&mut self) {
+        let _ = std::fs::remove_dir_all(&self.path);
+    }
+}
+
 fn assemble_mp3_segments(
     directory: &Path,
     segments: &[PathBuf],
     output_path: &Path,
     chapter_title: &str,
+    ffmpeg_path: &Path,
 ) -> Result<(), String> {
     if segments.is_empty() {
         return Err(format!(
@@ -653,9 +862,11 @@ fn assemble_mp3_segments(
         ));
     }
     if segments.len() == 1 {
-        return std::fs::rename(&segments[0], output_path).map_err(|error| {
+        std::fs::copy(&segments[0], output_path).map_err(|error| {
             format!("Finalisation audio impossible pour « {chapter_title} » : {error}")
-        });
+        })?;
+        let _ = std::fs::remove_file(&segments[0]);
+        return Ok(());
     }
 
     let manifest_path = directory.join("segments.concat.txt");
@@ -670,11 +881,7 @@ fn assemble_mp3_segments(
     std::fs::write(&manifest_path, manifest)
         .map_err(|error| format!("Liste de segments impossible à écrire : {error}"))?;
 
-    let output_name = output_path
-        .file_name()
-        .and_then(|name| name.to_str())
-        .ok_or("Nom de fichier MP3 assemblé invalide.")?;
-    let output = Command::new("ffmpeg")
+    let output = Command::new(ffmpeg_path)
         .current_dir(directory)
         .args([
             "-nostdin",
@@ -690,7 +897,7 @@ fn assemble_mp3_segments(
         ])
         .arg("segments.concat.txt")
         .args(["-vn", "-c:a", "libmp3lame", "-b:a", "192k"])
-        .arg(output_name)
+        .arg(output_path)
         .output()
         .map_err(|error| {
             format!(
@@ -787,6 +994,7 @@ pub async fn generate_book_audio(
     if !root.is_dir() {
         return Err("Le dossier d'export n'est pas un dossier valide.".into());
     }
+    ensure_bundled_engine(&app).await?;
     let config = read_config(&app)?;
     let book = config
         .books
@@ -812,6 +1020,26 @@ pub async fn generate_book_audio(
         safe_component(&book.id)
     ));
     let mut output_directory = AudioOutputDirectory::create(directory)?;
+    let local_data_dir = app
+        .path()
+        .app_local_data_dir()
+        .map_err(|error| format!("Dossier Aldus local introuvable : {error}"))?;
+    let temporary_directory = AudioTempDirectory::create(
+        local_data_dir
+            .join("temp")
+            .join("audio")
+            .join(format!("{}-{timestamp}", safe_component(&book.id))),
+    )?;
+    let ffmpeg_path = if cfg!(all(windows, not(debug_assertions))) {
+        app.state::<AudioEngine>()
+            .ffmpeg_path
+            .lock()
+            .map_err(|_| "État du sidecar FFmpeg indisponible.")?
+            .clone()
+            .ok_or("Sidecar FFmpeg non initialisé.")?
+    } else {
+        PathBuf::from("ffmpeg")
+    };
     let total = chapters.len() as u32;
     let selected_chapters: Vec<_> = selected_indices
         .iter()
@@ -843,7 +1071,7 @@ pub async fn generate_book_audio(
         let segment_count = segments.len();
         for (segment_position, segment_text) in segments.iter().enumerate() {
             let segment_number = segment_position + 1;
-            let segment_path = output_directory.path().join(format!(
+            let segment_path = temporary_directory.path().join(format!(
                 "{chapter_number:03}-segment-{segment_number:04}.mp3"
             ));
             let status = format!(
@@ -1096,10 +1324,11 @@ pub async fn generate_book_audio(
             None,
         );
         if let Err(error) = assemble_mp3_segments(
-            output_directory.path(),
+            temporary_directory.path(),
             &segment_paths,
             &path,
             &chapter.title,
+            &ffmpeg_path,
         ) {
             log::error!(
                 "audio segment assembly failed book_id={} chapter={}/{} segment_count={} output={} error={}",
@@ -1191,7 +1420,7 @@ mod tests {
     use super::{
         chunk_narration, extract_docx, extract_epub, merge_audio_chapters,
         selected_chapter_indices, validate_local_endpoint, AudioGenerationProgress,
-        AudioOutputDirectory, SynthesisRequest, MAX_TTS_SEGMENT_CHARS,
+        AudioOutputDirectory, AudioTempDirectory, SynthesisRequest, MAX_TTS_SEGMENT_CHARS,
     };
     use crate::library::AudioChapter;
     use std::io::Write;
@@ -1318,6 +1547,22 @@ mod tests {
         let output = AudioOutputDirectory::create(root.clone()).unwrap();
         std::fs::write(output.path().join("partial.mp3"), b"partial").unwrap();
         drop(output);
+        assert!(!root.exists());
+    }
+
+    #[test]
+    fn always_removes_local_audio_fragments_after_generation() {
+        let root = std::env::temp_dir().join(format!(
+            "aldus-audio-fragments-{}-{}",
+            std::process::id(),
+            std::time::SystemTime::now()
+                .duration_since(std::time::UNIX_EPOCH)
+                .unwrap()
+                .as_nanos()
+        ));
+        let temporary = AudioTempDirectory::create(root.clone()).unwrap();
+        std::fs::write(temporary.path().join("001-segment-0001.mp3"), b"partial").unwrap();
+        drop(temporary);
         assert!(!root.exists());
     }
 

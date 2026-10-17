@@ -1,4 +1,10 @@
 # Registre des Évolutions — Aldus
+## [1.4.1] - Bundle MSI autonome Windows
+### Ajouté
+- MSI WiX Windows avec sidecars Python/PyInstaller XTTS v2 et FFmpeg statique LGPL, préparés par GitHub Actions.
+- Démarrage/arrêt contrôlés du moteur audio, consentement CPML explicite et redirection des caches, temporaires et journaux vers `%LOCALAPPDATA%\net.danoe.aldus\`.
+- Fragments audio temporaires isolés sous LocalAppData; seules les pistes MP3 finales rejoignent le dossier d'export.
+
 ## [1.4.0] - Studio Audio & Bibliothèque
 ### Ajouté
 - **Banc IV — Bibliothèque** : rayons principaux et personnalisés, scan des exports, regroupement EPUB/PDF/DOCX, statistiques par format, suppression confirmée et préservation des sources partagées.

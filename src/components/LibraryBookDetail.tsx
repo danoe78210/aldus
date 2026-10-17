@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { ArrowLeft, AudioLines, BookOpen, Trash2 } from "lucide-react";
 import type { AudioChapterChoice, AudioGenerationProgress, AudioVoice, Book, Shelf } from "../types";
-import { libraryCoverUrl, listAudioVoices, listBookAudioChapters, openLibraryResource } from "../utils/libraryApi";
+import { acceptAudioModelTerms, libraryCoverUrl, listAudioVoices, listBookAudioChapters, openLibraryResource } from "../utils/libraryApi";
 import { LibraryDeleteDialog } from "./LibraryDeleteDialog";
 import { AudioTrackPlayer } from "./AudioTrackPlayer";
 import { AudioSetupDialog } from "./AudioSetupDialog";
@@ -85,9 +85,9 @@ export const LibraryBookDetail = ({ book, initialFormat, exportDirectory, shelve
       setVoices(available);
       setVoiceId((current) => current || available[0]?.id || "");
       setVoiceError(null);
-    }).catch(() => {
+    }).catch((reason: unknown) => {
       if (active) {
-        setVoiceError(INACTIVE_TTS_MESSAGE);
+        setVoiceError(reason instanceof Error ? reason.message : INACTIVE_TTS_MESSAGE);
         if (!book.audio) setAudioSetupOpen(true);
       }
     });
@@ -115,8 +115,24 @@ export const LibraryBookDetail = ({ book, initialFormat, exportDirectory, shelve
       setVoiceId((current) => available.some((voice) => voice.id === current) ? current : available[0].id);
       setVoiceError(null);
       setAudioSetupOpen(false);
-    } catch {
-      setVoiceError(INACTIVE_TTS_MESSAGE);
+    } catch (reason) {
+      setVoiceError(reason instanceof Error ? reason.message : INACTIVE_TTS_MESSAGE);
+    } finally {
+      setCheckingAudio(false);
+    }
+  };
+  const acceptTermsAndStartAudio = async () => {
+    setCheckingAudio(true);
+    try {
+      await acceptAudioModelTerms();
+      const available = await listAudioVoices();
+      if (available.length === 0) throw new Error(INACTIVE_TTS_MESSAGE);
+      setVoices(available);
+      setVoiceId((current) => available.some((voice) => voice.id === current) ? current : available[0].id);
+      setVoiceError(null);
+      setAudioSetupOpen(false);
+    } catch (reason) {
+      setVoiceError(reason instanceof Error ? reason.message : INACTIVE_TTS_MESSAGE);
     } finally {
       setCheckingAudio(false);
     }
@@ -200,7 +216,7 @@ export const LibraryBookDetail = ({ book, initialFormat, exportDirectory, shelve
                     {audioChapters.map((chapter) => <option key={chapter.index} value={chapter.index}>{chapter.index}. {chapter.title}</option>)}
                   </select>
                 </label>
-                {voiceError && <aside role="status" className="flex flex-wrap items-center justify-between gap-2 rounded-sm border border-[#8f6e2b]/40 bg-[#241e17] px-3 py-2.5 font-serif text-xs leading-relaxed text-[#c5a059]"><span>{INACTIVE_TTS_MESSAGE}</span><button type="button" onClick={() => setAudioSetupOpen(true)} className="shrink-0 border-b border-[#8f6e2b]/60 font-cinzel text-[10px] text-[#d4af37] hover:text-[#f3d995]">Ouvrir l’assistant</button></aside>}
+                {voiceError && <aside role="status" className="flex flex-wrap items-center justify-between gap-2 rounded-sm border border-[#8f6e2b]/40 bg-[#241e17] px-3 py-2.5 font-serif text-xs leading-relaxed text-[#c5a059]"><span>{voiceError}</span><button type="button" onClick={() => setAudioSetupOpen(true)} className="shrink-0 border-b border-[#8f6e2b]/60 font-cinzel text-[10px] text-[#d4af37] hover:text-[#f3d995]">Ouvrir l’assistant</button></aside>}
                 <button type="button" aria-busy={audioBusy} aria-label={audioActionLabel} disabled={busy || audioBusy || !voiceId || !exportDirectory || !onGenerateAudio || audioChapters.length === 0} onClick={() => {
                   if (!onGenerateAudio) return;
                   const chapterIndex = chapterSelection === "all" ? null : Number(chapterSelection);
@@ -239,7 +255,7 @@ export const LibraryBookDetail = ({ book, initialFormat, exportDirectory, shelve
       {error && <p role="alert" className="text-xs text-[#d28b75]">{error}</p>}
       {operationError && !confirmDelete && <p role="alert" className="text-xs text-[#d28b75]">{operationError}</p>}
       {confirmDelete && <LibraryDeleteDialog title={book.title} busy={busy} error={operationError} onCancel={() => setConfirmDelete(false)} onConfirm={() => { void onDelete(book.id); }} />}
-      {audioSetupOpen && <AudioSetupDialog checking={checkingAudio} onRetry={() => { void retryAudioEngine(); }} onClose={() => setAudioSetupOpen(false)} />}
+      {audioSetupOpen && <AudioSetupDialog checking={checkingAudio} onRetry={() => { void retryAudioEngine(); }} onAcceptTerms={() => { void acceptTermsAndStartAudio(); }} onClose={() => setAudioSetupOpen(false)} />}
     </section>
   );
 };

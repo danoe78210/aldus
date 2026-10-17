@@ -431,12 +431,15 @@ describe("LibraryView", () => {
     await screen.findByRole("heading", { name: "Studio Audio" });
     expect(await screen.findAllByText("Le moteur vocal local est inactif. Veuillez lancer le wrapper TTS sur le port 8020 ou configurer ALDUS_TTS_URL.")).not.toHaveLength(0);
     const setup = await screen.findByRole("dialog", { name: "Assistant de mise en route XTTS v2" });
-    expect(setup.textContent).toContain("Moteur déjà installé");
-    expect(setup.textContent).toContain("Préparer XTTS v2 localement");
+    expect(setup.textContent).toContain("Coqui Public Model License");
     expect(setup.textContent).toContain("scripts/xtts_wrapper.py");
+    const acceptTerms = within(setup).getByRole("button", { name: "Accepter et démarrer" }) as HTMLButtonElement;
+    expect(acceptTerms.disabled).toBe(true);
+    fireEvent.click(within(setup).getByRole("checkbox"));
+    expect(acceptTerms.disabled).toBe(false);
     expect((screen.getByRole("button", { name: "Générer l’édition audio" }) as HTMLButtonElement).disabled).toBe(true);
     expect(generateLibraryAudio).not.toHaveBeenCalled();
-    fireEvent.click(within(setup).getByRole("button", { name: "Vérifier la connexion" }));
+    fireEvent.click(within(setup).getByRole("button", { name: "Vérifier le moteur externe" }));
     await screen.findByRole("option", { name: "Narrateur français · fr-FR" });
     expect(screen.queryByRole("dialog", { name: "Assistant de mise en route XTTS v2" })).toBeNull();
     expect((screen.getByRole("button", { name: "Générer l’édition audio" }) as HTMLButtonElement).disabled).toBe(false);

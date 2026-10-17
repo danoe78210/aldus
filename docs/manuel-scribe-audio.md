@@ -4,7 +4,16 @@ Le Studio Audio (Banc V) fabrique des pistes MP3 par chapitre à partir d'un
 moteur local. Le texte du livre reste dans Aldus et n'est envoyé qu'à
 `127.0.0.1`/`localhost`; aucun fournisseur distant n'est utilisé.
 
-## Préparer XTTS v2 sous Windows
+## Installateur Windows
+
+Le MSI Windows embarque le wrapper Python XTTS v2 et FFmpeg. L'auteur n'a pas
+à installer Python, FFmpeg ni à modifier le `PATH`. Au premier démarrage, Aldus
+demande l'accord explicite à la licence CPML, puis télécharge les poids du
+modèle. Les poids, caches, temporaires Python et journaux restent sous
+`%LOCALAPPDATA%\net.danoe.aldus\`; seuls les MP3 finalisés sont écrits dans le
+dossier d'export choisi.
+
+## Mode développeur : préparer XTTS v2 sous Windows
 
 1. Vérifiez Python 3.10 et FFmpeg :
 

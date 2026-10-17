@@ -15,6 +15,7 @@ use serde_json::Value;
 use tauri::Emitter;
 use tauri::Manager;
 use tauri_plugin_dialog::DialogExt;
+use tauri_plugin_log::{Target, TargetKind};
 
 use project::ProjectPayload;
 
@@ -403,9 +404,17 @@ async fn clear_cache_and_exit(app: tauri::AppHandle) -> Result<(), String> {
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     let app = tauri::Builder::default()
+        .manage(library::AudioEngine::default())
+        .plugin(tauri_plugin_shell::init())
         .plugin(
             tauri_plugin_log::Builder::new()
                 .level(log::LevelFilter::Info)
+                .targets([
+                    Target::new(TargetKind::Stdout),
+                    Target::new(TargetKind::LogDir {
+                        file_name: Some("Aldus".into()),
+                    }),
+                ])
                 .build(),
         )
         .plugin(tauri_plugin_dialog::init())
@@ -459,6 +468,7 @@ pub fn run() {
             library::open_library_resource,
             library::delete_book,
             library::list_audio_voices,
+            library::accept_xtts_model_terms,
             library::list_book_audio_chapters,
             library::generate_book_audio,
             clear_cache_and_exit
@@ -478,6 +488,7 @@ pub fn run() {
     // terminaison du processus (aucun processus fantôme). Aucune correction requise.
     app.run(|app_handle, event| {
         if let tauri::RunEvent::Exit = event {
+            app_handle.state::<library::AudioEngine>().shutdown();
             if let Some(volatile) = volatile_cache_dir(app_handle) {
                 if volatile.is_dir() {
                     println!(
