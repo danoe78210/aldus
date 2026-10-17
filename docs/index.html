@@ -53,52 +53,6 @@
       border-color: #8f6e2b;
       box-shadow: inset 0 0 20px rgba(212, 175, 55, 0.08);
     }
-    /* Bloc d'installation en ligne de commande (Winget) */
-    .terminal-install-box {
-      margin-top: 1rem;
-      padding: 0.75rem;
-      background-color: #120f0c;
-      border: 1px solid #382f22;
-      border-radius: 2px;
-      text-align: left;
-    }
-    .terminal-label {
-      display: block;
-      font-family: "Cinzel", serif;
-      font-size: 0.625rem;
-      text-transform: uppercase;
-      letter-spacing: 0.15em;
-      color: #786c59;
-      margin-bottom: 0.5rem;
-    }
-    .terminal-command-line {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 0.5rem;
-      background-color: #0a0907;
-      border: 1px solid #221b14;
-      border-radius: 2px;
-      padding: 0.5rem 0.75rem;
-    }
-    .terminal-command-line code {
-      font-family: ui-monospace, SFMono-Regular, "Courier New", monospace;
-      font-size: 0.75rem;
-      color: #d4af37;
-      user-select: all;
-    }
-    .terminal-command-line button {
-      cursor: pointer;
-      background: transparent;
-      border: 0;
-      font-size: 0.875rem;
-      line-height: 1;
-      color: #a89f91;
-      transition: color 0.2s ease;
-    }
-    .terminal-command-line button:hover {
-      color: #f3e5ab;
-    }
     /* Section « Les Bancs de l'Atelier » */
     .banc-card {
       font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
@@ -569,7 +523,7 @@
     <!-- CTA Principal -->
     <div class="flex flex-col sm:flex-row items-center justify-center gap-4 mt-8">
       <a href="#telechargement" class="w-full sm:w-auto px-8 py-3.5 bg-gradient-to-r from-[#221b14] via-[#2d241a] to-[#221b14] border border-atelier-brass text-atelier-ivory font-cinzel text-xs uppercase tracking-[0.2em] rounded-xs hover:border-atelier-gold hover:text-atelier-gold transition-all shadow-lg">
-        Obtenir Aldus v1.4.0 ›
+        Obtenir Aldus v1.4.1 ›
       </a>
       <a href="https://github.com/danoe78210/aldus" target="_blank" rel="noopener noreferrer" class="w-full sm:w-auto px-8 py-3.5 border border-atelier-border text-atelier-bistre font-cinzel text-xs uppercase tracking-[0.2em] rounded-xs hover:border-atelier-brass hover:text-atelier-ivory transition-all">
         Code Source GitHub ↗
@@ -997,12 +951,12 @@
       </div>
     </section>
 
-    <!-- Section Nouveautés v1.4.0 -->
+    <!-- Nouveautés v1.4.1 -->
     <section id="nouveautes-v1-4" class="pt-32 text-left">
       <div class="text-center mb-16">
         <span class="text-atelier-gold text-xl">❦</span>
-        <h2 class="font-cinzel text-2xl sm:text-3xl tracking-[0.2em] uppercase text-atelier-ivory mt-2">Version 1.4.0 — Bibliothèque &amp; Studio Audio</h2>
-        <p class="text-atelier-muted text-sm mt-1 uppercase tracking-widest">Une forge vocale locale, chapitre par chapitre</p>
+        <h2 class="font-cinzel text-2xl sm:text-3xl tracking-[0.2em] uppercase text-atelier-ivory mt-2">Version 1.4.1 — MSI Windows autonome</h2>
+        <p class="text-atelier-muted text-sm mt-1 uppercase tracking-widest">Bibliothèque &amp; Studio Audio, avec moteur local intégré</p>
       </div>
 
       <div class="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-6xl mx-auto">
@@ -1023,9 +977,9 @@
         </figure>
       </div>
 
-      <p class="text-sm text-atelier-bistre mt-8 text-center">XTTS v2 travaille localement sur <code class="text-atelier-gold">127.0.0.1:8020</code>; les segments sont assemblés en une piste MP3 par chapitre.</p>
+      <p class="text-sm text-atelier-bistre mt-8 text-center">Le MSI Windows embarque le moteur XTTS v2 et FFmpeg. Les poids du modèle sont téléchargés après acceptation de la CPML; les données restent dans LocalAppData.</p>
       <p class="text-sm text-center mt-3"><a href="manuel-scribe-audio.md" class="text-atelier-gold underline hover:text-atelier-goldhover">Lire le Manuel du Scribe Audio</a></p>
-      <p class="text-xs text-atelier-muted mt-5 text-center"><a href="https://github.com/danoe78210/aldus/blob/v1.4.0/CHANGELOG.md" class="text-atelier-gold underline hover:text-atelier-goldhover">Registre des évolutions 1.4.0</a></p>
+      <p class="text-xs text-atelier-muted mt-5 text-center"><a href="https://github.com/danoe78210/aldus/blob/v1.4.1/CHANGELOG.md" class="text-atelier-gold underline hover:text-atelier-goldhover">Registre des évolutions 1.4.1</a></p>
     </section>
 
     <!-- Archive des nouveautés v1.3.0 -->
@@ -1081,7 +1035,7 @@
       <div class="mb-12">
         <span class="text-atelier-gold text-xl">❦</span>
         <h2 class="font-cinzel text-3xl sm:text-4xl tracking-[0.2em] uppercase text-atelier-ivory mt-2">Prendre Place dans l'Atelier</h2>
-        <p class="text-atelier-muted text-sm mt-1 uppercase tracking-widest">Version 1.4.0 (Stable) — Bancs IV &amp; V : Bibliothèque et Studio Audio</p>
+        <p class="text-atelier-muted text-sm mt-1 uppercase tracking-widest">Version 1.4.1 (Stable) — Bibliothèque &amp; Studio Audio</p>
       </div>
 
       <div class="grid grid-cols-1 md:grid-cols-3 gap-6 text-left max-w-4xl mx-auto">
@@ -1092,27 +1046,15 @@
             <h3 class="font-cinzel text-lg text-atelier-ivory">Windows</h3>
             <p class="text-xs text-atelier-muted mt-1">Windows 10 / 11 (64-bit)</p>
             <div class="my-4 text-xs text-atelier-bistre space-y-1">
-              <p>• Installeur autonome complet</p>
-              <p>• Paquet MSI pour déploiement</p>
+              <p>• MSI autonome 64 bits</p>
+              <p>• Moteur Python/XTTS et FFmpeg embarqués</p>
+              <p>• Poids XTTS téléchargés après accord CPML</p>
             </div>
           </div>
           <div class="space-y-2 pt-4 border-t border-atelier-border/50">
-            <a href="https://github.com/danoe78210/aldus/releases/download/v1.4.0/Aldus_1.4.0_x64-setup.exe" class="block w-full py-2 text-center bg-[#1f1913] border border-atelier-brass text-atelier-ivory font-cinzel text-xs uppercase tracking-wider rounded-xs hover:border-atelier-gold hover:text-atelier-gold transition-colors">
-              Télécharger .EXE (13 Mo)
+            <a href="https://github.com/danoe78210/aldus/releases/download/v1.4.1/Aldus_1.4.1_x64_en-US.msi" class="block w-full py-2 text-center bg-[#1f1913] border border-atelier-brass text-atelier-ivory font-cinzel text-xs uppercase tracking-wider rounded-xs hover:border-atelier-gold hover:text-atelier-gold transition-colors">
+              Télécharger l’installeur autonome .MSI
             </a>
-            <a href="https://github.com/danoe78210/aldus/releases/download/v1.4.0/Aldus_1.4.0_x64_en-US.msi" class="block w-full py-1.5 text-center border border-atelier-border text-atelier-muted font-cinzel text-[11px] uppercase tracking-wider rounded-xs hover:border-atelier-brass hover:text-atelier-bistre transition-colors">
-              Paquet .MSI (18 Mo)
-            </a>
-
-            <!-- Installation en ligne de commande -->
-            <div class="terminal-install-box">
-              <span class="terminal-label">Installation en ligne de commande · manifeste à venir</span>
-              <div class="terminal-command-line">
-                <code id="winget-command">winget install Danoe.Aldus</code>
-                <button type="button" onclick="copyWingetCommand(this)" title="Copier la commande" aria-label="Copier la commande winget">📋</button>
-              </div>
-              <p class="mt-2 text-[10px] text-atelier-muted">Le manifeste Winget peut être publié séparément ; utilisez l'installateur EXE ou MSI ci-dessus.</p>
-            </div>
           </div>
         </div>
 
@@ -1127,7 +1069,7 @@
             </div>
           </div>
           <div class="pt-4 border-t border-atelier-border/50">
-            <a href="https://github.com/danoe78210/aldus/releases/download/v1.4.0/Aldus_1.4.0_universal.dmg" class="block w-full py-2 text-center bg-[#1f1913] border border-atelier-brass text-atelier-ivory font-cinzel text-xs uppercase tracking-wider rounded-xs hover:border-atelier-gold hover:text-atelier-gold transition-colors">
+            <a href="https://github.com/danoe78210/aldus/releases/download/v1.4.1/Aldus_1.4.1_universal.dmg" class="block w-full py-2 text-center bg-[#1f1913] border border-atelier-brass text-atelier-ivory font-cinzel text-xs uppercase tracking-wider rounded-xs hover:border-atelier-gold hover:text-atelier-gold transition-colors">
               Télécharger .DMG (39 Mo)
             </a>
           </div>
@@ -1144,14 +1086,14 @@
             </div>
           </div>
           <div class="space-y-2 pt-4 border-t border-atelier-border/50">
-            <a href="https://github.com/danoe78210/aldus/releases/download/v1.4.0/Aldus_1.4.0_amd64.AppImage" class="block w-full py-2 text-center bg-[#1f1913] border border-atelier-brass text-atelier-ivory font-cinzel text-xs uppercase tracking-wider rounded-xs hover:border-atelier-gold hover:text-atelier-gold transition-colors">
+            <a href="https://github.com/danoe78210/aldus/releases/download/v1.4.1/Aldus_1.4.1_amd64.AppImage" class="block w-full py-2 text-center bg-[#1f1913] border border-atelier-brass text-atelier-ivory font-cinzel text-xs uppercase tracking-wider rounded-xs hover:border-atelier-gold hover:text-atelier-gold transition-colors">
               AppImage Portable (94 Mo)
             </a>
             <div class="grid grid-cols-2 gap-2">
-              <a href="https://github.com/danoe78210/aldus/releases/download/v1.4.0/Aldus_1.4.0_amd64.deb" class="py-1 text-center border border-atelier-border text-atelier-muted font-cinzel text-[10px] uppercase tracking-wider rounded-xs hover:border-atelier-brass hover:text-atelier-bistre transition-colors">
+              <a href="https://github.com/danoe78210/aldus/releases/download/v1.4.1/Aldus_1.4.1_amd64.deb" class="py-1 text-center border border-atelier-border text-atelier-muted font-cinzel text-[10px] uppercase tracking-wider rounded-xs hover:border-atelier-brass hover:text-atelier-bistre transition-colors">
                 .DEB
               </a>
-              <a href="https://github.com/danoe78210/aldus/releases/download/v1.4.0/Aldus-1.4.0-1.x86_64.rpm" class="py-1 text-center border border-atelier-border text-atelier-muted font-cinzel text-[10px] uppercase tracking-wider rounded-xs hover:border-atelier-brass hover:text-atelier-bistre transition-colors">
+              <a href="https://github.com/danoe78210/aldus/releases/download/v1.4.1/Aldus-1.4.1-1.x86_64.rpm" class="py-1 text-center border border-atelier-border text-atelier-muted font-cinzel text-[10px] uppercase tracking-wider rounded-xs hover:border-atelier-brass hover:text-atelier-bistre transition-colors">
                 .RPM
               </a>
             </div>
@@ -1162,7 +1104,7 @@
 
       <p class="text-xs text-atelier-muted mt-8">
         Tous les installeurs sont compilés de manière reproductible via GitHub Actions. Consultez le
-        <a href="https://github.com/danoe78210/aldus/releases/tag/v1.4.0" class="text-atelier-gold underline hover:text-atelier-goldhover">journal de version complet</a>.
+        <a href="https://github.com/danoe78210/aldus/releases/tag/v1.4.1" class="text-atelier-gold underline hover:text-atelier-goldhover">journal de version complet</a>.
       </p>
     </section>
 
@@ -1272,44 +1214,6 @@
       closeLightbox();
     }
   });
-
-  // Copie de la commande d'installation Winget dans le presse-papiers
-  function copyWingetCommand(btn) {
-    const codeEl = document.getElementById("winget-command");
-    if (!codeEl) return;
-    const command = codeEl.textContent.trim();
-
-    const markCopied = () => {
-      const original = btn.textContent;
-      btn.textContent = "✓";
-      btn.setAttribute("title", "Commande copiée");
-      setTimeout(() => {
-        btn.textContent = original;
-        btn.setAttribute("title", "Copier la commande");
-      }, 1600);
-    };
-
-    if (navigator.clipboard && navigator.clipboard.writeText) {
-      navigator.clipboard.writeText(command).then(markCopied).catch(() => fallbackCopyWinget(codeEl, markCopied));
-    } else {
-      fallbackCopyWinget(codeEl, markCopied);
-    }
-  }
-
-  function fallbackCopyWinget(codeEl, onDone) {
-    const range = document.createRange();
-    range.selectNodeContents(codeEl);
-    const selection = window.getSelection();
-    selection.removeAllRanges();
-    selection.addRange(range);
-    try {
-      document.execCommand("copy");
-    } catch (err) {
-      // Silencieux : la sélection reste visible pour une copie manuelle (Ctrl+C)
-    }
-    selection.removeAllRanges();
-    onDone();
-  }
 
   // --- Pupitres d'exposition à onglets (Bancs I & II) : épreuve grand format commutable ---
   const BANC_VIEWERS = {

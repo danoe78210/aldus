@@ -174,30 +174,35 @@ préserve les sources Markdown et les fichiers référencés par un autre ouvrag
 Le **Studio Audio (Banc V)** est intégré au Registre du Livre. L'auteur choisit
 une voix française disponible localement, puis sélectionne `[ Tous les chapitres ]`
 ou un chapitre dans la liste extraite de l'ouvrage avant de lancer
-`[ GÉNÉRER L'ÉDITION AUDIO ]`. Le travail est présenté chapitre par chapitre avec progression.
-Une sélection unitaire ne synthétise que le chapitre choisi; les EPUB et
+`[ GÉNÉRER L'ÉDITION AUDIO ]`. Le hub de progression supérieur centralise
+l'avancement global, le chapitre et le segment courants. Une sélection unitaire
+ne synthétise que le chapitre choisi; les EPUB et
 DOCX fournissent leurs titres et chapitres; un PDF textuel constitue un seul
 segment. Les éléments structurels (couverture, titre, sommaire, mentions
 légales) et les parasites évidents sont écartés.
 
-Au premier accès, Aldus interroge le wrapper local. Si une ou plusieurs voix
-françaises répondent, le sélecteur est immédiatement utilisable. Si le moteur
-est arrêté ou ne fournit aucune voix française, un assistant intégré propose
-soit de relancer la vérification après démarrage d'un moteur existant, soit de
-préparer XTTS v2 dans un environnement Python 3.10 isolé. Les commandes, le
-wrapper de référence et les prérequis PyTorch/FFmpeg y sont indiqués; aucun poids
-du modèle n'est installé dans le bundle Aldus. L'auteur peut fermer l'assistant
-et le rouvrir depuis le panneau d'état du Studio Audio.
+Dans le MSI Windows 1.4.1, Aldus démarre automatiquement les sidecars XTTS v2 et
+FFmpeg; aucun Python, FFmpeg ni réglage du `PATH` système n'est requis. Au
+premier démarrage, l'assistant présente la CPML et exige une acceptation
+explicite avant de télécharger les poids du modèle. Le consentement, les poids
+et les caches sont conservés dans `%LOCALAPPDATA%\net.danoe.aldus\`. En mode
+développement ou avec un moteur tiers, l'assistant conserve la vérification d'un
+wrapper compatible déjà lancé sur localhost et les instructions de préparation
+du wrapper de référence.
 
-Une piste MP3 est produite par chapitre dans un sous-dossier `Audio` du dossier
-d'export. À chaque réussite, la piste est ajoutée ou remplace uniquement celle
+Les chapitres sont découpés en segments de 240 caractères maximum et synthétisés
+séquentiellement. Les fragments temporaires restent sous
+`%LOCALAPPDATA%\net.danoe.aldus\temp\audio\` et sont supprimés après assemblage.
+Une piste MP3 finale est produite par chapitre dans un sous-dossier `Audio` du
+dossier d'export. À chaque réussite, la piste est ajoutée ou remplace uniquement celle
 du même index; les autres pistes déjà générées sont conservées. Le format
 **AUDIO** apparaît sur la tranche et dans le Registre dès la première piste, où
 les chapitres terminés peuvent être écoutés pendant que d'autres restent à
 générer. Les pistes et le profil vocal sont associés à `library.json`. Sans moteur TTS local compatible ou sans voix française,
 l'interface signale l'indisponibilité et ne marque pas l'ouvrage comme audio.
-Le moteur neuronal lui-même est un prérequis d'installation, pas une dépendance
-embarquée dans Aldus.
+Les fichiers finaux restent dans le dossier d'export choisi; modèles, caches,
+temporaires Python et journaux restent dans LocalAppData, jamais dans
+`C:\Program Files\Aldus`.
 
 ---
 ## 5. Évolutions livrées — v1.2.0
@@ -269,7 +274,8 @@ est partagée entre les deux pages du livre via `StudioContext` (état
 - **Bibliothèque** : rayons et métadonnées persistés dans `library.json`, séparément
   du projet `.danoe`.
 - **Studio Audio** : seules les éditions générées avec succès sont publiées dans
-  `library.json`; leurs pistes restent dans `<dossier-export>/Audio/`.
+  `library.json`; leurs pistes finales restent dans `<dossier-export>/Audio/`,
+  tandis que les fragments sont temporaires sous LocalAppData.
 
 ---
 
@@ -294,10 +300,11 @@ est partagée entre les deux pages du livre via `StudioContext` (état
 8. Un scan regroupe les variantes EPUB/PDF/DOCX d'un même nom en une seule
   fiche; ses cartouches de tranche sélectionnent le format correspondant dans
   le Registre.
-9. Le Studio Audio propose les voix françaises d'un moteur localhost, nettoie
-  et segmente les sources EPUB/DOCX (PDF textuel en section unique), et affiche
-  l'avancement chapitre par chapitre. Sans moteur local, aucune donnée n'est
-  envoyée à un serveur distant et une erreur compréhensible est présentée.
+9. Le Studio Audio sur MSI Windows démarre son sidecar intégré après acceptation
+  CPML; il génère ciblé par chapitre, segmente à 240 caractères et affiche
+  chapitre/segment dans le hub global. Les sources EPUB/DOCX sont nettoyées
+  (PDF textuel en section unique); aucun texte n'est envoyé à un serveur distant.
+  Le mode développeur accepte toujours un wrapper localhost externe.
 10. Après synthèse complète, les pistes MP3 sont persistées et écoutables depuis
    le Registre; un échec ne publie pas de badge AUDIO partiel.
 
@@ -318,7 +325,7 @@ parcours fonctionnel et partagent le contexte du projet.
 | **II — Identité & Colophon** | Menu Informations : renseigner titre/sous-titre, saga et tome, auteur et collaborateurs, éditeur, ISBN, date, lieu et bibliographie sur les deux feuillets. Validation au blur et sauvegarde automatique. | Métadonnées persistées dans le projet, réutilisées pour les pages liminaires et le colophon de tirage. |
 | **III — L’Écritoire** | Éditer un chapitre Markdown du dossier source, le créer, utiliser le réglet typographique et consulter le Manuel du Scribe. | Sauvegarde automatique du fichier source et aperçu live mis en page avec les réglages du manuscrit. |
 | **IV — Bibliothèque** | Après Export, consulter les rayons principaux/personnalisés, scanner le dossier de fabrication, agréger EPUB/PDF/DOCX par nom, inspecter les formats et supprimer un ouvrage après confirmation. | Une fiche et une tranche par titre normalisé; suppression limitée aux exports configurés, sans effacer les sources ou fichiers partagés. |
-| **V — Studio Audio** | Depuis le Registre du Livre, choisir une voix française locale et lancer la génération séquentielle par chapitre. | MP3 chapitrés, progression, badge AUDIO et lecteur intégré. Le moteur neuronal local est un prérequis séparé, non embarqué. |
+| **V — Studio Audio** | Depuis le Registre du Livre, choisir une voix française locale, accepter la CPML au premier démarrage du MSI Windows, puis lancer la génération ciblée ou complète. | Sidecars XTTS/FFmpeg intégrés au MSI, hub global chapitre/segment, MP3 chapitrés, badge AUDIO et lecteur intégré; wrapper externe conservé en développement. |
 | **Organisation & Imposition** | Menu Organisation : créer/importer actes, chapitres, images et pages spéciales, renommer, régler le rôle, puis réordonner par glisser-déposer. Consulter la table des matières, l'estimation KDP, les cahiers et les ouvertures de chapitres. | Numérotation romaine et alertes de belle page paire ; calculs de pagination et dos avec coefficients de papier. Une illustration non liée peut bloquer l'export. |
 | **Correcteur — Qualité Typographique & Épreuve** | Menu Correcteur : sélectionner un chapitre, examiner la jauge de qualité et les anomalies pondérées, activer/désactiver les 18 règles, parcourir les signalements dans le diptyque, localiser une occurrence, puis corriger par suggestion ou dans la retouche Markdown. | Les vues IX (examen/registre) et X (épreuve/conseils) partagent chapitre, texte, page et règles. |
 | **VI — Mise en couverture** | Menu Couverture : saisir la pagination, sélectionner papier crème/blanc/couleur, choisir Mat Velouté ou Brillant Éclatant, charger les plats, composer le texte et la couleur/dégradé du dos. Examiner le marbre 2D ou le volume 3D, puis passer la checklist avant export. | Calcul du dos et des dimensions dépliées, inspection DPI, repères de fond perdu/pliure/sécurité/code-barres et détection de dérive de pagination ou de structure. |

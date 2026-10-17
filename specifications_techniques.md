@@ -130,7 +130,8 @@ flipbook est démonté pour ce parcours. Les autres onglets gardent le diptyque.
 | `cover/*` | Cover Studio côté natif (géométrie, inspection, couleurs, Typst) |
 | `corrector/*` | Client LanguageTool, options, dictionnaires |
 | `library.rs` / `library/metadata.rs` | Scan/agrégation EPUB-PDF-DOCX, statistiques et persistance `library.json` |
-| `library/audio.rs` | Extraction narrative et orchestration séquentielle d'un moteur TTS localhost |
+| `library/audio.rs` | Extraction narrative, lancement lazy du moteur embarqué Windows et orchestration séquentielle des pistes |
+| `tauri.sidecar.conf.json` / `scripts/build_windows_audio_sidecars.ps1` | Overlay WiX MSI Windows et préparation des sidecars PyInstaller/FFmpeg en CI |
 | `library/deletion.rs` | Suppression bornée au dossier d'export, restauration si persistance en échec |
 
 **Principes transverses** : découpage sans coupe de mot/UTF-8, écritures
@@ -204,27 +205,45 @@ styles, le texte lisible devient un chapitre unique. Les PDF utilisent
 échoue explicitement et nécessite un OCR préalable.
 
 Le nettoyage enlève lignes vides, numéros de page isolés, URL, ISBN et mentions
-« Tous droits réservés » / « All rights reserved ». Les sorties sont écrites
-sous `<export_directory>/Audio/<titre>-<bookId>-<timestamp>/NNN-<chapitre>.mp3`.
-Un échec supprime le répertoire de génération courant et laisse l'édition audio
+« Tous droits réservés » / « All rights reserved ». Les pistes finales sont
+écrites sous `<export_directory>/Audio/<titre>-<bookId>-<timestamp>/NNN-<chapitre>.mp3`.
+Les fragments et le manifeste FFmpeg résident sous
+`%LOCALAPPDATA%\net.danoe.aldus\temp\audio\` puis sont supprimés. Un échec
+supprime le répertoire de sortie incomplet et laisse l'édition audio
 précédemment persistée intacte. La suppression d'un livre supprime également ses
 pistes MP3/M4B référencées dans le dossier d'export.
 
-#### Adaptateur TTS local
+#### Adaptateur TTS local et MSI Windows
 
-Aucun modèle neuronal ni serveur TTS n'est embarqué dans le binaire Aldus. Le
-wrapper XTTS v2, F5-TTS ou équivalent est un prérequis local, configurable par
-`ALDUS_TTS_URL` (défaut `http://127.0.0.1:8020`). Le client refuse tout hôte
-autre que `localhost`, `127.0.0.1` ou `::1` en HTTP : le manuscrit ne sort donc
-pas vers un service distant.
+Le mode développement et macOS/Linux conservent un wrapper localhost configurable
+par `ALDUS_TTS_URL` (défaut `http://127.0.0.1:8020`). Le client refuse tout hôte
+autre que `localhost`, `127.0.0.1` ou `::1` en HTTP. Le MSI Windows 1.4.1
+embarque un sidecar `aldus-audio-server` gelé par PyInstaller `--onefile`
+(Python 3.10.11, PyTorch CPU 2.2.2, Coqui TTS 0.22.0, Transformers 4.41.2) et
+un sidecar FFmpeg 8.1.3 statique LGPL. Le texte LGPL accompagne l'application.
 
-À la première interrogation sans voix française, `AudioSetupDialog` présente
-deux parcours : reconnecter un wrapper déjà lancé, ou suivre les commandes de
-préparation XTTS dans un environnement Python 3.10 isolé. `scripts/requirements-xtts.txt`
-est séparé de `package.json` et `Cargo.toml`; PyTorch/torchaudio sont
-installés selon le matériel et FFmpeg (binaire système requis par pydub pour le
-MP3) reste lui aussi hors du bundle. La fermeture du dialogue laisse le Registre
-utilisable; son bouton d'état permet de le rouvrir.
+`src-tauri/tauri.sidecar.conf.json` est appliqué uniquement par le job release
+Windows : `bundle.targets` vaut `msi`, `externalBin` déclare les deux exécutables
+et WiX embarque le runtime Visual C++. Le `tauri.conf.json` commun conserve les
+cibles macOS/Linux. GitHub Actions installe Python 3.10.11, prépare Torch CPU,
+fige le wrapper, télécharge FFmpeg versionné et vérifie son SHA-256 avant le
+build Tauri; `tauri-action` attache le MSI aux assets de la release.
+
+Le sidecar est démarré paresseusement au premier `list_audio_voices()` ou
+`generate_book_audio()`. L'assistant exige l'accord explicite CPML, enregistré
+sous LocalAppData avant que Rust transmette `COQUI_TOS_AGREED=1`. Le premier
+téléchargement des poids requiert une connexion réseau. Rust attend `GET
+/health`, relaie stdout/stderr au logger Tauri et arrête l'arbre du processus
+Windows à `RunEvent::Exit`. En développement, l'interface garde le parcours du
+wrapper externe.
+
+TTS (`TTS_HOME`), Hugging Face, Transformers, Torch, Matplotlib, Numba et XDG
+sont redirigés vers `%LOCALAPPDATA%\net.danoe.aldus\models|cache|config`.
+`TEMP`, `TMP`, `TMPDIR` et l'extraction PyInstaller utilisent le même root.
+FFmpeg est résolu par chemin sidecar absolu, sans dépendre du `PATH` système.
+Le logger Tauri écrit dans stdout et
+`%LOCALAPPDATA%\net.danoe.aldus\logs\Aldus.log`; aucun processus ne doit écrire
+dans `C:\Program Files\Aldus`.
 
 - `GET /voices` : tableau de voix ou `{ "voices": [...] }`, chaque entrée
   portant `id`, `name` et éventuellement `language`.
