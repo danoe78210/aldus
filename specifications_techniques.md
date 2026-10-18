@@ -250,8 +250,9 @@ Le wrapper expose la phase d'initialisation par `GET /status` (`status` vaut
 `initializing`, `ready` ou `error`, avec `percent`, `stage`, `model_loaded` et
 `error`). Dès `status == "error"`, Rust arrête le sidecar et remonte l'erreur
 sans attendre le timeout de 60 s. Le build PyInstaller collecte explicitement
-les modules, données et binaires de `inflect` et `typeguard` pour inclure leurs
-ressources runtime. Rust publie `audio:init-progress` avec `percent`, `stage`,
+les modules, données et binaires de `inflect`, `typeguard` et `gruut`; il
+inspecte ensuite l'archive et échoue si `gruut/VERSION` est absent. Rust publie
+`audio:init-progress` avec `percent`, `stage`,
 `isReady` et `error`; `App.tsx` écoute cet événement et
 alimente l'état de progression partagé par `Layout` et le composant `TopBar`.
 Cette barre reste visible quel que soit le panneau ouvert. L'initialisation

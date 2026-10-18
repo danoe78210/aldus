@@ -42,11 +42,18 @@ $pyInstallerArgs = @(
     "--collect-all", "uvicorn",
     "--collect-all", "inflect",
     "--collect-all", "typeguard",
+    "--collect-all", "gruut",
     "--hidden-import", "TTS.tts.models.xtts",
     (Join-Path $repoRoot "scripts\xtts_wrapper.py")
 )
 python -m PyInstaller @pyInstallerArgs
 if ($LASTEXITCODE -ne 0) { throw "PyInstaller failed to freeze the XTTS sidecar." }
+
+$sidecarExecutable = Join-Path $distDirectory "aldus-audio-server.exe"
+$archiveEntries = python -c 'from PyInstaller.archive.readers import CArchiveReader; import sys; print("\n".join(CArchiveReader(sys.argv[1]).toc))' $sidecarExecutable
+if ($LASTEXITCODE -ne 0) { throw "Unable to inspect the frozen XTTS sidecar archive." }
+$hasGruutVersion = $archiveEntries | Where-Object { $_.Replace("\", "/") -eq "gruut/VERSION" }
+if (-not $hasGruutVersion) { throw "The frozen XTTS sidecar is missing gruut/VERSION." }
 
 Invoke-WebRequest -Uri $ffmpegUrl -OutFile $ffmpegArchive
 $actualSha256 = (Get-FileHash -LiteralPath $ffmpegArchive -Algorithm SHA256).Hash.ToLowerInvariant()
