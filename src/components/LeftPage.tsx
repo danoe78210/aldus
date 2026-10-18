@@ -17,6 +17,7 @@ import { CoverPlate } from "./cover/CoverPlate";
 import { PressInspection } from "./PressInspection";
 import { ProofExaminer } from "./ProofExaminer";
 import { ExLibrisBadge } from "./navigation/ExLibrisBadge";
+import { BronzeVersionPlate } from "./navigation/BronzeVersionPlate";
 import { WritingEditor } from "./WritingStudio";
 import { useStudio } from "./StudioContext";
 import { placeChapters } from "../data/imposition";
@@ -164,7 +165,7 @@ export const LeftPage: React.FC<LeftPageProps> = ({
           })}
 
           {/* Bas de tranche : Ex-Libris de l'auteur, puis sortie de l'atelier */}
-          <div className="mt-auto flex w-full flex-col items-center">
+          <div className="mt-auto flex w-full flex-col items-center space-y-4">
             {/* L'Ex-Libris de Danoë — emblème du Dragon, ouvre danoeecrivain.net */}
             <ExLibrisBadge />
 
@@ -232,6 +233,11 @@ export const LeftPage: React.FC<LeftPageProps> = ({
         <Frontispice leaving={isTransitioning} />
       )}
       </div>}
+      {!navigationOnly && activeMenu === "reglages" && (
+        <div className="pointer-events-none absolute bottom-10 left-1/2 z-20 -translate-x-1/2">
+          <BronzeVersionPlate className="pointer-events-auto flex h-[30px] w-[152px] items-center justify-center" />
+        </div>
+      )}
     </div>
   );
 };

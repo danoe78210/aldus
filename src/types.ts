@@ -75,6 +75,13 @@ export interface AudioInitProgressPayload {
   error?: string;
 }
 
+export interface UpdateStatus {
+  available: boolean;
+  latestVersion: string;
+  releaseUrl: string | null;
+  notes: string | null;
+}
+
 export interface AudioGenerationProgress {
   bookId: string;
   chapterIndex: number;

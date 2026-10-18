@@ -10,6 +10,7 @@ pub mod kdp;
 mod markdown;
 pub mod pdf;
 mod project;
+mod updater;
 
 use serde_json::Value;
 use tauri::Emitter;
@@ -405,10 +406,12 @@ async fn clear_cache_and_exit(app: tauri::AppHandle) -> Result<(), String> {
 pub fn run() {
     let app = tauri::Builder::default()
         .manage(library::AudioEngine::default())
+        .manage(updater::UpdateChecker::default())
         .plugin(tauri_plugin_shell::init())
         .plugin(
             tauri_plugin_log::Builder::new()
                 .level(log::LevelFilter::Info)
+                .level_for("aldus_lib::updater", log::LevelFilter::Debug)
                 .targets([
                     Target::new(TargetKind::Stdout),
                     Target::new(TargetKind::LogDir {
@@ -418,6 +421,15 @@ pub fn run() {
                 .build(),
         )
         .plugin(tauri_plugin_dialog::init())
+        .setup(|app| {
+            let app = app.handle().clone();
+            tauri::async_runtime::spawn(async move {
+                if let Err(error) = updater::check_update_status(&app, false).await {
+                    log::debug!("Startup update check skipped: {error}");
+                }
+            });
+            Ok(())
+        })
         // Fermeture de fenêtre **interceptée** : l'UI joue d'abord la cinématique
         // 3D (événement `app-close-requested`), puis appelle `finalize_exit`.
         .on_window_event(|window, event| {
@@ -474,7 +486,9 @@ pub fn run() {
             library::start_audio_engine,
             library::list_book_audio_chapters,
             library::generate_book_audio,
-            clear_cache_and_exit
+            clear_cache_and_exit,
+            updater::check_for_updates,
+            updater::open_external
         ])
         .build(tauri::generate_context!())
         .expect("erreur au lancement d'Aldus");

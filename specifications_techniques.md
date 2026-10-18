@@ -221,7 +221,7 @@ pistes MP3/M4B référencées dans le dossier d'export.
 
 Le mode développement et macOS/Linux conservent un wrapper localhost configurable
 par `ALDUS_TTS_URL` (défaut `http://127.0.0.1:8020`). Le client refuse tout hôte
-autre que `localhost`, `127.0.0.1` ou `::1` en HTTP. Le MSI Windows 1.4.2
+autre que `localhost`, `127.0.0.1` ou `::1` en HTTP. Le MSI Windows 1.4.3
 embarque un sidecar `aldus-audio-server` gelé par PyInstaller `--onefile`
 (Python 3.10.11, PyTorch CPU 2.2.2, Coqui TTS 0.22.0, Transformers 4.41.2) et
 un sidecar FFmpeg 8.1.3 statique LGPL. Le texte LGPL accompagne l'application.
@@ -250,8 +250,9 @@ Le wrapper expose la phase d'initialisation par `GET /status` (`status` vaut
 `initializing`, `ready` ou `error`, avec `percent`, `stage`, `model_loaded` et
 `error`). Dès `status == "error"`, Rust arrête le sidecar et remonte l'erreur
 sans attendre le timeout de 60 s. Le build PyInstaller collecte explicitement
-les modules, données et binaires de `inflect`, `typeguard` et `gruut`; il
-inspecte ensuite l'archive et échoue si `gruut/VERSION` est absent. Rust publie
+les modules, données et binaires de `inflect`, `typeguard` et `gruut`, ainsi
+que les métadonnées de distribution Gruut (`--copy-metadata gruut`); il inspecte
+ensuite l'archive et échoue si `gruut/VERSION` est absent. Rust publie
 `audio:init-progress` avec `percent`, `stage`,
 `isReady` et `error`; `App.tsx` écoute cet événement et
 alimente l'état de progression partagé par `Layout` et le composant `TopBar`.
@@ -276,6 +277,19 @@ dans `C:\Program Files\Aldus`.
 
 Le contrat d'intégration et un exemple de requêtes sont détaillés dans
 `docs/studio-audio-local-engine.md`.
+
+#### Vérification des releases
+
+Au démarrage, `updater::check_update_status` est lancé dans une tâche Tauri
+détachée. `UpdateChecker` sérialise ce contrôle avec la commande frontend
+`check_for_updates`; `config.json.system` conserve `last_update_check`,
+`latest_known_version`, `update_url`, les notes et l'état de disponibilité. Le
+GET `/repos/danoe78210/aldus/releases/latest` porte `User-Agent: Aldus-App`,
+utilise des timeouts bornés et est ignoré pendant 24 heures après un contrôle.
+Le bloc `system` est fusionné aux autres clés puis persisté par `.tmp` et
+`rename`. Les erreurs réseau ne remontent pas à l'UI et sont consignées en
+DEBUG. La commande `open_external` n'accepte que les pages HTTPS des releases
+du dépôt Aldus.
 ---
 
 ## 5. Composant `GoldCrucible.tsx` (spécification impérative)

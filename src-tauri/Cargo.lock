@@ -53,7 +53,7 @@ dependencies = [
 
 [[package]]
 name = "aldus"
-version = "1.4.2"
+version = "1.4.3"
 dependencies = [
  "chrono",
  "docx-rs",
@@ -64,6 +64,7 @@ dependencies = [
  "lopdf",
  "reqwest 0.12.28",
  "roxmltree",
+ "semver",
  "serde",
  "serde_json",
  "tauri",

@@ -1,4 +1,13 @@
 # Registre des Évolutions — Aldus
+## [1.4.3] - MSI autonome XTTS & plaque de version
+### Corrigé
+- Sidecar PyInstaller : collecte de `gruut`, `inflect` et `typeguard`, copie des métadonnées Gruut et vérification de `gruut/VERSION` avant le packaging MSI.
+- Initialisation XTTS : statut `/status` en erreur transmis immédiatement à Rust au lieu d'attendre le délai de 60 secondes.
+
+### Ajouté
+- Plaque de bronze interactive avec vérification quotidienne des releases GitHub, notes de version et ouverture sécurisée de la page officielle.
+- Studio Audio unitaire, métriques de chapitre et suppression physique des pistes MP3 depuis le Registre.
+
 ## [1.4.2] - Banc V unitaire & démarrage CPML
 ### Ajouté
 - Assistant CPML fermé dès l'acceptation; consentement enregistré atomiquement dans `%LOCALAPPDATA%\\net.danoe.aldus\\config.json` avant le démarrage du moteur.

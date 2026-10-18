@@ -43,6 +43,7 @@ $pyInstallerArgs = @(
     "--collect-all", "inflect",
     "--collect-all", "typeguard",
     "--collect-all", "gruut",
+    "--copy-metadata", "gruut",
     "--hidden-import", "TTS.tts.models.xtts",
     (Join-Path $repoRoot "scripts\xtts_wrapper.py")
 )

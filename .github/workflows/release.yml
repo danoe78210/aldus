@@ -64,21 +64,20 @@ jobs:
           tagName: ${{ github.ref_name }}
           releaseName: 'Aldus ${{ github.ref_name }}'
           releaseBody: |
-            ## Aldus 1.4.2 — Studio Audio unitaire & assistant CPML
+            ## Aldus 1.4.3 — MSI XTTS corrigé & vérification des releases
 
-            - Banc V — Studio Audio : synthèse strictement unitaire, métriques contextuelles du chapitre et suppression de piste MP3.
-            - Assistant CPML fermé dès l'acceptation; consentement atomique dans LocalAppData avant le démarrage du moteur.
-            - Progression réelle d'initialisation Python/PyTorch/XTTS affichée dans le pupitre supérieur.
-            - Découpage XTTS en segments de 240 caractères et assemblage MP3 par chapitre.
-            - Erreurs contextualisées dans le journal Tauri et le terminal du wrapper local.
-            - Windows : MSI WiX autonome avec moteur XTTS et FFmpeg embarqués; poids téléchargés après accord CPML.
+            - Windows : MSI WiX autonome avec serveur XTTS PyInstaller, `gruut/VERSION` vérifié et FFmpeg embarqué.
+            - Plaque de bronze : vérification quotidienne des releases, notes et accès direct à la mise à jour.
+            - Banc V — Studio Audio : synthèse unitaire, métriques contextuelles et suppression de piste MP3.
+            - Assistant CPML fermé dès l'acceptation; consentement atomique et progression moteur dans le pupitre supérieur.
+            - XTTS découpé en segments de 240 caractères, erreurs d'initialisation remontées sans attendre le timeout.
 
             ### Captures
-            - [Registre & sélecteur de chapitre](https://github.com/danoe78210/aldus/blob/v1.4.2/docs/assets/screenshots/studio-audio-chapter-selector.png)
-            - [Pupitre Audio & badge AUDIO](https://github.com/danoe78210/aldus/blob/v1.4.2/docs/assets/screenshots/studio-audio-player.png)
-            - [Progression supérieure](https://github.com/danoe78210/aldus/blob/v1.4.2/docs/assets/screenshots/studio-audio-progress.png)
+            - [Registre & sélecteur de chapitre](https://github.com/danoe78210/aldus/blob/v1.4.3/docs/assets/screenshots/studio-audio-chapter-selector.png)
+            - [Pupitre Audio & badge AUDIO](https://github.com/danoe78210/aldus/blob/v1.4.3/docs/assets/screenshots/studio-audio-player.png)
+            - [Progression supérieure](https://github.com/danoe78210/aldus/blob/v1.4.3/docs/assets/screenshots/studio-audio-progress.png)
 
-            Voir [CHANGELOG.md](https://github.com/danoe78210/aldus/blob/v1.4.2/CHANGELOG.md) et le [Manuel du Scribe Audio](https://github.com/danoe78210/aldus/blob/v1.4.2/docs/manuel-scribe-audio.md).
+            Voir [CHANGELOG.md](https://github.com/danoe78210/aldus/blob/v1.4.3/CHANGELOG.md) et le [Manuel du Scribe Audio](https://github.com/danoe78210/aldus/blob/v1.4.3/docs/manuel-scribe-audio.md).
           releaseDraft: false
           prerelease: false
           args: ${{ matrix.args }}

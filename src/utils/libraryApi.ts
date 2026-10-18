@@ -1,5 +1,5 @@
 import { convertFileSrc } from "@tauri-apps/api/core";
-import type { AudioChapterChoice, AudioConfig, AudioGenerationProgress, AudioInitProgressPayload, AudioVoice, Book, LibraryConfig, ScannedBook, Shelf, ShelfId } from "../types";
+import type { AudioChapterChoice, AudioConfig, AudioGenerationProgress, AudioInitProgressPayload, AudioVoice, Book, LibraryConfig, ScannedBook, Shelf, ShelfId, UpdateStatus } from "../types";
 import { invokeCommand, isInvokeAvailable, listenEvent } from "./tauri";
 
 const STORAGE_KEY = "aldus-library";
@@ -32,6 +32,12 @@ export const openLibraryResource = async (bookId: string, resource: string): Pro
   if (!isInvokeAvailable()) throw new Error("L'ouverture des fichiers locaux nécessite l'application Aldus de bureau.");
   return invokeCommand<void>("open_library_resource", { bookId, resource });
 };
+
+export const checkForUpdates = (force = false): Promise<UpdateStatus> =>
+  invokeCommand<UpdateStatus>("check_for_updates", { force });
+
+export const openExternalUrl = (url: string): Promise<void> =>
+  invokeCommand<void>("open_external", { url });
 
 export const libraryCoverUrl = (path: string): string | undefined => {
   if (/^(https?:|data:image\/|blob:)/i.test(path)) return path;

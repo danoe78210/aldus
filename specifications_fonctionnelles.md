@@ -184,7 +184,7 @@ DOCX fournissent leurs titres et chapitres; un PDF textuel constitue un seul
 segment. Les éléments structurels (couverture, titre, sommaire, mentions
 légales) et les parasites évidents sont écartés.
 
-Dans le MSI Windows 1.4.2, Aldus démarre automatiquement les sidecars XTTS v2 et
+Dans le MSI Windows 1.4.3, Aldus démarre automatiquement les sidecars XTTS v2 et
 FFmpeg; aucun Python, FFmpeg ni réglage du `PATH` système n'est requis. Au
 premier démarrage, l'assistant présente la CPML et exige une acceptation
 explicite avant de télécharger les poids du modèle. Dès le clic d'acceptation,
@@ -210,6 +210,11 @@ l'interface signale l'indisponibilité et ne marque pas l'ouvrage comme audio.
 Les fichiers finaux restent dans le dossier d'export choisi; modèles, caches,
 temporaires Python et journaux restent dans LocalAppData, jamais dans
 `C:\Program Files\Aldus`.
+
+La plaque de bronze affiche la version du binaire, vérifie une release GitHub
+au plus une fois par jour et ne signale une mise à jour qu'après une réponse
+valide. En cas de nouvelle version, elle ouvre un détail des notes et propose
+d'ouvrir la page officielle de release; une erreur réseau reste silencieuse.
 
 ---
 ## 5. Évolutions livrées — v1.2.0
