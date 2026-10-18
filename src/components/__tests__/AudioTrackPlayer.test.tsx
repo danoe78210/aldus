@@ -27,4 +27,11 @@ describe("AudioTrackPlayer", () => {
     fireEvent.click(screen.getByRole("button", { name: "Lire Chapitre premier" }));
     expect(play).toHaveBeenCalledOnce();
   });
+
+  it("calls the track deletion action from the trailing trash button", () => {
+    const onDelete = vi.fn();
+    render(<AudioTrackPlayer src="asset://localhost/chapter.mp3" title="Chapitre premier" onDelete={onDelete} />);
+    fireEvent.click(screen.getByRole("button", { name: "Supprimer la piste audio Chapitre premier" }));
+    expect(onDelete).toHaveBeenCalledOnce();
+  });
 });

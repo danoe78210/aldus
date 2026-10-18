@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { ArrowLeft, AudioLines, BookOpen, Trash2 } from "lucide-react";
-import type { AudioChapterChoice, AudioGenerationProgress, AudioVoice, Book, Shelf } from "../types";
-import { acceptAudioModelTerms, libraryCoverUrl, listAudioVoices, listBookAudioChapters, openLibraryResource } from "../utils/libraryApi";
+import type { AudioChapterChoice, AudioConfig, AudioGenerationProgress, AudioVoice, Book, Shelf } from "../types";
+import { getAudioConsent, libraryCoverUrl, listAudioVoices, listBookAudioChapters, listenAudioInitProgress, openLibraryResource, saveAudioConsent, startAudioEngine } from "../utils/libraryApi";
 import { LibraryDeleteDialog } from "./LibraryDeleteDialog";
 import { AudioTrackPlayer } from "./AudioTrackPlayer";
 import { AudioSetupDialog } from "./AudioSetupDialog";
@@ -15,13 +15,19 @@ interface LibraryBookDetailProps {
   onBack: () => void;
   onMove: (bookId: string, shelfId: string) => void;
   onDelete: (bookId: string) => Promise<boolean>;
-  onGenerateAudio?: (bookId: string, voiceId: string, chapterIndex: number | null, onProgress: (progress: AudioGenerationProgress) => void) => Promise<boolean>;
+  onDeleteAudioTrack?: (bookId: string, chapterIndex: number) => Promise<boolean>;
+  onGenerateAudio?: (bookId: string, voiceId: string, chapterIndex: number, onProgress: (progress: AudioGenerationProgress) => void) => Promise<boolean>;
   operationError?: string | null;
 }
 
 const INACTIVE_TTS_MESSAGE = "Le moteur vocal local est inactif. Veuillez lancer le wrapper TTS sur le port 8020 ou configurer ALDUS_TTS_URL.";
+const formatEstimatedDuration = (seconds: number): string => {
+  const minutes = Math.floor(seconds / 60);
+  const remainingSeconds = seconds % 60;
+  return remainingSeconds === 0 ? `${minutes} min` : `${minutes} min ${remainingSeconds} s`;
+};
 
-export const LibraryBookDetail = ({ book, initialFormat, exportDirectory, shelves, busy, onBack, onMove, onDelete, onGenerateAudio, operationError }: LibraryBookDetailProps) => {
+export const LibraryBookDetail = ({ book, initialFormat, exportDirectory, shelves, busy, onBack, onMove, onDelete, onDeleteAudioTrack, onGenerateAudio, operationError }: LibraryBookDetailProps) => {
   const [error, setError] = useState<string | null>(null);
   const [failedCover, setFailedCover] = useState<string | null>(null);
   const [opening, setOpening] = useState(false);
@@ -29,12 +35,15 @@ export const LibraryBookDetail = ({ book, initialFormat, exportDirectory, shelve
   const [voices, setVoices] = useState<AudioVoice[]>([]);
   const [voiceId, setVoiceId] = useState("");
   const [audioChapters, setAudioChapters] = useState<AudioChapterChoice[]>([]);
-  const [chapterSelection, setChapterSelection] = useState("all");
+  const [chapterSelection, setChapterSelection] = useState("");
   const [chapterError, setChapterError] = useState<string | null>(null);
   const [voiceError, setVoiceError] = useState<string | null>(null);
   const [audioProgress, setAudioProgress] = useState<AudioGenerationProgress | null>(null);
   const [audioBusy, setAudioBusy] = useState(false);
   const [checkingAudio, setCheckingAudio] = useState(false);
+  const [audioEngineMode, setAudioEngineMode] = useState<AudioConfig["engine_mode"]>("external");
+  const [cpmlAccepted, setCpmlAccepted] = useState(false);
+  const [voiceInitPercent, setVoiceInitPercent] = useState<number | null>(null);
   const [audioSetupOpen, setAudioSetupOpen] = useState(false);
   const standardFiles = (["epub", "pdf", "docx"] as const).flatMap((format) => (book.files ?? [])
     .filter((file) => file.format === format)
@@ -43,10 +52,10 @@ export const LibraryBookDetail = ({ book, initialFormat, exportDirectory, shelve
   const files = book.audio?.chapters[0] ? [...standardFiles, { path: book.audio.chapters[0].path, format: "audio" as const }] : standardFiles;
   const [selectedPath, setSelectedPath] = useState<string | null>(() => files.find((file) => file.format === initialFormat)?.path ?? null);
   const selectedFile = files.find((file) => file.path === selectedPath) ?? files.find((file) => file.format === "epub") ?? files[0];
+  const selectedAudioChapter = audioChapters.find((chapter) => chapter.index === Number(chapterSelection));
   const statistics = selectedFile ? book.fileStatistics?.[selectedFile.path] : undefined;
   const legacyStatistics = !statistics && selectedFile?.format !== "docx";
   const pageCount = statistics ? statistics.pageCount : legacyStatistics ? book.pageCount : undefined;
-  const chapterCount = statistics ? statistics.chapterCount : legacyStatistics && book.chapterCountAvailable !== false ? book.chapterCount : undefined;
   const lastModified = statistics ? statistics.lastModified : legacyStatistics ? book.lastModified : undefined;
   const coverUrl = book.coverPath ? libraryCoverUrl(book.coverPath) : undefined;
   const modifiedDate = lastModified != null ? new Date(lastModified) : null;
@@ -73,35 +82,79 @@ export const LibraryBookDetail = ({ book, initialFormat, exportDirectory, shelve
               : chapterError ?? (audioChapters.length === 0 ? "Chargement des chapitres narratifs…" : null);
   useEffect(() => {
     let active = true;
-    listAudioVoices().then((available) => {
-      if (!active) return;
-      if (available.length === 0) {
-        setVoices([]);
-        setVoiceId("");
-        setVoiceError(INACTIVE_TTS_MESSAGE);
-        if (!book.audio) setAudioSetupOpen(true);
-        return;
+    let unlisten: (() => void) | null = null;
+    const initializeAudio = async () => {
+      setCheckingAudio(true);
+      setVoiceInitPercent(0);
+      let shouldOfferSetup = true;
+      try {
+        const stopProgress = await listenAudioInitProgress((progress) => {
+          if (!active) return;
+          setVoiceInitPercent(progress.isReady ? 100 : progress.error ? null : progress.percent);
+          if (progress.error) setVoiceError(progress.error);
+        });
+        if (!active) {
+          stopProgress?.();
+          return;
+        }
+        unlisten = stopProgress;
+        const config = await getAudioConsent();
+        if (!active) return;
+        setAudioEngineMode(config.engine_mode);
+        setCpmlAccepted(config.cpml_accepted);
+        if (config.engine_mode === "integrated" && !config.cpml_accepted) {
+          setVoiceId("");
+          setVoiceError("L'accord CPML est requis pour télécharger et utiliser XTTS v2.");
+          setAudioSetupOpen(true);
+          return;
+        }
+        shouldOfferSetup = config.engine_mode === "external";
+
+        const available = config.engine_mode === "integrated"
+          ? await startAudioEngine()
+          : await listAudioVoices();
+        if (!active) return;
+        if (available.length === 0) {
+          setVoices([]);
+          setVoiceId("");
+          setVoiceError(INACTIVE_TTS_MESSAGE);
+          if (config.engine_mode === "external") setAudioSetupOpen(true);
+          return;
+        }
+        setVoices(available);
+        setVoiceId((current) => current || available[0]?.id || "");
+        setVoiceError(null);
+      } catch (reason: unknown) {
+        if (active) {
+          setVoiceError(reason instanceof Error ? reason.message : INACTIVE_TTS_MESSAGE);
+          if (shouldOfferSetup) setAudioSetupOpen(true);
+        }
+      } finally {
+        if (active) {
+          setCheckingAudio(false);
+          setVoiceInitPercent(null);
+        }
       }
-      setVoices(available);
-      setVoiceId((current) => current || available[0]?.id || "");
-      setVoiceError(null);
-    }).catch((reason: unknown) => {
-      if (active) {
-        setVoiceError(reason instanceof Error ? reason.message : INACTIVE_TTS_MESSAGE);
-        if (!book.audio) setAudioSetupOpen(true);
-      }
-    });
-    return () => { active = false; };
-  }, [book.audio]);
+    };
+    void initializeAudio();
+    return () => {
+      active = false;
+      unlisten?.();
+    };
+  }, []);
   useEffect(() => {
     let active = true;
     listBookAudioChapters(book.id).then((chapters) => {
       if (!active) return;
       setAudioChapters(chapters);
+      setChapterSelection((current) => chapters.some((chapter) => String(chapter.index) === current)
+        ? current
+        : String(chapters[0]?.index ?? ""));
       setChapterError(chapters.length > 0 ? null : "Aucun chapitre narratif disponible.");
     }).catch((reason: unknown) => {
       if (!active) return;
       setAudioChapters([]);
+      setChapterSelection("");
       setChapterError(reason instanceof Error ? reason.message : "Liste des chapitres audio indisponible.");
     });
     return () => { active = false; };
@@ -109,7 +162,9 @@ export const LibraryBookDetail = ({ book, initialFormat, exportDirectory, shelve
   const retryAudioEngine = async () => {
     setCheckingAudio(true);
     try {
-      const available = await listAudioVoices();
+      const available = audioEngineMode === "integrated"
+        ? await startAudioEngine()
+        : await listAudioVoices();
       if (available.length === 0) throw new Error(INACTIVE_TTS_MESSAGE);
       setVoices(available);
       setVoiceId((current) => available.some((voice) => voice.id === current) ? current : available[0].id);
@@ -122,15 +177,20 @@ export const LibraryBookDetail = ({ book, initialFormat, exportDirectory, shelve
     }
   };
   const acceptTermsAndStartAudio = async () => {
+    setAudioSetupOpen(false);
     setCheckingAudio(true);
     try {
-      await acceptAudioModelTerms();
-      const available = await listAudioVoices();
+      await saveAudioConsent(true);
+      setCpmlAccepted(true);
+      setAudioEngineMode("integrated");
+      setVoiceError(null);
+      const startRequest = startAudioEngine();
+      setAudioSetupOpen(false);
+      const available = await startRequest;
       if (available.length === 0) throw new Error(INACTIVE_TTS_MESSAGE);
       setVoices(available);
       setVoiceId((current) => available.some((voice) => voice.id === current) ? current : available[0].id);
       setVoiceError(null);
-      setAudioSetupOpen(false);
     } catch (reason) {
       setVoiceError(reason instanceof Error ? reason.message : INACTIVE_TTS_MESSAGE);
     } finally {
@@ -171,55 +231,64 @@ export const LibraryBookDetail = ({ book, initialFormat, exportDirectory, shelve
             <h3 className="break-words font-cinzel text-base text-[#f3f0ea]">{book.title}</h3>
             {book.tome && <p className="mt-1 font-serif text-sm text-[#c9bea9]">Tome {book.tome}</p>}
           </div>
-          <label className="text-xs text-[#c9bea9]">Emplacement actuel
-            <select value={book.shelfId} disabled={busy} onChange={(event) => onMove(book.id, event.target.value)} className="mt-2 w-full min-w-0 rounded-sm border border-[#4a3b2c] bg-[#141210] px-2 py-2 text-sm text-[#f3f0ea]">
+          <label className="text-sm text-[#c9bea9]">Emplacement actuel
+            <select value={book.shelfId} disabled={busy} onChange={(event) => onMove(book.id, event.target.value)} className="mt-2 w-full min-w-0 rounded-sm border border-[#4a3b2c] bg-[#141210] px-2 py-2 text-base text-[#f3f0ea]">
               {shelves.map((shelf) => <option key={shelf.id} value={shelf.id}>{shelf.label}</option>)}
             </select>
           </label>
           {files.length > 0 && (
             <div role="group" aria-label="Formats disponibles" className="flex flex-wrap gap-2">
               {files.map((file) => (
-                <button key={file.path} type="button" aria-pressed={selectedFile?.path === file.path} disabled={busy || opening} title={file.path} onClick={() => { setSelectedPath(file.path); setError(null); }} className={`rounded-sm border px-2.5 py-1 font-cinzel text-[10px] transition-colors disabled:opacity-40 ${selectedFile?.path === file.path ? "border-[#d4af37] bg-[#302619] text-[#d4af37]" : "border-[#4a3b2c] text-[#a99a83] hover:border-[#8f6e2b] hover:text-[#d4af37]"}`}>
+                <button key={file.path} type="button" aria-pressed={selectedFile?.path === file.path} disabled={busy || opening} title={file.path} onClick={() => { setSelectedPath(file.path); setError(null); }} className={`rounded-sm border px-2.5 py-1 font-cinzel text-xs transition-colors disabled:opacity-40 ${selectedFile?.path === file.path ? "border-[#d4af37] bg-[#302619] text-[#d4af37]" : "border-[#4a3b2c] text-[#a99a83] hover:border-[#8f6e2b] hover:text-[#d4af37]"}`}>
                   {file.format.toUpperCase()}
                 </button>
               ))}
             </div>
           )}
           <div className="flex flex-col items-start gap-3 border-t border-[#382f22] pt-4">
-            <button type="button" disabled={busy || opening || !selectedFile} onClick={() => void open()} className="flex max-w-full items-center gap-2 rounded-sm border border-[#8f6e2b] bg-[#211c15] px-3 py-2 text-left font-cinzel text-xs text-[#d4af37] hover:bg-[#302619] disabled:opacity-40"><BookOpen size={16} className="shrink-0" /> Ouvrir le livre</button>
+            <button type="button" disabled={busy || opening || !selectedFile} onClick={() => void open()} className="flex max-w-full items-center gap-2 rounded-sm border border-[#8f6e2b] bg-[#211c15] px-3 py-2 text-left font-cinzel text-sm text-[#d4af37] hover:bg-[#302619] disabled:opacity-40"><BookOpen size={16} className="shrink-0" /> Ouvrir le livre</button>
           </div>
           <section aria-labelledby="audio-studio-title" className="flex flex-col gap-3 border-t border-[#382f22] pt-4">
-            <h3 id="audio-studio-title" className="flex items-center gap-2 font-cinzel text-xs text-[#d4af37]"><AudioLines size={15} /> Studio Audio</h3>
+            <h3 id="audio-studio-title" className="flex items-center gap-2 font-cinzel text-sm text-[#d4af37]"><AudioLines size={15} /> Studio Audio</h3>
             {book.audio && (
               <div aria-label="Pupitre de lecture audio" className="flex flex-col gap-3 rounded-sm border border-[#3a3228] bg-[#15120f] p-3">
-                <p className="font-serif text-xs text-[#a99a83]">Édition audio · {book.audio.voiceName} · {book.audio.chapters.length} chapitre(s)</p>
+                <p className="font-serif text-sm text-[#a99a83]">Édition audio · {book.audio.voiceName} · {book.audio.chapters.length} piste(s)</p>
                   <ol className="flex flex-col gap-3">
                     {book.audio.chapters.map((chapter) => (
-                      <li key={chapter.path} className="flex min-w-0 flex-col gap-1.5 border-t border-[#3a3228] pt-2 font-serif text-xs text-[#c9bea9]">
+                      <li key={chapter.path} className="flex min-w-0 flex-col gap-1.5 border-t border-[#3a3228] pt-2 font-serif text-sm text-[#c9bea9]">
                         <span>{chapter.index}. {chapter.title}</span>
-                        <AudioTrackPlayer title={chapter.title} src={libraryCoverUrl(chapter.path)} />
+                        <AudioTrackPlayer title={chapter.title} src={libraryCoverUrl(chapter.path)} onDelete={() => {
+                          if (window.confirm(`Supprimer définitivement la piste audio « ${chapter.title} » ?`)) {
+                            void onDeleteAudioTrack?.(book.id, chapter.index);
+                          }
+                        }} />
                       </li>
                     ))}
                   </ol>
               </div>
             )}
             <>
-                <label className="text-xs text-[#c9bea9]">Profil de voix
-                  <select value={voiceId} disabled={busy || audioBusy || voices.length === 0} onChange={(event) => setVoiceId(event.target.value)} className="mt-1 w-full min-w-0 rounded-sm border border-[#6b5327] bg-[#15120f] px-2 py-2 text-sm text-[#f3f0ea] shadow-[inset_0_1px_0_rgba(212,175,55,0.08)] focus:border-[#d4af37] focus:outline-hidden disabled:opacity-50">
-                    {voices.length === 0 && <option value="">{voiceError ? "Moteur vocal inactif" : "Chargement des voix…"}</option>}
+                <label className="text-sm text-[#c9bea9]">Profil de voix
+                  <select value={voiceId} disabled={busy || audioBusy || voices.length === 0} onChange={(event) => setVoiceId(event.target.value)} className="mt-1 w-full min-w-0 rounded-sm border border-[#6b5327] bg-[#15120f] px-2 py-2 text-base text-[#f3f0ea] shadow-[inset_0_1px_0_rgba(212,175,55,0.08)] focus:border-[#d4af37] focus:outline-hidden disabled:opacity-50">
+                    {voices.length === 0 && <option value="">{checkingAudio
+                      ? `Chargement des profils vocaux (${voiceInitPercent ?? 0}%)...`
+                      : voiceError ? "Moteur vocal inactif" : "Chargement des voix…"}</option>}
                     {voices.map((voice) => <option key={voice.id} value={voice.id}>{voice.name}{voice.language ? ` · ${voice.language}` : ""}</option>)}
                   </select>
                 </label>
-                <label className="text-xs text-[#c9bea9]">Chapitre à synthétiser
-                  <select aria-label="Chapitre à synthétiser" value={chapterSelection} disabled={busy || audioBusy || audioChapters.length === 0} onChange={(event) => setChapterSelection(event.target.value)} className="mt-1 w-full min-w-0 rounded-sm border border-[#d4af37] bg-[#13110f] px-2 py-2 text-sm text-[#f3f0ea] focus:border-[#d4af37] focus:outline-hidden disabled:opacity-50">
-                    <option value="all">Tous les chapitres</option>
+                <label className="text-sm text-[#c9bea9]">Chapitre à synthétiser
+                  <select aria-label="Chapitre à synthétiser" value={chapterSelection} disabled={busy || audioBusy || audioChapters.length === 0} onChange={(event) => setChapterSelection(event.target.value)} className="mt-1 w-full min-w-0 rounded-sm border border-[#d4af37] bg-[#13110f] px-2 py-2 text-base text-[#f3f0ea] focus:border-[#d4af37] focus:outline-hidden disabled:opacity-50">
                     {audioChapters.map((chapter) => <option key={chapter.index} value={chapter.index}>{chapter.index}. {chapter.title}</option>)}
                   </select>
                 </label>
-                {voiceError && <aside role="status" className="flex flex-wrap items-center justify-between gap-2 rounded-sm border border-[#8f6e2b]/40 bg-[#241e17] px-3 py-2.5 font-serif text-xs leading-relaxed text-[#c5a059]"><span>{voiceError}</span><button type="button" onClick={() => setAudioSetupOpen(true)} className="shrink-0 border-b border-[#8f6e2b]/60 font-cinzel text-[10px] text-[#d4af37] hover:text-[#f3d995]">Ouvrir l’assistant</button></aside>}
-                <button type="button" aria-busy={audioBusy} aria-label={audioActionLabel} disabled={busy || audioBusy || !voiceId || !exportDirectory || !onGenerateAudio || audioChapters.length === 0} onClick={() => {
+                {selectedAudioChapter && <p className="font-serif text-sm text-[#a99a83]">{selectedAudioChapter.pageCount} page(s) estimée(s) · {selectedAudioChapter.wordCount.toLocaleString("fr-FR")} mots · ~{formatEstimatedDuration(selectedAudioChapter.estimatedDurationSeconds)}</p>}
+                {voiceError && <aside role="status" className="flex flex-wrap items-center justify-between gap-2 rounded-sm border border-[#8f6e2b]/40 bg-[#241e17] px-3 py-2.5 font-serif text-sm leading-relaxed text-[#c5a059]"><span>{voiceError}</span>{audioEngineMode === "integrated" && cpmlAccepted
+                  ? <button type="button" onClick={() => { void retryAudioEngine(); }} className="shrink-0 border-b border-[#8f6e2b]/60 font-cinzel text-[10px] text-[#d4af37] hover:text-[#f3d995]">Réessayer</button>
+                  : <button type="button" onClick={() => setAudioSetupOpen(true)} className="shrink-0 border-b border-[#8f6e2b]/60 font-cinzel text-[10px] text-[#d4af37] hover:text-[#f3d995]">Ouvrir l’assistant</button>}</aside>}
+                <button type="button" aria-busy={audioBusy} aria-label={audioActionLabel} disabled={busy || audioBusy || !voiceId || !chapterSelection || !exportDirectory || !onGenerateAudio || audioChapters.length === 0} onClick={() => {
                   if (!onGenerateAudio) return;
-                  const chapterIndex = chapterSelection === "all" ? null : Number(chapterSelection);
+                  const chapterIndex = Number(chapterSelection);
+                  if (!Number.isInteger(chapterIndex) || chapterIndex < 1) return;
                   setAudioBusy(true);
                   setVoiceError(null);
                   setAudioProgress(null);
@@ -230,19 +299,18 @@ export const LibraryBookDetail = ({ book, initialFormat, exportDirectory, shelve
                         ...progress,
                         progress: 100,
                         chapterTitle: chapterTitle ?? "",
-                        status: chapterIndex == null ? "Édition audio terminée" : `Piste du chapitre ${chapterIndex} mise à jour`,
+                        status: `Piste du chapitre ${chapterIndex} mise à jour`,
                       } : progress);
                     }
                   }).catch((reason: unknown) => setVoiceError(reason instanceof Error ? reason.message : "Génération audio impossible."))
                     .finally(() => setAudioBusy(false));
-                }} className={`flex w-fit items-center gap-2 rounded-sm border px-3 py-2 font-cinzel text-[10px] transition-all disabled:cursor-not-allowed ${audioBusy ? "animate-pulse border-[#d4af37] bg-[#2b2112] text-[#f3d995] opacity-100 shadow-[0_0_18px_rgba(212,175,55,0.3)]" : "border-[#8f6e2b] bg-[#211c15] text-[#d4af37] hover:bg-[#302619] disabled:opacity-40"}`}><AudioLines size={15} className={audioBusy ? "animate-pulse" : undefined} /> {audioActionLabel}</button>
-                {audioBlockReason && <p role="status" className="max-w-xl font-serif text-xs leading-relaxed text-[#c5a059]">{audioBlockReason}</p>}
+                }} className={`flex w-fit items-center gap-2 rounded-sm border px-3 py-2 font-cinzel text-xs transition-all disabled:cursor-not-allowed ${audioBusy ? "animate-pulse border-[#d4af37] bg-[#2b2112] text-[#f3d995] opacity-100 shadow-[0_0_18px_rgba(212,175,55,0.3)]" : "border-[#8f6e2b] bg-[#211c15] text-[#d4af37] hover:bg-[#302619] disabled:opacity-40"}`}><AudioLines size={15} className={audioBusy ? "animate-pulse" : undefined} /> {audioActionLabel}</button>
+                {audioBlockReason && <p role="status" className="max-w-xl font-serif text-sm leading-relaxed text-[#c5a059]">{audioBlockReason}</p>}
             </>
           </section>
           <section aria-label="Statistiques de l’ouvrage" className="border-t border-[#382f22] pt-4">
-            <dl className="space-y-3 font-serif text-xs text-[#8c8275]">
+            <dl className="space-y-3 font-serif text-sm text-[#8c8275]">
               <div className="flex flex-wrap justify-between gap-x-3 gap-y-1"><dt>Nbre de pages :</dt><dd>{pageCount ?? "Non disponible"}</dd></div>
-              <div className="flex flex-wrap justify-between gap-x-3 gap-y-1"><dt>Nbre de chapitres :</dt><dd>{chapterCount != null && Number.isFinite(chapterCount) ? chapterCount : "\u2014"}</dd></div>
               {selectedFile?.format === "docx" && <div className="flex flex-wrap justify-between gap-x-3 gap-y-1"><dt>Nbre de mots :</dt><dd>{statistics?.wordCount?.toLocaleString("fr-FR") ?? "\u2014"}</dd></div>}
               <div className="flex flex-wrap justify-between gap-x-3 gap-y-1"><dt>Date de dernière modification :</dt><dd>{validDate ? <time dateTime={validDate.toISOString()}>{validDate.toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" })}</time> : "Non disponible"}</dd></div>
             </dl>
@@ -255,7 +323,7 @@ export const LibraryBookDetail = ({ book, initialFormat, exportDirectory, shelve
       {error && <p role="alert" className="text-xs text-[#d28b75]">{error}</p>}
       {operationError && !confirmDelete && <p role="alert" className="text-xs text-[#d28b75]">{operationError}</p>}
       {confirmDelete && <LibraryDeleteDialog title={book.title} busy={busy} error={operationError} onCancel={() => setConfirmDelete(false)} onConfirm={() => { void onDelete(book.id); }} />}
-      {audioSetupOpen && <AudioSetupDialog checking={checkingAudio} onRetry={() => { void retryAudioEngine(); }} onAcceptTerms={() => { void acceptTermsAndStartAudio(); }} onClose={() => setAudioSetupOpen(false)} />}
+      {audioSetupOpen && <AudioSetupDialog checking={checkingAudio} engineMode={audioEngineMode} onRetry={() => { void retryAudioEngine(); }} onAcceptAndStart={() => { void acceptTermsAndStartAudio(); }} onClose={() => setAudioSetupOpen(false)} />}
     </section>
   );
 };

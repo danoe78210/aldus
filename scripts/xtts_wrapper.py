@@ -13,6 +13,7 @@ import sys
 import tempfile
 import threading
 import time
+from contextlib import asynccontextmanager
 from pathlib import Path
 from typing import Any
 
@@ -45,13 +46,11 @@ os.environ["TMP"] = str(TEMP_DIR)
 os.environ["TMPDIR"] = str(TEMP_DIR)
 os.environ["PYTHONPYCACHEPREFIX"] = str(CACHE_DIR / "pycache")
 
-import torch
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import Response
 from pydantic import BaseModel, Field
 from pydub import AudioSegment
-from TTS.api import TTS
 
 FFMPEG_PATH = os.environ.get("ALDUS_FFMPEG_PATH")
 if FFMPEG_PATH:
@@ -61,8 +60,20 @@ MODEL_NAME = os.environ.get(
     "ALDUS_XTTS_MODEL", "tts_models/multilingual/multi-dataset/xtts_v2"
 )
 MAX_SEGMENT_CHARS = 240
-MODEL = TTS(model_name=MODEL_NAME, progress_bar=False, gpu=torch.cuda.is_available())
+torch: Any = None
+TTS: Any = None
+MODEL = None
+VOICES: dict[str, dict[str, Any]] = {}
 SYNTHESIS_LOCK = threading.Lock()
+VOICE_LOCK = threading.Lock()
+STATUS_LOCK = threading.Lock()
+INIT_STATUS: dict[str, Any] = {
+    "percent": 10,
+    "stage": "Démarrage du processus sidecar Python",
+    "model_loaded": False,
+    "ready": False,
+    "error": None,
+}
 LOGGER = logging.getLogger("aldus.xtts")
 LOGGER.setLevel(logging.INFO)
 if not LOGGER.handlers:
@@ -74,7 +85,50 @@ if not LOGGER.handlers:
 LOGGER.propagate = False
 
 
-def _voice_profiles() -> dict[str, dict[str, Any]]:
+def _set_init_status(
+    percent: int,
+    stage: str,
+    *,
+    model_loaded: bool | None = None,
+    ready: bool = False,
+    error: str | None = None,
+) -> None:
+    with STATUS_LOCK:
+        INIT_STATUS.update(percent=percent, stage=stage, ready=ready, error=error)
+        if model_loaded is not None:
+            INIT_STATUS["model_loaded"] = model_loaded
+
+
+def _current_init_status() -> dict[str, Any]:
+    with STATUS_LOCK:
+        return dict(INIT_STATUS)
+
+
+def _initialize_model() -> None:
+    global MODEL, torch, TTS
+    try:
+        _set_init_status(35, "Import des dépendances Python et initialisation PyTorch/CUDA")
+        import torch as torch_module
+        from TTS.api import TTS as tts_class
+
+        torch = torch_module
+        TTS = tts_class
+        _set_init_status(65, "Vérification ou téléchargement des poids XTTS v2")
+        MODEL = TTS(model_name=MODEL_NAME, progress_bar=False, gpu=torch.cuda.is_available())
+        _set_init_status(85, "Modèle XTTS chargé en mémoire", model_loaded=True)
+        LOGGER.info("XTTS model initialization completed")
+    except Exception as error:
+        LOGGER.exception("XTTS initialization failed")
+        _set_init_status(0, "Échec de l'initialisation XTTS", error=f"{type(error).__name__}: {error}")
+
+
+@asynccontextmanager
+async def lifespan(_: FastAPI):
+    threading.Thread(target=_initialize_model, name="aldus-xtts-init", daemon=True).start()
+    yield
+
+
+def _voice_profiles(model: Any) -> dict[str, dict[str, Any]]:
     """Load local reference clips, or expose XTTS's bundled speaker profiles."""
     raw_profiles = os.environ.get("ALDUS_TTS_VOICES", "")
     if raw_profiles:
@@ -94,10 +148,10 @@ def _voice_profiles() -> dict[str, dict[str, Any]]:
             }
         return result
 
-    speakers = getattr(MODEL, "speakers", None) or []
+    speakers = getattr(model, "speakers", None) or []
     if not speakers:
         manager = getattr(
-            getattr(getattr(MODEL, "synthesizer", None), "tts_model", None),
+            getattr(getattr(model, "synthesizer", None), "tts_model", None),
             "speaker_manager",
             None,
         )
@@ -108,8 +162,7 @@ def _voice_profiles() -> dict[str, dict[str, Any]]:
     }
 
 
-VOICES = _voice_profiles()
-app = FastAPI(title="Aldus XTTS local adapter", docs_url=None, redoc_url=None)
+app = FastAPI(title="Aldus XTTS local adapter", docs_url=None, redoc_url=None, lifespan=lifespan)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
@@ -126,7 +179,12 @@ app.add_middleware(
 
 @app.get("/health")
 def health() -> dict[str, bool]:
-    return {"ready": True}
+    return {"ready": _current_init_status()["ready"]}
+
+
+@app.get("/status")
+def status() -> dict[str, Any]:
+    return _current_init_status()
 
 
 class SynthesisRequest(BaseModel):
@@ -142,6 +200,27 @@ class SynthesisRequest(BaseModel):
 
 @app.get("/voices")
 def list_voices() -> dict[str, list[dict[str, str]]]:
+    global VOICES
+    initialization = _current_init_status()
+    if not initialization["ready"] or MODEL is None:
+        raise HTTPException(
+            status_code=503,
+            detail=initialization["error"] or initialization["stage"],
+        )
+    try:
+        with VOICE_LOCK:
+            if not VOICES:
+                VOICES = _voice_profiles(MODEL)
+        if not VOICES:
+            raise RuntimeError("Aucun profil vocal français n'est exposé par le modèle XTTS.")
+        _set_init_status(95, "Profils vocaux indexés", model_loaded=True, ready=True)
+    except Exception as error:
+        LOGGER.exception("XTTS voice profile indexing failed")
+        _set_init_status(85, "Échec de l'indexation des voix", error=f"{type(error).__name__}: {error}")
+        raise HTTPException(
+            status_code=503,
+            detail=f"Voice profile indexing failed: {type(error).__name__}: {error}",
+        ) from error
     return {
         "voices": [
             {"id": voice_id, "name": profile["name"], "language": profile["language"]}
@@ -153,6 +232,12 @@ def list_voices() -> dict[str, list[dict[str, str]]]:
 
 @app.post("/synthesize")
 def synthesize(request: SynthesisRequest) -> Response:
+    if MODEL is None:
+        initialization = _current_init_status()
+        raise HTTPException(
+            status_code=503,
+            detail=initialization["error"] or initialization["stage"],
+        )
     context = (
         f"chapter={request.chapter_index or '?'} title={request.chapter_title or '?'} "
         f"segment={request.segment_index or '?'}/{request.segment_count or '?'} "

@@ -1,6 +1,7 @@
 use serde::{Deserialize, Serialize};
 use std::collections::{BTreeMap, BTreeSet};
 use std::path::{Path, PathBuf};
+use std::time::{Duration, SystemTime, UNIX_EPOCH};
 use tauri::Manager;
 
 mod deletion;
@@ -478,8 +479,25 @@ fn read_config(app: &tauri::AppHandle) -> Result<LibraryConfig, String> {
 fn write_config(app: &tauri::AppHandle, config: &LibraryConfig) -> Result<(), String> {
     let contents = serde_json::to_string_pretty(config)
         .map_err(|e| format!("Sérialisation de la bibliothèque impossible : {e}"))?;
-    std::fs::write(config_path(app)?, contents)
-        .map_err(|e| format!("Écriture de la bibliothèque impossible : {e}"))
+    let path = config_path(app)?;
+    let temporary = path.with_extension("json.tmp");
+    if let Err(error) = std::fs::write(&temporary, contents) {
+        if let Err(cleanup_error) = std::fs::remove_file(&temporary) {
+            if cleanup_error.kind() != std::io::ErrorKind::NotFound {
+                log::warn!("Library config temp cleanup failed: {cleanup_error}");
+            }
+        }
+        return Err(format!("Écriture temporaire de la bibliothèque impossible : {error}"));
+    }
+    if let Err(error) = std::fs::rename(&temporary, &path) {
+        if let Err(cleanup_error) = std::fs::remove_file(&temporary) {
+            if cleanup_error.kind() != std::io::ErrorKind::NotFound {
+                log::warn!("Library config temp cleanup failed: {cleanup_error}");
+            }
+        }
+        return Err(format!("Enregistrement atomique de la bibliothèque impossible : {error}"));
+    }
+    Ok(())
 }
 
 #[tauri::command]
@@ -507,16 +525,217 @@ pub async fn delete_book(
 }
 
 #[tauri::command]
-pub async fn list_audio_voices(
+pub async fn delete_audio_track(
     app: tauri::AppHandle,
+    book_id: String,
+    chapter_index: u32,
+    export_directory: String,
+) -> Result<LibraryConfig, String> {
+    if export_directory.trim().is_empty() {
+        return Err("Choisissez le dossier d'export avant de supprimer une piste audio.".into());
+    }
+    let export_root = Path::new(&export_directory)
+        .canonicalize()
+        .map_err(|error| format!("Dossier d'export inaccessible : {error}"))?;
+    let audio_root = export_root
+        .join("Audio")
+        .canonicalize()
+        .map_err(|error| format!("Dossier des pistes audio inaccessible : {error}"))?;
+    let mut config = read_config(&app)?;
+    let book_index = config
+        .books
+        .iter()
+        .position(|book| book.id == book_id)
+        .ok_or("Ouvrage introuvable dans la bibliothèque.")?;
+    let chapter = config.books[book_index]
+        .audio
+        .as_ref()
+        .and_then(|audio| audio.chapters.iter().find(|chapter| chapter.index == chapter_index))
+        .ok_or("Piste audio introuvable pour cet ouvrage.")?;
+    let requested_path = PathBuf::from(&chapter.path);
+    if !requested_path.is_absolute()
+        || !requested_path
+            .extension()
+            .and_then(|extension| extension.to_str())
+            .is_some_and(|extension| extension.eq_ignore_ascii_case("mp3"))
+    {
+        return Err("Suppression refusée : la piste n'est pas un MP3 absolu.".into());
+    }
+    let filename = requested_path
+        .file_name()
+        .ok_or("Nom de fichier audio invalide.")?;
+    let parent = requested_path
+        .parent()
+        .ok_or("Dossier parent de la piste audio invalide.")?
+        .canonicalize()
+        .map_err(|error| format!("Dossier parent de la piste inaccessible : {error}"))?;
+    if !parent.starts_with(&audio_root) {
+        return Err("Suppression refusée : la piste est hors du dossier Audio configuré.".into());
+    }
+    let track_path = parent.join(filename);
+    let track_exists = match std::fs::symlink_metadata(&track_path) {
+        Ok(metadata) if metadata.is_file() && !metadata.file_type().is_symlink() => true,
+        Ok(_) => return Err("Suppression refusée : la piste n'est pas un fichier régulier.".into()),
+        Err(error) if error.kind() == std::io::ErrorKind::NotFound => false,
+        Err(error) => return Err(format!("Accès à la piste audio impossible : {error}")),
+    };
+
+    let track_key = path_key(&track_path);
+    let mut shared = false;
+    for other in config.books.iter().filter(|book| book.id != book_id) {
+        for reference in other
+            .audio
+            .iter()
+            .flat_map(|audio| audio.chapters.iter().map(|chapter| chapter.path.as_str()))
+        {
+            let referenced = Path::new(reference);
+            if path_key(referenced) == track_key {
+                shared = true;
+                break;
+            }
+            match referenced.canonicalize() {
+                Ok(canonical) if canonical == track_path => {
+                    shared = true;
+                    break;
+                }
+                Ok(_) => {}
+                Err(error) if error.kind() == std::io::ErrorKind::NotFound => {}
+                Err(error) => {
+                    return Err(format!("Vérification des pistes partagées impossible : {error}"));
+                }
+            }
+        }
+        if shared {
+            break;
+        }
+    }
+
+    let staged_path = if track_exists && !shared {
+        let nonce = SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .map_err(|error| format!("Horloge système invalide : {error}"))?
+            .as_nanos();
+        let temporary = parent.join(format!(
+            ".{}.delete-{}-{nonce}",
+            filename.to_string_lossy(),
+            std::process::id()
+        ));
+        std::fs::rename(&track_path, &temporary)
+            .map_err(|error| format!("Mise en attente de la piste audio impossible : {error}"))?;
+        Some(temporary)
+    } else {
+        None
+    };
+
+    let edition = config.books[book_index]
+        .audio
+        .as_mut()
+        .ok_or("Édition audio introuvable.")?;
+    edition.chapters.retain(|chapter| chapter.index != chapter_index);
+    if edition.chapters.is_empty() {
+        config.books[book_index].audio = None;
+    }
+    if let Err(error) = write_config(&app, &config) {
+        if let Some(temporary) = &staged_path {
+            if let Err(restore_error) = std::fs::rename(temporary, &track_path) {
+                log::error!(
+                    "Audio track rollback failed path={} error={}",
+                    track_path.display(),
+                    restore_error
+                );
+            }
+        }
+        return Err(error);
+    }
+    if let Some(temporary) = staged_path {
+        std::fs::remove_file(&temporary).map_err(|error| {
+            log::error!(
+                "Audio track staged-file cleanup failed path={} error={}",
+                temporary.display(),
+                error
+            );
+            format!("Piste retirée du registre, mais suppression du fichier temporaire impossible : {error}")
+        })?;
+    } else if shared {
+        log::info!(
+            "Audio track reference removed from book_id={} but shared file retained path={}",
+            book_id,
+            track_path.display()
+        );
+    }
+    Ok(config)
+}
+
+async fn initialize_audio_engine(
+    app: &tauri::AppHandle,
 ) -> Result<Vec<audio::AudioVoice>, String> {
-    audio::ensure_bundled_engine(&app).await?;
-    audio::list_voices().await
+    audio::emit_audio_init_progress(&app, 10, "Spawn du process aldus-audio-server.exe");
+    let initialization = async {
+        audio::ensure_bundled_engine(app).await?;
+        if !cfg!(all(windows, not(debug_assertions))) {
+            audio::emit_audio_init_progress(app, 35, "Runtime vocal local disponible");
+            audio::emit_audio_init_progress(app, 65, "Vérification du moteur vocal local");
+            audio::emit_audio_init_progress(app, 85, "Indexation des profils vocaux");
+        }
+        audio::emit_audio_init_progress(app, 95, "Requête /voices et analyse des profils");
+        let voices = audio::list_voices().await?;
+        if voices.is_empty() {
+            return Err(String::from(
+                "Aucun profil vocal français n'est disponible dans le moteur local.",
+            ));
+        }
+        Ok(voices)
+    };
+
+    match tokio::time::timeout(Duration::from_secs(60), initialization).await {
+        Ok(Ok(voices)) => {
+            audio::emit_audio_init_progress(app, 100, "Prêt");
+            Ok(voices)
+        }
+        Ok(Err(error)) => {
+            log::error!("audio voice initialization failed: {error}");
+            audio::emit_audio_init_failure(app, &error);
+            Err(error)
+        }
+        Err(_) => {
+            let error = "Délai d'initialisation du Studio Audio dépassé après 60 secondes.";
+            audio::stop_bundled_engine(app);
+            log::error!("audio voice initialization timeout: {error}");
+            audio::emit_audio_init_failure(app, error);
+            Err(error.into())
+        }
+    }
 }
 
 #[tauri::command]
-pub async fn accept_xtts_model_terms(app: tauri::AppHandle) -> Result<(), String> {
-    audio::accept_xtts_model_terms(&app)
+pub async fn get_audio_consent(app: tauri::AppHandle) -> Result<audio::AudioConfig, String> {
+    audio::get_audio_consent(&app).inspect_err(|error| {
+        log::error!("read audio consent config failed: {error}");
+    })
+}
+
+#[tauri::command]
+pub async fn save_audio_consent(
+    app: tauri::AppHandle,
+    accepted: bool,
+) -> Result<audio::AudioConfig, String> {
+    audio::save_audio_consent(&app, accepted).inspect_err(|error| {
+        log::error!("save audio consent config failed: {error}");
+    })
+}
+
+#[tauri::command]
+pub async fn start_audio_engine(
+    app: tauri::AppHandle,
+) -> Result<Vec<audio::AudioVoice>, String> {
+    initialize_audio_engine(&app).await
+}
+
+#[tauri::command]
+pub async fn list_audio_voices(
+    app: tauri::AppHandle,
+) -> Result<Vec<audio::AudioVoice>, String> {
+    initialize_audio_engine(&app).await
 }
 
 #[tauri::command]
@@ -533,7 +752,7 @@ pub async fn generate_book_audio(
     book_id: String,
     export_directory: String,
     voice_id: String,
-    chapter_index: Option<u32>,
+    chapter_index: u32,
 ) -> Result<LibraryConfig, String> {
     audio::generate_book_audio(app, book_id, export_directory, voice_id, chapter_index).await
 }

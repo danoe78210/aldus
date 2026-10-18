@@ -1,9 +1,10 @@
 import { useRef, useState } from "react";
-import { Pause, Play } from "lucide-react";
+import { Pause, Play, Trash2 } from "lucide-react";
 
 interface AudioTrackPlayerProps {
   src: string | undefined;
   title: string;
+  onDelete?: () => void;
 }
 
 const formatTime = (seconds: number): string => {
@@ -13,7 +14,7 @@ const formatTime = (seconds: number): string => {
   return `${minutes}:${remainder}`;
 };
 
-export const AudioTrackPlayer = ({ src, title }: AudioTrackPlayerProps) => {
+export const AudioTrackPlayer = ({ src, title, onDelete }: AudioTrackPlayerProps) => {
   const audioRef = useRef<HTMLAudioElement>(null);
   const [playing, setPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
@@ -58,7 +59,7 @@ export const AudioTrackPlayer = ({ src, title }: AudioTrackPlayerProps) => {
         {playing ? <Pause size={14} fill="currentColor" /> : <Play size={14} fill="currentColor" />}
       </button>
       <div className="flex min-w-0 flex-1 items-center gap-2">
-        <span className="w-8 shrink-0 text-right font-mono text-[10px] tabular-nums text-[#c5a059]">{formatTime(currentTime)}</span>
+        <span className="w-10 shrink-0 text-right font-mono text-xs tabular-nums text-[#c5a059]">{formatTime(currentTime)}</span>
         <input
           type="range"
           min={0}
@@ -74,8 +75,19 @@ export const AudioTrackPlayer = ({ src, title }: AudioTrackPlayerProps) => {
           }}
           className="h-1.5 min-w-0 flex-1 cursor-pointer accent-[#d4af37] disabled:cursor-default disabled:opacity-40"
         />
-        <span className="w-8 shrink-0 font-mono text-[10px] tabular-nums text-[#8c8275]">{formatTime(duration)}</span>
+        <span className="w-10 shrink-0 font-mono text-xs tabular-nums text-[#8c8275]">{formatTime(duration)}</span>
       </div>
+      {onDelete && <button
+        type="button"
+        onClick={() => {
+          const audio = audioRef.current;
+          if (audio && !audio.paused) audio.pause();
+          onDelete();
+        }}
+        aria-label={`Supprimer la piste audio ${title}`}
+        title="Supprimer cette piste"
+        className="flex h-8 w-8 shrink-0 items-center justify-center rounded-sm border border-[#784538]/70 text-[#d7a18d] transition-colors hover:border-[#d7a18d] hover:bg-[#321b18] disabled:opacity-40"
+      ><Trash2 size={15} /></button>}
       {error && <span role="status" className="sr-only">Lecture audio indisponible pour {title}.</span>}
     </div>
   );

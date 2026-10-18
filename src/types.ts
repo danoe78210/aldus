@@ -51,12 +51,28 @@ export interface AudioChapter {
 export interface AudioChapterChoice {
   index: number;
   title: string;
+  wordCount: number;
+  pageCount: number;
+  estimatedDurationSeconds: number;
 }
 
 export interface AudioVoice {
   id: string;
   name: string;
   language?: string | null;
+}
+
+export interface AudioConfig {
+  cpml_accepted: boolean;
+  cpml_accepted_at?: string | null;
+  engine_mode: "integrated" | "external";
+}
+
+export interface AudioInitProgressPayload {
+  percent: number;
+  stage: string;
+  isReady: boolean;
+  error?: string;
 }
 
 export interface AudioGenerationProgress {

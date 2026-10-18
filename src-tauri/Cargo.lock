@@ -53,8 +53,9 @@ dependencies = [
 
 [[package]]
 name = "aldus"
-version = "1.4.1"
+version = "1.4.2"
 dependencies = [
+ "chrono",
  "docx-rs",
  "epub-builder",
  "futures",

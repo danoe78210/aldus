@@ -1,5 +1,5 @@
 import { convertFileSrc } from "@tauri-apps/api/core";
-import type { AudioChapterChoice, AudioGenerationProgress, AudioVoice, Book, LibraryConfig, ScannedBook, Shelf, ShelfId } from "../types";
+import type { AudioChapterChoice, AudioConfig, AudioGenerationProgress, AudioInitProgressPayload, AudioVoice, Book, LibraryConfig, ScannedBook, Shelf, ShelfId } from "../types";
 import { invokeCommand, isInvokeAvailable, listenEvent } from "./tauri";
 
 const STORAGE_KEY = "aldus-library";
@@ -150,11 +150,30 @@ export const deleteLibraryBook = async (bookId: string, exportDirectory: string)
   return invokeCommand<LibraryConfig>("delete_book", { bookId, exportDirectory });
 };
 
+export const deleteLibraryAudioTrack = async (
+  bookId: string,
+  chapterIndex: number,
+  exportDirectory: string,
+): Promise<LibraryConfig> => {
+  if (!isInvokeAvailable()) throw new Error("La suppression des pistes audio nécessite l'application Aldus de bureau.");
+  return invokeCommand<LibraryConfig>("delete_audio_track", { bookId, chapterIndex, exportDirectory });
+};
+
 export const listAudioVoices = (): Promise<AudioVoice[]> =>
   invokeCommand<AudioVoice[]>("list_audio_voices");
 
-export const acceptAudioModelTerms = (): Promise<void> =>
-  invokeCommand<void>("accept_xtts_model_terms");
+export const getAudioConsent = (): Promise<AudioConfig> =>
+  invokeCommand<AudioConfig>("get_audio_consent");
+
+export const saveAudioConsent = (accepted: boolean): Promise<AudioConfig> =>
+  invokeCommand<AudioConfig>("save_audio_consent", { accepted });
+
+export const startAudioEngine = (): Promise<AudioVoice[]> =>
+  invokeCommand<AudioVoice[]>("start_audio_engine");
+
+export const listenAudioInitProgress = (
+  handler: (progress: AudioInitProgressPayload) => void,
+): Promise<(() => void) | null> => listenEvent<AudioInitProgressPayload>("audio:init-progress", handler);
 
 export const listBookAudioChapters = (bookId: string): Promise<AudioChapterChoice[]> =>
   invokeCommand<AudioChapterChoice[]>("list_book_audio_chapters", { bookId });
@@ -163,7 +182,7 @@ export const generateLibraryAudio = async (
   bookId: string,
   exportDirectory: string,
   voiceId: string,
-  chapterIndex: number | null,
+  chapterIndex: number,
   onProgress: (progress: AudioGenerationProgress) => void,
 ): Promise<LibraryConfig> => {
   const unlisten = await listenEvent<AudioGenerationProgress>("audio-generation-progress", (progress) => {

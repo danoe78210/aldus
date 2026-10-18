@@ -172,20 +172,27 @@ exports et couvertures associés dans le dossier de fabrication configuré, mais
 préserve les sources Markdown et les fichiers référencés par un autre ouvrage.
 
 Le **Studio Audio (Banc V)** est intégré au Registre du Livre. L'auteur choisit
-une voix française disponible localement, puis sélectionne `[ Tous les chapitres ]`
-ou un chapitre dans la liste extraite de l'ouvrage avant de lancer
-`[ GÉNÉRER L'ÉDITION AUDIO ]`. Le hub de progression supérieur centralise
-l'avancement global, le chapitre et le segment courants. Une sélection unitaire
-ne synthétise que le chapitre choisi; les EPUB et
+une voix française disponible localement, puis sélectionne obligatoirement un
+chapitre dans la liste extraite de l'ouvrage avant de lancer la génération.
+Chaque opération synthétise uniquement ce chapitre; aucune synthèse globale
+n'est proposée. Le Registre affiche pour le chapitre sélectionné son nombre de
+pages estimé, son nombre de mots et sa durée audio estimée à 135 mots/minute;
+ces métadonnées changent avec la sélection. Une corbeille au bout de chaque
+lecteur supprime le MP3 correspondant sur disque et retire sa référence du
+store local, après confirmation. Les EPUB et
 DOCX fournissent leurs titres et chapitres; un PDF textuel constitue un seul
 segment. Les éléments structurels (couverture, titre, sommaire, mentions
 légales) et les parasites évidents sont écartés.
 
-Dans le MSI Windows 1.4.1, Aldus démarre automatiquement les sidecars XTTS v2 et
+Dans le MSI Windows 1.4.2, Aldus démarre automatiquement les sidecars XTTS v2 et
 FFmpeg; aucun Python, FFmpeg ni réglage du `PATH` système n'est requis. Au
 premier démarrage, l'assistant présente la CPML et exige une acceptation
-explicite avant de télécharger les poids du modèle. Le consentement, les poids
-et les caches sont conservés dans `%LOCALAPPDATA%\net.danoe.aldus\`. En mode
+explicite avant de télécharger les poids du modèle. Dès le clic d'acceptation,
+la modale se ferme; le consentement est écrit atomiquement dans
+`%LOCALAPPDATA%\\net.danoe.aldus\\config.json` avant le démarrage du moteur. Le
+pupitre supérieur centralise la progression d'initialisation Python, PyTorch
+et XTTS, puis la progression de génération. Les poids et caches résident aussi
+dans `%LOCALAPPDATA%\\net.danoe.aldus\\`. En mode
 développement ou avec un moteur tiers, l'assistant conserve la vérification d'un
 wrapper compatible déjà lancé sur localhost et les instructions de préparation
 du wrapper de référence.

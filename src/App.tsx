@@ -6,7 +6,7 @@ import { MenuPage } from "./components/MenuPage";
 import { PreviewFlipbook } from "./components/PreviewFlipbook";
 import { StudioProvider, type ProofTab, type StudioContextValue } from "./components/StudioContext";
 import { Toast, type ToastMessage } from "./components/Toast";
-import type { ActiveMenu, AudioGenerationProgress, BookInfoConfig, CoverStudioState, ErrorLogConfig, ImageColorMode, LogDiagnosticLevel, LogEntry, LogLevel, ManuscriptLayoutConfig, SourcesConfig, SpecialPageRole, StructureItem } from "./types";
+import type { ActiveMenu, AudioGenerationProgress, AudioInitProgressPayload, BookInfoConfig, CoverStudioState, ErrorLogConfig, ImageColorMode, LogDiagnosticLevel, LogEntry, LogLevel, ManuscriptLayoutConfig, SourcesConfig, SpecialPageRole, StructureItem } from "./types";
 import { findTrimPreset } from "./data/trimSizes";
 import { INHERIT_FONT, numberFr } from "./data/fonts";
 import { DEFAULT_SPECIAL_ROLE, specialRoleLabel } from "./data/specialPages";
@@ -272,6 +272,7 @@ const App: React.FC = () => {
   const [hydrated, setHydrated] = useState(false);
   const timerRef = useRef<number | null>(null);
   const audioProgressResetTimerRef = useRef<number | null>(null);
+  const audioInitProgressResetTimerRef = useRef<number | null>(null);
   const sourceHandleRef = useRef<FsDirectoryHandle | null>(null);
 
   const addLog = useCallback((level: LogLevel, message: string) => {
@@ -334,6 +335,55 @@ const App: React.FC = () => {
       if (audioProgressResetTimerRef.current !== null) {
         window.clearTimeout(audioProgressResetTimerRef.current);
         audioProgressResetTimerRef.current = null;
+      }
+    };
+  }, []);
+
+  useEffect(() => {
+    let unlisten: (() => void) | null = null;
+    let disposed = false;
+    void listenEvent<AudioInitProgressPayload>("audio:init-progress", (payload) => {
+      if (audioInitProgressResetTimerRef.current !== null) {
+        window.clearTimeout(audioInitProgressResetTimerRef.current);
+        audioInitProgressResetTimerRef.current = null;
+      }
+      const percent = Math.min(100, Math.max(0, Math.round(payload.percent)));
+      const failed = Boolean(payload.error);
+      setProgress(percent);
+      setProgressLabel(failed
+        ? "Impossible d'initialiser les voix — Vérifiez Aldus.log"
+        : `Initialisation du Studio Audio : ${payload.stage} (${percent}%)`);
+      setRunning(!failed && !payload.isReady);
+      if (failed) {
+        const timeout = payload.error?.includes("60 secondes") ?? false;
+        setToast({
+          kind: "error",
+          message: timeout
+            ? "Délai d'initialisation du Studio Audio dépassé. Consultez Aldus.log."
+            : `Impossible d'initialiser les voix. Consultez Aldus.log. ${payload.error ?? ""}`,
+        });
+      }
+      if (failed || payload.isReady) {
+        audioInitProgressResetTimerRef.current = window.setTimeout(() => {
+          setProgress(0);
+          setProgressLabel("~ OFFICINA ALDINA · COMPOSITIO LIBRORUM ~");
+          setRunning(false);
+          audioInitProgressResetTimerRef.current = null;
+        }, failed ? 5000 : 1400);
+      }
+    }).then((off) => {
+      if (disposed) {
+        off?.();
+      } else {
+        unlisten = off;
+      }
+    });
+    return () => {
+      disposed = true;
+      unlisten?.();
+      if (audioInitProgressResetTimerRef.current !== null) {
+        window.clearTimeout(audioInitProgressResetTimerRef.current);
+        audioInitProgressResetTimerRef.current = null;
       }
     };
   }, []);

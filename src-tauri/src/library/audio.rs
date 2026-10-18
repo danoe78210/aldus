@@ -1,5 +1,6 @@
 use super::metadata;
 use super::{read_config, write_config, AudioChapter, AudioEdition, Book};
+use chrono::{SecondsFormat, Utc};
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeSet;
 use std::fs::File;
@@ -15,6 +16,42 @@ use zip::ZipArchive;
 
 const DEFAULT_TTS_ENDPOINT: &str = "http://127.0.0.1:8020";
 const MAX_TTS_SEGMENT_CHARS: usize = 240;
+#[derive(Clone, Copy, Debug, Default, Deserialize, PartialEq, Serialize)]
+#[serde(rename_all = "snake_case")]
+pub enum AudioEngineMode {
+    #[default]
+    Integrated,
+    External,
+}
+
+impl AudioEngineMode {
+    fn for_current_build() -> Self {
+        if cfg!(all(windows, not(debug_assertions))) {
+            Self::Integrated
+        } else {
+            Self::External
+        }
+    }
+}
+
+#[derive(Clone, Debug, Deserialize, Serialize)]
+#[serde(default)]
+pub struct AudioConfig {
+    pub cpml_accepted: bool,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub cpml_accepted_at: Option<String>,
+    pub engine_mode: AudioEngineMode,
+}
+
+impl Default for AudioConfig {
+    fn default() -> Self {
+        Self {
+            cpml_accepted: false,
+            cpml_accepted_at: None,
+            engine_mode: AudioEngineMode::for_current_build(),
+        }
+    }
+}
 
 #[derive(Default)]
 pub struct AudioEngine {
@@ -24,29 +61,150 @@ pub struct AudioEngine {
     running: AtomicBool,
 }
 
-#[derive(Deserialize)]
-struct EngineHealth {
-    ready: bool,
+#[derive(Clone, Debug, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct AudioInitProgress {
+    pub percent: u32,
+    pub stage: String,
+    pub is_ready: bool,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub error: Option<String>,
 }
 
-fn xtts_consent_path(app: &tauri::AppHandle) -> Result<PathBuf, String> {
-    Ok(app
+#[derive(Deserialize)]
+#[serde(rename_all = "camelCase")]
+struct EngineInitStatus {
+    percent: u32,
+    stage: String,
+    model_loaded: bool,
+    error: Option<String>,
+}
+
+pub fn emit_audio_init_progress(app: &tauri::AppHandle, percent: u32, stage: &str) {
+    if let Err(error) = app.emit(
+        "audio:init-progress",
+        AudioInitProgress {
+            percent,
+            stage: stage.to_string(),
+            is_ready: percent == 100,
+            error: None,
+        },
+    ) {
+        log::warn!("Unable to emit audio init progress: {error}");
+    }
+}
+
+pub fn emit_audio_init_failure(app: &tauri::AppHandle, error: &str) {
+    if let Err(emit_error) = app.emit(
+        "audio:init-progress",
+        AudioInitProgress {
+            percent: 0,
+            stage: "Impossible d'initialiser les voix — Vérifiez Aldus.log".into(),
+            is_ready: false,
+            error: Some(error.to_string()),
+        },
+    ) {
+        log::warn!("Unable to emit audio init failure event: {emit_error}");
+    }
+}
+
+fn audio_config_path(app: &tauri::AppHandle) -> Result<PathBuf, String> {
+    let directory = app
         .path()
         .app_local_data_dir()
-        .map_err(|error| format!("Dossier Aldus local introuvable : {error}"))?
-        .join("consent")
-        .join("xtts-v2.json"))
+        .map_err(|error| format!("Dossier Aldus local introuvable : {error}"))?;
+    std::fs::create_dir_all(&directory)
+        .map_err(|error| format!("Création du dossier Aldus local impossible : {error}"))?;
+    Ok(directory.join("config.json"))
 }
 
-pub fn accept_xtts_model_terms(app: &tauri::AppHandle) -> Result<(), String> {
-    let path = xtts_consent_path(app)?;
-    let parent = path
+pub fn get_audio_consent(app: &tauri::AppHandle) -> Result<AudioConfig, String> {
+    let path = audio_config_path(app)?;
+    let root: serde_json::Value = if path.is_file() {
+        let raw = std::fs::read_to_string(&path)
+            .map_err(|error| format!("Lecture de la configuration audio impossible : {error}"))?;
+        serde_json::from_str(&raw)
+            .map_err(|error| format!("Configuration locale Aldus invalide : {error}"))?
+    } else {
+        serde_json::json!({})
+    };
+    if let Some(audio) = root.get("audio") {
+        return serde_json::from_value(audio.clone())
+            .map_err(|error| format!("Configuration audio invalide : {error}"));
+    }
+
+    let mut config = AudioConfig::default();
+    let legacy_path = path
         .parent()
-        .ok_or("Dossier de consentement XTTS invalide.")?;
-    std::fs::create_dir_all(parent)
-        .map_err(|error| format!("Création du dossier de consentement impossible : {error}"))?;
-    std::fs::write(&path, b"accepted=true\n")
-        .map_err(|error| format!("Enregistrement du consentement XTTS impossible : {error}"))
+        .ok_or("Dossier Aldus local invalide.")?
+        .join("consent")
+        .join("xtts-v2.json");
+    if legacy_path.is_file() {
+        match std::fs::read_to_string(&legacy_path) {
+            Ok(contents) if contents.trim() == "accepted=true" => {
+                config.cpml_accepted = true;
+                log::info!("Migrating existing XTTS CPML consent to audio config.json");
+                write_audio_config(app, &config)?;
+            }
+            Ok(_) => log::warn!("Legacy XTTS CPML consent marker is not recognized"),
+            Err(error) => log::error!("Unable to read legacy XTTS CPML consent marker: {error}"),
+        }
+    }
+    Ok(config)
+}
+
+fn write_audio_config(app: &tauri::AppHandle, audio: &AudioConfig) -> Result<(), String> {
+    let path = audio_config_path(app)?;
+    let mut root: serde_json::Value = if path.is_file() {
+        let raw = std::fs::read_to_string(&path)
+            .map_err(|error| format!("Lecture de la configuration locale impossible : {error}"))?;
+        serde_json::from_str(&raw)
+            .map_err(|error| format!("Configuration locale Aldus invalide : {error}"))?
+    } else {
+        serde_json::json!({})
+    };
+    let object = root
+        .as_object_mut()
+        .ok_or("La racine de config.json doit être un objet JSON.")?;
+    object.insert(
+        "audio".into(),
+        serde_json::to_value(audio)
+            .map_err(|error| format!("Sérialisation de la configuration audio impossible : {error}"))?,
+    );
+    let contents = serde_json::to_vec_pretty(&root)
+        .map_err(|error| format!("Sérialisation de config.json impossible : {error}"))?;
+    let temporary = path.with_extension("json.tmp");
+    if let Err(error) = std::fs::write(&temporary, contents) {
+        if let Err(cleanup_error) = std::fs::remove_file(&temporary) {
+            if cleanup_error.kind() != std::io::ErrorKind::NotFound {
+                log::warn!("Audio config temp cleanup failed: {cleanup_error}");
+            }
+        }
+        return Err(format!("Écriture temporaire de config.json impossible : {error}"));
+    }
+    if let Err(error) = std::fs::rename(&temporary, &path) {
+        if let Err(cleanup_error) = std::fs::remove_file(&temporary) {
+            log::warn!("Audio config temp cleanup failed: {cleanup_error}");
+        }
+        return Err(format!("Enregistrement atomique de config.json impossible : {error}"));
+    }
+    Ok(())
+}
+
+pub fn save_audio_consent(
+    app: &tauri::AppHandle,
+    accepted: bool,
+) -> Result<AudioConfig, String> {
+    let mut config = get_audio_consent(app)?;
+    config.cpml_accepted = accepted;
+    config.cpml_accepted_at = accepted.then(|| {
+        Utc::now().to_rfc3339_opts(SecondsFormat::Secs, true)
+    });
+    write_audio_config(app, &config).map_err(|error| {
+        log::error!("Audio consent persistence failed: {error}");
+        error
+    })?;
+    Ok(config)
 }
 
 impl AudioEngine {
@@ -67,8 +225,14 @@ impl AudioEngine {
                     }
                 }
             }
+        } else {
+            log::error!("Audio sidecar state lock is poisoned during shutdown");
         }
     }
+}
+
+pub fn stop_bundled_engine(app: &tauri::AppHandle) {
+    app.state::<AudioEngine>().shutdown();
 }
 
 pub async fn ensure_bundled_engine(app: &tauri::AppHandle) -> Result<(), String> {
@@ -82,8 +246,11 @@ pub async fn ensure_bundled_engine(app: &tauri::AppHandle) -> Result<(), String>
         .path()
         .app_local_data_dir()
         .map_err(|error| format!("Dossier Aldus local introuvable : {error}"))?;
-    let consent_path = xtts_consent_path(app)?;
-    if !consent_path.is_file() {
+    let config = get_audio_consent(app)?;
+    if config.engine_mode != AudioEngineMode::Integrated {
+        return Ok(());
+    }
+    if !config.cpml_accepted {
         return Err("XTTS v2 nécessite votre acceptation de la licence Coqui Public Model License avant le premier téléchargement.".into());
     }
 
@@ -172,28 +339,52 @@ pub async fn ensure_bundled_engine(app: &tauri::AppHandle) -> Result<(), String>
     }
 
     let client = reqwest::Client::builder()
-        .timeout(Duration::from_secs(5))
+        .connect_timeout(Duration::from_secs(1))
+        .timeout(Duration::from_secs(2))
         .build()
         .map_err(|error| format!("Client de santé XTTS impossible : {error}"))?;
-    let endpoint = format!("{DEFAULT_TTS_ENDPOINT}/health");
-    let deadline = Instant::now() + Duration::from_secs(30 * 60);
+    let endpoint = format!("{DEFAULT_TTS_ENDPOINT}/status");
+    let response_deadline = Instant::now() + Duration::from_secs(60);
+    let mut last_error = "aucune réponse de statut".to_string();
     loop {
         if !engine.running.load(Ordering::SeqCst) {
-            return Err("Le moteur XTTS intégré s'est arrêté. Consultez Aldus.log pour le détail.".into());
+            let error = "Le moteur XTTS intégré s'est arrêté pendant son initialisation.";
+            log::error!("audio init failed endpoint={} error={}", endpoint, error);
+            return Err(error.into());
         }
-        if let Ok(response) = client.get(&endpoint).send().await {
-            if response.status().is_success() {
-                if let Ok(health) = response.json::<EngineHealth>().await {
-                    if health.ready {
-                        return Ok(());
+        match client.get(&endpoint).send().await {
+            Ok(response) if response.status().is_success() => {
+                match response.json::<EngineInitStatus>().await {
+                    Ok(status) => {
+                        emit_audio_init_progress(app, status.percent, &status.stage);
+                        if let Some(error) = status.error {
+                            engine.shutdown();
+                            log::error!("audio init failed endpoint={} error={}", endpoint, error);
+                            return Err(format!("Initialisation XTTS impossible : {error}"));
+                        }
+                        if status.model_loaded {
+                            return Ok(());
+                        }
                     }
+                    Err(error) => last_error = format!("réponse de statut illisible : {error}"),
                 }
             }
+            Ok(response) => {
+                last_error = format!("HTTP {}", response.status());
+            }
+            Err(error) => last_error = error.to_string(),
         }
-        if Instant::now() >= deadline {
-            return Err("Le moteur XTTS n'a pas terminé son démarrage dans les 30 minutes. Consultez Aldus.log.".into());
+        if Instant::now() >= response_deadline {
+            engine.shutdown();
+            log::error!(
+                "audio init timeout endpoint={} timeout_seconds=60 last_error={}",
+                endpoint,
+                last_error
+            );
+            let error = format!("Le moteur XTTS n'a pas répondu sous 60 secondes : {last_error}");
+            return Err(error);
         }
-        tokio::time::sleep(Duration::from_secs(2)).await;
+        tokio::time::sleep(Duration::from_millis(300)).await;
     }
 }
 
@@ -211,6 +402,9 @@ pub struct AudioVoice {
 pub struct AudioChapterChoice {
     pub index: u32,
     pub title: String,
+    pub word_count: u32,
+    pub page_count: u32,
+    pub estimated_duration_seconds: u32,
 }
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
@@ -376,16 +570,31 @@ pub fn list_book_chapters(
         .iter()
         .find(|book| book.id == book_id)
         .ok_or("Ouvrage introuvable dans la bibliothèque.")?;
-    extract_chapters(book).map(|chapters| {
-        chapters
-            .into_iter()
-            .enumerate()
-            .map(|(index, chapter)| AudioChapterChoice {
+    extract_chapters(book)?
+        .into_iter()
+        .enumerate()
+        .map(|(index, chapter)| {
+            let (word_count, page_count, estimated_duration_seconds) =
+                estimate_chapter_metadata(&chapter.text)?;
+            Ok(AudioChapterChoice {
                 index: index as u32 + 1,
                 title: chapter.title,
+                word_count,
+                page_count,
+                estimated_duration_seconds,
             })
-            .collect()
-    })
+        })
+        .collect()
+}
+
+fn estimate_chapter_metadata(text: &str) -> Result<(u32, u32, u32), String> {
+    let word_count = u32::try_from(text.split_whitespace().count())
+        .map_err(|error| format!("Nombre de mots du chapitre invalide : {error}"))?;
+    let page_count = metadata::estimated_pages(word_count)
+        .ok_or("Estimation du nombre de pages du chapitre invalide.")?;
+    let estimated_duration_seconds = u32::try_from((u64::from(word_count) * 60 + 134) / 135)
+        .map_err(|error| format!("Durée estimée du chapitre invalide : {error}"))?;
+    Ok((word_count, page_count, estimated_duration_seconds))
 }
 
 fn clean_narration(text: &str) -> String {
@@ -766,12 +975,12 @@ fn safe_component(value: &str) -> String {
 
 fn selected_chapter_indices(
     chapter_count: usize,
-    chapter_index: Option<u32>,
+    chapter_index: u32,
 ) -> Result<Vec<usize>, String> {
-    match chapter_index {
-        Some(index) if index > 0 && index as usize <= chapter_count => Ok(vec![index as usize - 1]),
-        Some(_) => Err("Le chapitre sélectionné n'existe pas dans cet ouvrage.".into()),
-        None => Ok((0..chapter_count).collect()),
+    if chapter_index > 0 && chapter_index as usize <= chapter_count {
+        Ok(vec![chapter_index as usize - 1])
+    } else {
+        Err("Le chapitre sélectionné n'existe pas dans cet ouvrage.".into())
     }
 }
 
@@ -983,7 +1192,7 @@ pub async fn generate_book_audio(
     book_id: String,
     export_directory: String,
     voice_id: String,
-    chapter_index: Option<u32>,
+    chapter_index: u32,
 ) -> Result<super::LibraryConfig, String> {
     if export_directory.trim().is_empty() {
         return Err("Choisissez un dossier d'export avant de générer l'audio.".into());
@@ -994,7 +1203,11 @@ pub async fn generate_book_audio(
     if !root.is_dir() {
         return Err("Le dossier d'export n'est pas un dossier valide.".into());
     }
-    ensure_bundled_engine(&app).await?;
+    if let Err(error) = ensure_bundled_engine(&app).await {
+        log::error!("audio engine startup failed before generation: {error}");
+        emit_audio_init_failure(&app, &error);
+        return Err(error);
+    }
     let config = read_config(&app)?;
     let book = config
         .books
@@ -1393,14 +1606,9 @@ pub async fn generate_book_audio(
     });
     write_config(&app, &updated)?;
     output_directory.commit();
-    let completed_index = chapter_index.unwrap_or(total);
-    let completed_title = chapter_index
-        .and_then(|index| chapters.get(index as usize - 1))
-        .map(|chapter| chapter.title.as_str())
-        .unwrap_or("");
-    let completed_status = chapter_index
-        .map(|index| format!("Piste du chapitre {index} mise à jour"))
-        .unwrap_or_else(|| "Édition audio terminée".into());
+    let completed_index = chapter_index;
+    let completed_title = chapters[chapter_index as usize - 1].title.as_str();
+    let completed_status = format!("Piste du chapitre {chapter_index} mise à jour");
     emit_progress(
         &app,
         &book_id,
@@ -1418,9 +1626,11 @@ pub async fn generate_book_audio(
 #[cfg(test)]
 mod tests {
     use super::{
-        chunk_narration, extract_docx, extract_epub, merge_audio_chapters,
+        chunk_narration, estimate_chapter_metadata, extract_docx, extract_epub, merge_audio_chapters,
         selected_chapter_indices, validate_local_endpoint, AudioGenerationProgress,
-        AudioOutputDirectory, AudioTempDirectory, SynthesisRequest, MAX_TTS_SEGMENT_CHARS,
+        AudioConfig, AudioEngineMode, AudioInitProgress, AudioOutputDirectory,
+        AudioTempDirectory, SynthesisRequest,
+        MAX_TTS_SEGMENT_CHARS,
     };
     use crate::library::AudioChapter;
     use std::io::Write;
@@ -1438,11 +1648,10 @@ mod tests {
     }
 
     #[test]
-    fn selects_one_chapter_or_all_chapters_and_rejects_invalid_indices() {
-        assert_eq!(selected_chapter_indices(3, Some(2)).unwrap(), vec![1]);
-        assert_eq!(selected_chapter_indices(3, None).unwrap(), vec![0, 1, 2]);
-        assert!(selected_chapter_indices(3, Some(0)).is_err());
-        assert!(selected_chapter_indices(3, Some(4)).is_err());
+    fn selects_only_one_chapter_and_rejects_invalid_indices() {
+        assert_eq!(selected_chapter_indices(3, 2).unwrap(), vec![1]);
+        assert!(selected_chapter_indices(3, 0).is_err());
+        assert!(selected_chapter_indices(3, 4).is_err());
     }
 
     #[test]
@@ -1476,6 +1685,53 @@ mod tests {
         let progress = serde_json::to_value(progress).unwrap();
         assert_eq!(progress["segmentIndex"], 3);
         assert_eq!(progress["segmentCount"], 4);
+    }
+
+    #[test]
+    fn serializes_audio_initialization_progress_contract() -> Result<(), serde_json::Error> {
+        let progress = serde_json::to_value(AudioInitProgress {
+            percent: 100,
+            stage: "Prêt".into(),
+            is_ready: true,
+            error: None,
+        })?;
+        assert_eq!(progress["percent"], 100);
+        assert_eq!(progress["stage"], "Prêt");
+        assert_eq!(progress["isReady"], true);
+
+        let failure = serde_json::to_value(AudioInitProgress {
+            percent: 0,
+            stage: "Impossible d'initialiser les voix".into(),
+            is_ready: false,
+            error: Some("timeout".into()),
+        })?;
+        assert_eq!(failure["isReady"], false);
+        assert_eq!(failure["error"], "timeout");
+        Ok(())
+    }
+
+    #[test]
+    fn estimates_chapter_pages_and_duration_at_135_words_per_minute() -> Result<(), String> {
+        let text = "mot ".repeat(270);
+        let (words, pages, duration_seconds) = estimate_chapter_metadata(&text)?;
+        assert_eq!(words, 270);
+        assert_eq!(pages, 2);
+        assert_eq!(duration_seconds, 120);
+        Ok(())
+    }
+
+    #[test]
+    fn audio_config_uses_the_persisted_snake_case_schema() -> Result<(), serde_json::Error> {
+        let config = AudioConfig {
+            cpml_accepted: true,
+            cpml_accepted_at: Some("2026-10-18T10:45:00Z".into()),
+            engine_mode: AudioEngineMode::Integrated,
+        };
+        let serialized = serde_json::to_value(config)?;
+        assert_eq!(serialized["cpml_accepted"], true);
+        assert_eq!(serialized["cpml_accepted_at"], "2026-10-18T10:45:00Z");
+        assert_eq!(serialized["engine_mode"], "integrated");
+        Ok(())
     }
 
     #[test]
@@ -1551,19 +1807,22 @@ mod tests {
     }
 
     #[test]
-    fn always_removes_local_audio_fragments_after_generation() {
+    fn always_removes_local_audio_fragments_after_generation(
+    ) -> Result<(), Box<dyn std::error::Error>> {
         let root = std::env::temp_dir().join(format!(
             "aldus-audio-fragments-{}-{}",
             std::process::id(),
             std::time::SystemTime::now()
                 .duration_since(std::time::UNIX_EPOCH)
-                .unwrap()
+                ?
                 .as_nanos()
         ));
-        let temporary = AudioTempDirectory::create(root.clone()).unwrap();
-        std::fs::write(temporary.path().join("001-segment-0001.mp3"), b"partial").unwrap();
+        let temporary = AudioTempDirectory::create(root.clone())
+            .map_err(std::io::Error::other)?;
+        std::fs::write(temporary.path().join("001-segment-0001.mp3"), b"partial")?;
         drop(temporary);
         assert!(!root.exists());
+        Ok(())
     }
 
     #[test]

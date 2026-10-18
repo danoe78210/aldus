@@ -1,4 +1,10 @@
 # Registre des Évolutions — Aldus
+## [1.4.2] - Banc V unitaire & démarrage CPML
+### Ajouté
+- Assistant CPML fermé dès l'acceptation; consentement enregistré atomiquement dans `%LOCALAPPDATA%\\net.danoe.aldus\\config.json` avant le démarrage du moteur.
+- Progression de l'initialisation Python, PyTorch et XTTS transmise au pupitre supérieur.
+- Studio Audio strictement par chapitre, avec pages/durée estimées à 135 mots/min et suppression physique d'une piste MP3 depuis le Registre.
+
 ## [1.4.1] - Bundle MSI autonome Windows
 ### Ajouté
 - MSI WiX Windows avec sidecars Python/PyInstaller XTTS v2 et FFmpeg statique LGPL, préparés par GitHub Actions.

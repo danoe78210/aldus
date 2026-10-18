@@ -152,14 +152,18 @@ fichier importé dans `Book.files`.
 |---|---|
 | `list_audio_voices()` | Interroge le moteur local et renvoie uniquement les voix explicitement identifiées en langue `fr*`. |
 | `list_book_audio_chapters(book_id)` | Extrait l'ouvrage avec le même moteur que la génération et renvoie la liste ordonnée `{ index, title }` (index 1-based). |
-| `generate_book_audio(book_id, export_directory, voice_id, chapter_index)` | `chapter_index: Option<u32>` cible une piste; `None` traite tous les chapitres. La fusion remplace le même index et conserve les autres pistes. `Book.audio` est persisté après succès de l'opération demandée. |
+| `generate_book_audio(book_id, export_directory, voice_id, chapter_index)` | `chapter_index: u32` est obligatoire et doit désigner un chapitre existant; chaque appel ne synthétise qu'un chapitre. La fusion remplace le même index et conserve les autres pistes. `Book.audio` est persisté après succès de l'opération demandée. |
 | événement `audio-generation-progress` | `{ bookId, chapterIndex, chapterCount, chapterTitle, progress, status, segmentIndex?, segmentCount? }`, émis avant/après chaque segment, à l'assemblage et à la fin ou à l'échec. |
 
-Le menu du Studio propose **Tous les chapitres** ou un index extrait; le choix
-est désactivé tant que l'extraction des titres n'a pas abouti. Le progrès d'une
-sélection unitaire conserve l'index réel du chapitre dans `chapterIndex` et
-affiche son titre. Le lecteur et le formulaire restent disponibles ensemble,
-ce qui permet de réécouter une piste existante ou d'en générer une autre.
+Le Studio impose un chapitre extrait et n'expose aucun mode de synthèse globale;
+le bouton reste désactivé tant que l'extraction et la sélection d'un index valide
+n'ont pas abouti. La fiche expose des métadonnées `{ wordCount, pageCount,
+estimatedDurationSeconds }`, calculées à 250 mots/page et 135 mots/minute. Le
+progrès conserve l'index réel dans `chapterIndex` et affiche le titre. La
+suppression unitaire valide que le MP3 se trouve sous le dossier `Audio`
+configuré, préserve les références partagées, supprime le fichier et met à jour
+`library.json` de façon atomique. Le lecteur et le formulaire restent
+disponibles ensemble pour écouter ou remplacer une piste.
 
 Chaque chapitre est découpé à **240 caractères maximum**, en privilégiant les
 frontières de phrases et de paragraphes. Rust envoie les segments
@@ -217,7 +221,7 @@ pistes MP3/M4B référencées dans le dossier d'export.
 
 Le mode développement et macOS/Linux conservent un wrapper localhost configurable
 par `ALDUS_TTS_URL` (défaut `http://127.0.0.1:8020`). Le client refuse tout hôte
-autre que `localhost`, `127.0.0.1` ou `::1` en HTTP. Le MSI Windows 1.4.1
+autre que `localhost`, `127.0.0.1` ou `::1` en HTTP. Le MSI Windows 1.4.2
 embarque un sidecar `aldus-audio-server` gelé par PyInstaller `--onefile`
 (Python 3.10.11, PyTorch CPU 2.2.2, Coqui TTS 0.22.0, Transformers 4.41.2) et
 un sidecar FFmpeg 8.1.3 statique LGPL. Le texte LGPL accompagne l'application.
@@ -230,12 +234,25 @@ fige le wrapper, télécharge FFmpeg versionné et vérifie son SHA-256 avant le
 build Tauri; `tauri-action` attache le MSI aux assets de la release.
 
 Le sidecar est démarré paresseusement au premier `list_audio_voices()` ou
-`generate_book_audio()`. L'assistant exige l'accord explicite CPML, enregistré
-sous LocalAppData avant que Rust transmette `COQUI_TOS_AGREED=1`. Le premier
+`generate_book_audio()`. L'assistant ferme sa modale dès l'acceptation, puis
+attend la persistance avant de démarrer le moteur. Rust conserve l'objet `audio`
+(`cpml_accepted`, `cpml_accepted_at`, `engine_mode`) dans
+`%LOCALAPPDATA%\\net.danoe.aldus\\config.json`; la mise à jour préserve les
+autres clés JSON et écrit `config.json.tmp` avant un renommage atomique vers
+`config.json`. Le consentement est relu au lancement suivant, et Rust transmet
+`COQUI_TOS_AGREED=1` uniquement si l'accord est enregistré. Le premier
 téléchargement des poids requiert une connexion réseau. Rust attend `GET
 /health`, relaie stdout/stderr au logger Tauri et arrête l'arbre du processus
 Windows à `RunEvent::Exit`. En développement, l'interface garde le parcours du
 wrapper externe.
+
+Le wrapper expose la phase d'initialisation par `GET /status` (`percent`,
+`stage`, `model_loaded`, `error`). Rust publie `audio:init-progress` avec
+`percent`, `stage`, `isReady` et `error`; `App.tsx` écoute cet événement et
+alimente l'état de progression partagé par `Layout` et le composant `TopBar`.
+Cette barre reste visible quel que soit le panneau ouvert. L'initialisation
+signale les étapes Python/PyTorch, chargement du modèle, indexation des voix et
+disponibilité, puis revient au repos à la fin ou en cas d'erreur.
 
 TTS (`TTS_HOME`), Hugging Face, Transformers, Torch, Matplotlib, Numba et XDG
 sont redirigés vers `%LOCALAPPDATA%\net.danoe.aldus\models|cache|config`.

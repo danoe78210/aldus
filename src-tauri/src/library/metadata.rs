@@ -36,7 +36,7 @@ fn positive_number(text: &str) -> Option<u32> {
         .filter(|value| *value > 0)
 }
 
-fn estimated_pages(word_count: u32) -> Option<u32> {
+pub(super) fn estimated_pages(word_count: u32) -> Option<u32> {
     u32::try_from((u64::from(word_count) + 249) / 250).ok()
 }
 

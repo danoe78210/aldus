@@ -467,8 +467,11 @@ pub fn run() {
             library::scan_export_folder,
             library::open_library_resource,
             library::delete_book,
+            library::delete_audio_track,
             library::list_audio_voices,
-            library::accept_xtts_model_terms,
+            library::get_audio_consent,
+            library::save_audio_consent,
+            library::start_audio_engine,
             library::list_book_audio_chapters,
             library::generate_book_audio,
             clear_cache_and_exit
