@@ -68,6 +68,7 @@ SYNTHESIS_LOCK = threading.Lock()
 VOICE_LOCK = threading.Lock()
 STATUS_LOCK = threading.Lock()
 INIT_STATUS: dict[str, Any] = {
+    "status": "initializing",
     "percent": 10,
     "stage": "Démarrage du processus sidecar Python",
     "model_loaded": False,
@@ -94,7 +95,8 @@ def _set_init_status(
     error: str | None = None,
 ) -> None:
     with STATUS_LOCK:
-        INIT_STATUS.update(percent=percent, stage=stage, ready=ready, error=error)
+        status = "error" if error is not None else "ready" if ready else "initializing"
+        INIT_STATUS.update(status=status, percent=percent, stage=stage, ready=ready, error=error)
         if model_loaded is not None:
             INIT_STATUS["model_loaded"] = model_loaded
 
@@ -119,7 +121,7 @@ def _initialize_model() -> None:
         LOGGER.info("XTTS model initialization completed")
     except Exception as error:
         LOGGER.exception("XTTS initialization failed")
-        _set_init_status(0, "Échec de l'initialisation XTTS", error=f"{type(error).__name__}: {error}")
+        _set_init_status(0, "Échec de l'initialisation XTTS", error=str(error))
 
 
 @asynccontextmanager

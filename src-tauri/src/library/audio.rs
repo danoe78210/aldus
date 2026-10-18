@@ -74,8 +74,11 @@ pub struct AudioInitProgress {
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase")]
 struct EngineInitStatus {
+    #[serde(default)]
+    status: String,
     percent: u32,
     stage: String,
+    #[serde(rename = "model_loaded")]
     model_loaded: bool,
     error: Option<String>,
 }
@@ -357,7 +360,8 @@ pub async fn ensure_bundled_engine(app: &tauri::AppHandle) -> Result<(), String>
                 match response.json::<EngineInitStatus>().await {
                     Ok(status) => {
                         emit_audio_init_progress(app, status.percent, &status.stage);
-                        if let Some(error) = status.error {
+                        if status.status == "error" || status.error.is_some() {
+                            let error = status.error.unwrap_or(status.stage);
                             engine.shutdown();
                             log::error!("audio init failed endpoint={} error={}", endpoint, error);
                             return Err(format!("Initialisation XTTS impossible : {error}"));
@@ -1629,7 +1633,7 @@ mod tests {
         chunk_narration, estimate_chapter_metadata, extract_docx, extract_epub, merge_audio_chapters,
         selected_chapter_indices, validate_local_endpoint, AudioGenerationProgress,
         AudioConfig, AudioEngineMode, AudioInitProgress, AudioOutputDirectory,
-        AudioTempDirectory, SynthesisRequest,
+        AudioTempDirectory, EngineInitStatus, SynthesisRequest,
         MAX_TTS_SEGMENT_CHARS,
     };
     use crate::library::AudioChapter;
@@ -1707,6 +1711,22 @@ mod tests {
         })?;
         assert_eq!(failure["isReady"], false);
         assert_eq!(failure["error"], "timeout");
+        Ok(())
+    }
+
+    #[test]
+    fn deserializes_wrapper_snake_case_status_and_reports_initialization_error(
+    ) -> Result<(), serde_json::Error> {
+        let status: EngineInitStatus = serde_json::from_value(serde_json::json!({
+            "status": "error",
+            "percent": 0,
+            "stage": "Échec de l'initialisation XTTS",
+            "model_loaded": false,
+            "error": "OSError: could not get source code"
+        }))?;
+        assert_eq!(status.status, "error");
+        assert!(!status.model_loaded);
+        assert_eq!(status.error.as_deref(), Some("OSError: could not get source code"));
         Ok(())
     }
 

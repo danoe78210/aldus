@@ -40,6 +40,8 @@ $pyInstallerArgs = @(
     "--collect-all", "pydub",
     "--collect-all", "fastapi",
     "--collect-all", "uvicorn",
+    "--collect-all", "inflect",
+    "--collect-all", "typeguard",
     "--hidden-import", "TTS.tts.models.xtts",
     (Join-Path $repoRoot "scripts\xtts_wrapper.py")
 )
