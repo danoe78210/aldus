@@ -190,7 +190,7 @@ DOCX fournissent leurs titres et chapitres; un PDF textuel constitue un seul
 segment. Les éléments structurels (couverture, titre, sommaire, mentions
 légales) et les parasites évidents sont écartés.
 
-Dans le MSI Windows 1.4.4, Aldus démarre automatiquement les sidecars XTTS v2 et
+Dans le MSI Windows 1.4.5, Aldus démarre automatiquement les sidecars XTTS v2 et
 FFmpeg; aucun Python, FFmpeg ni réglage du `PATH` système n'est requis. Au
 premier démarrage, l'assistant présente la CPML et exige une acceptation
 explicite avant de télécharger les poids du modèle. Dès le clic d'acceptation,
@@ -221,6 +221,10 @@ La plaque de bronze affiche la version du binaire, vérifie une release GitHub
 au plus une fois par jour et ne signale une mise à jour qu'après une réponse
 valide. En cas de nouvelle version, elle ouvre un détail des notes et propose
 d'ouvrir la page officielle de release; une erreur réseau reste silencieuse.
+La modale se ferme par son bouton, la touche Échap ou un clic hors du panneau.
+Une release disponible déclenche une aura dorée pulsante sur la plaque; les
+préférences de mouvement réduit conservent un halo fixe. La plaque dynamique
+reste ancrée au bas de la page gauche, sous le macaron Aldus.
 
 ---
 ## 5. Évolutions livrées — v1.2.0

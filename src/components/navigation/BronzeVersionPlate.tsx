@@ -4,6 +4,8 @@ import { version as packageVersion } from "../../../package.json";
 import type { UpdateStatus } from "../../types";
 import { checkForUpdates, openExternalUrl } from "../../utils/libraryApi";
 
+const DEFAULT_RELEASE_URL = "https://github.com/danoe78210/aldus/releases/latest";
+
 interface BronzeVersionPlateProps {
   className?: string;
 }
@@ -37,15 +39,20 @@ export const BronzeVersionPlate = ({ className = "" }: BronzeVersionPlateProps) 
     return () => { if (dialog.open) dialog.close(); };
   }, [detailsOpen]);
 
-  const hasUpdate = update?.available === true && Boolean(update.releaseUrl);
+  const hasUpdate = update?.available === true;
+  const rivetClass = hasUpdate ? "border-[#d4af37] bg-[#3a2c14]" : "border-[#2a2014] bg-[#524028]";
+  const releaseUrl = update?.releaseUrl || DEFAULT_RELEASE_URL;
   const openRelease = async () => {
-    if (!update?.releaseUrl) return;
     try {
-      await openExternalUrl(update.releaseUrl);
+      await openExternalUrl(releaseUrl);
       setOpenError("");
     } catch (error) {
       setOpenError(error instanceof Error ? error.message : "Ouverture du navigateur impossible.");
     }
+  };
+  const closeDetails = () => {
+    setDetailsOpen(false);
+    if (dialogRef.current?.open) dialogRef.current.close();
   };
 
   return (
@@ -56,15 +63,15 @@ export const BronzeVersionPlate = ({ className = "" }: BronzeVersionPlateProps) 
         onClick={() => { setOpenError(""); setDetailsOpen(true); }}
         aria-haspopup={hasUpdate ? "dialog" : undefined}
         title={hasUpdate ? `Version ${version}. Mise à jour ${update?.latestVersion} disponible` : `Aldus Atelier — Version ${version}`}
-        className={`relative inline-flex select-none items-center justify-center rounded-sm border bg-linear-to-b from-[#382c1e] via-[#221a12] to-[#18120c] px-3 py-1.5 shadow-[inset_0_1px_2px_rgba(255,215,0,0.12),inset_0_-1px_2px_rgba(0,0,0,0.8),0_2px_5px_rgba(0,0,0,0.55)] disabled:cursor-default ${hasUpdate ? "cursor-pointer border-[#d4af37] shadow-[0_0_10px_rgba(212,175,55,0.4),inset_0_1px_0_rgba(255,215,0,0.5)]" : "border-[#5a4527]"} ${className}`}
+        className={`relative inline-flex select-none items-center justify-center rounded-sm border bg-linear-to-b from-[#382c1e] via-[#221a12] to-[#18120c] px-3 py-1.5 shadow-[inset_0_1px_2px_rgba(255,215,0,0.12),inset_0_-1px_2px_rgba(0,0,0,0.8),0_2px_5px_rgba(0,0,0,0.55)] disabled:cursor-default ${hasUpdate ? "plaque-update-active hover:brightness-110" : "border-[#5a4527]"} ${className}`}
       >
-        <span aria-hidden="true" className="absolute left-1.5 top-1.5 h-1.5 w-1.5 rounded-full border border-[#2a2014] bg-[#524028] shadow-inner" />
-        <span aria-hidden="true" className={`absolute right-1.5 top-1.5 h-1.5 w-1.5 rounded-full border shadow-inner ${hasUpdate ? "border-[#d4af37] bg-[#d4af37] shadow-[0_0_6px_rgba(212,175,55,0.8)]" : "border-[#2a2014] bg-[#524028]"}`} />
-        <span aria-hidden="true" className="absolute bottom-1.5 left-1.5 h-1.5 w-1.5 rounded-full border border-[#2a2014] bg-[#524028] shadow-inner" />
-        <span aria-hidden="true" className="absolute bottom-1.5 right-1.5 h-1.5 w-1.5 rounded-full border border-[#2a2014] bg-[#524028] shadow-inner" />
+        <span aria-hidden="true" className={`absolute left-1.5 top-1.5 h-1.5 w-1.5 rounded-full border ${rivetClass} shadow-inner`} />
+        <span aria-hidden="true" className={`absolute right-1.5 top-1.5 h-1.5 w-1.5 rounded-full border ${rivetClass} shadow-inner ${hasUpdate ? "shadow-[0_0_6px_rgba(212,175,55,0.8)]" : ""}`} />
+        <span aria-hidden="true" className={`absolute bottom-1.5 left-1.5 h-1.5 w-1.5 rounded-full border ${rivetClass} shadow-inner`} />
+        <span aria-hidden="true" className={`absolute bottom-1.5 right-1.5 h-1.5 w-1.5 rounded-full border ${rivetClass} shadow-inner`} />
         <span
-          className="whitespace-nowrap font-sans text-[12px] font-semibold tracking-[0.04em] text-[#c49a45]"
-          style={{ textShadow: "0 -1px 0 rgba(0,0,0,0.9), 0 1px 1px rgba(212,175,55,0.2)" }}
+          className={`whitespace-nowrap font-sans text-[12px] font-semibold tracking-[0.04em] ${hasUpdate ? "text-[#f0cb6a]" : "text-[#c49a45]"}`}
+          style={{ textShadow: hasUpdate ? "0 0 6px rgba(212,175,55,0.6), 0 1px 2px rgba(0,0,0,0.95)" : "0 -1px 0 rgba(0,0,0,0.9), 0 1px 1px rgba(212,175,55,0.2)" }}
         >
           Aldus · v{version}
         </span>
@@ -73,8 +80,9 @@ export const BronzeVersionPlate = ({ className = "" }: BronzeVersionPlateProps) 
         <dialog
           ref={dialogRef}
           aria-labelledby="update-dialog-title"
-          onCancel={(event) => { event.preventDefault(); setDetailsOpen(false); }}
+          onCancel={(event) => { event.preventDefault(); closeDetails(); }}
           onClose={() => setDetailsOpen(false)}
+          onClick={(event) => { if (event.target === event.currentTarget) closeDetails(); }}
           className="m-auto w-[calc(100%-2rem)] max-w-lg rounded-sm border border-[#7a6039] bg-[#191612] p-0 text-[#e2dbce] shadow-2xl backdrop:bg-black/75"
         >
           <div className="border-b border-[#382f22] px-5 py-4">
@@ -87,7 +95,7 @@ export const BronzeVersionPlate = ({ className = "" }: BronzeVersionPlateProps) 
             {openError && <p role="alert" className="mt-3 text-xs text-[#d28b75]">{openError}</p>}
           </div>
           <div className="flex flex-wrap justify-end gap-2 border-t border-[#382f22] px-5 py-3">
-            <button type="button" onClick={() => setDetailsOpen(false)} className="rounded-sm border border-[#4a3b2c] px-3 py-2 text-xs text-[#c9bea9] hover:border-[#8f6e2b]">Fermer</button>
+            <button type="button" onClick={closeDetails} className="rounded-sm border border-[#4a3b2c] px-3 py-2 text-xs text-[#c9bea9] hover:border-[#8f6e2b]">Fermer</button>
             <button type="button" onClick={() => void openRelease()} className="rounded-sm border border-[#8f6e2b] bg-[#211c15] px-3 py-2 font-cinzel text-xs text-[#d4af37] hover:border-[#d4af37]">Télécharger la mise à jour</button>
           </div>
         </dialog>

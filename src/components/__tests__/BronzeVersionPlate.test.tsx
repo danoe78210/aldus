@@ -1,5 +1,5 @@
 import { afterEach, beforeAll, beforeEach, expect, it, vi } from "vitest";
-import { cleanup, render, screen } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { getVersion } from "@tauri-apps/api/app";
 import { version as packageVersion } from "../../../package.json";
 import { checkForUpdates, openExternalUrl } from "../../utils/libraryApi";
@@ -38,18 +38,31 @@ it("illuminates the plate and opens release notes and the release page when an u
   vi.mocked(checkForUpdates).mockResolvedValueOnce({
     available: true,
     latestVersion: "1.4.3",
-    releaseUrl: "https://github.com/danoe78210/aldus/releases/tag/v1.4.3",
+    releaseUrl: null,
     notes: "Corrections et améliorations.",
   });
   render(<BronzeVersionPlate />);
 
   const plate = await screen.findByRole("button", { name: `Aldus · v${packageVersion}` });
   expect((plate as HTMLButtonElement).disabled).toBe(false);
-  screen.getByRole("button", { name: `Aldus · v${packageVersion}` }).click();
+  expect(plate.className).toContain("plaque-update-active");
+  fireEvent.click(screen.getByRole("button", { name: `Aldus · v${packageVersion}` }));
   expect(await screen.findByRole("dialog", { name: "Version 1.4.3 disponible" })).toBeTruthy();
   expect(screen.getByText("Corrections et améliorations.")).toBeTruthy();
-  screen.getByRole("button", { name: "Télécharger la mise à jour" }).click();
-  expect(openExternalUrl).toHaveBeenCalledWith("https://github.com/danoe78210/aldus/releases/tag/v1.4.3");
+  fireEvent.click(screen.getByRole("button", { name: "Télécharger la mise à jour" }));
+  expect(openExternalUrl).toHaveBeenCalledWith("https://github.com/danoe78210/aldus/releases/latest");
+  fireEvent.click(screen.getByRole("button", { name: "Fermer" }));
+  await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());
+
+  fireEvent.click(screen.getByRole("button", { name: `Aldus · v${packageVersion}` }));
+  const escapeDialog = await screen.findByRole("dialog", { name: "Version 1.4.3 disponible" });
+  fireEvent(escapeDialog, new Event("cancel", { bubbles: true, cancelable: true }));
+  await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());
+
+  fireEvent.click(screen.getByRole("button", { name: `Aldus · v${packageVersion}` }));
+  const backdropDialog = await screen.findByRole("dialog", { name: "Version 1.4.3 disponible" });
+  fireEvent.click(backdropDialog);
+  await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());
 });
 
 it("keeps the plate quiet when the update service is unavailable", async () => {
@@ -58,6 +71,7 @@ it("keeps the plate quiet when the update service is unavailable", async () => {
 
   const plate = await screen.findByRole("button", { name: `Aldus · v${packageVersion}` });
   expect((plate as HTMLButtonElement).disabled).toBe(true);
+  expect(plate.className).not.toContain("plaque-update-active");
   expect(screen.queryByRole("alert")).toBeNull();
   expect(screen.queryByRole("dialog")).toBeNull();
 });

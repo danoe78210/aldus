@@ -189,53 +189,83 @@ pub async fn check_for_updates(app: AppHandle, force: bool) -> Result<UpdateStat
     check_update_status(&app, force).await
 }
 
-#[tauri::command]
-pub fn open_external(url: String) -> Result<(), String> {
+fn validate_release_url(url: &str) -> Result<Url, String> {
     let parsed = Url::parse(&url).map_err(|error| format!("URL de release invalide : {error}"))?;
     if parsed.scheme() != "https"
         || parsed.host_str() != Some("github.com")
+        || !parsed.username().is_empty()
+        || parsed.password().is_some()
+        || parsed.port().is_some()
+        || parsed.query().is_some()
+        || parsed.fragment().is_some()
         || !parsed.path().starts_with("/danoe78210/aldus/releases/")
     {
         return Err("Seules les pages de release Aldus sur GitHub peuvent être ouvertes.".into());
     }
+    Ok(parsed)
+}
 
+#[tauri::command]
+pub fn open_external(url: String) -> Result<(), String> {
+    let parsed = validate_release_url(&url)?;
+    let url = parsed.as_str();
     #[cfg(target_os = "windows")]
-    let mut command = {
-        let mut command = Command::new("rundll32");
-        command.args(["url.dll,FileProtocolHandler", &url]);
-        command
+    let result = {
+        use std::os::windows::process::CommandExt;
+        Command::new("cmd.exe")
+            .args(["/C", "start", ""])
+            .arg(url)
+            .creation_flags(0x08000000)
+            .spawn()
     };
     #[cfg(target_os = "macos")]
-    let mut command = {
-        let mut command = Command::new("open");
-        command.arg(&url);
-        command
-    };
+    let result = Command::new("open").arg(url).spawn();
     #[cfg(target_os = "linux")]
-    let mut command = {
-        let mut command = Command::new("xdg-open");
-        command.arg(&url);
-        command
-    };
-    command
-        .spawn()
-        .map(|_| ())
-        .map_err(|error| format!("Ouverture du navigateur impossible : {error}"))
+    let result = Command::new("xdg-open").arg(url).spawn();
+    result.map(|_| ()).map_err(|error| {
+        let message = format!("Ouverture du navigateur impossible : {error}");
+        log::error!("External release URL open failed: {message}");
+        message
+    })?;
+    log::info!("Opened Aldus release URL: {url}");
+    Ok(())
 }
 
 #[cfg(test)]
 mod tests {
     use super::{
         checked_within_last_day, is_newer_version, load_system_config, status_from_cache,
-        store_system_config, SystemConfig,
+        store_system_config, validate_release_url, SystemConfig,
     };
     use chrono::{Duration, Utc};
 
     #[test]
     fn compares_semver_release_tags_to_current_version() {
-        assert!(is_newer_version("v1.4.4", "1.4.3"));
-        assert!(!is_newer_version("v1.4.3", "1.4.3"));
-        assert!(!is_newer_version("latest", "1.4.3"));
+        assert!(is_newer_version("v1.4.5", "1.4.4"));
+        assert!(!is_newer_version("v1.4.4", "1.4.4"));
+        assert!(!is_newer_version("latest", "1.4.4"));
+    }
+
+    #[test]
+    fn only_accepts_https_urls_for_aldus_releases() {
+        assert!(
+            validate_release_url("https://github.com/danoe78210/aldus/releases/tag/v1.4.4").is_ok()
+        );
+        assert!(
+            validate_release_url("https://github.com/danoe78210/aldus/releases/latest").is_ok()
+        );
+        assert!(
+            validate_release_url("http://github.com/danoe78210/aldus/releases/latest").is_err()
+        );
+        assert!(validate_release_url("https://example.com/releases/latest").is_err());
+        assert!(validate_release_url(
+            "https://github.com.evil.test/danoe78210/aldus/releases/latest"
+        )
+        .is_err());
+        assert!(validate_release_url(
+            "https://github.com/danoe78210/aldus/releases/latest?next=other"
+        )
+        .is_err());
     }
 
     #[test]
@@ -261,20 +291,20 @@ mod tests {
         });
         let system = SystemConfig {
             last_update_check: Some("2026-10-18T08:30:00Z".into()),
-            latest_known_version: "1.4.4".into(),
-            update_url: "https://github.com/danoe78210/aldus/releases/tag/v1.4.4".into(),
+            latest_known_version: "1.4.5".into(),
+            update_url: "https://github.com/danoe78210/aldus/releases/tag/v1.4.5".into(),
             release_notes: "Notes".into(),
             available: true,
         };
         store_system_config(&mut root, &system)?;
         let loaded = load_system_config(&root)?;
-        let status = status_from_cache(&loaded, "1.4.3");
+        let status = status_from_cache(&loaded, "1.4.4");
 
         assert_eq!(root["audio"]["cpml_accepted"], true);
-        assert_eq!(root["system"]["latest_known_version"], "1.4.4");
+        assert_eq!(root["system"]["latest_known_version"], "1.4.5");
         assert!(status.available);
         assert_eq!(status.notes.as_deref(), Some("Notes"));
-        assert!(!status_from_cache(&loaded, "1.4.4").available);
+        assert!(!status_from_cache(&loaded, "1.4.5").available);
         Ok(())
     }
 }

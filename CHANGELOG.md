@@ -1,4 +1,12 @@
 # Registre des Évolutions — Aldus
+## [1.4.5] - Modale de mise à jour & aura bronze
+### Corrigé
+- Modale de mise à jour : fermeture effective par le bouton, Échap et clic sur le fond.
+- Ouverture de la release GitHub dans le navigateur système via une commande Tauri native sécurisée.
+
+### Amélioré
+- Aura dorée multicouche et pulsante de la plaque lorsque la vérification quotidienne détecte une release plus récente; rendu statique si les mouvements réduits sont activés.
+
 ## [1.4.4] - Persistance des épreuves & finition Studio Audio
 ### Ajouté
 - Banc d'Épreuve : bouton de validation du chapitre, état non enregistré protégé contre rechargement/changement de chapitre, et écriture atomique `.tmp` + `rename` via `save_chapter_content`.

@@ -221,7 +221,7 @@ pistes MP3/M4B référencées dans le dossier d'export.
 
 Le mode développement et macOS/Linux conservent un wrapper localhost configurable
 par `ALDUS_TTS_URL` (défaut `http://127.0.0.1:8020`). Le client refuse tout hôte
-autre que `localhost`, `127.0.0.1` ou `::1` en HTTP. Le MSI Windows 1.4.4
+autre que `localhost`, `127.0.0.1` ou `::1` en HTTP. Le MSI Windows 1.4.5
 embarque un sidecar `aldus-audio-server` gelé par PyInstaller `--onefile`
 (Python 3.10.11, PyTorch CPU 2.2.2, Coqui TTS 0.22.0, Transformers 4.41.2) et
 un sidecar FFmpeg 8.1.3 statique LGPL. Le texte LGPL accompagne l'application.
@@ -289,7 +289,12 @@ utilise des timeouts bornés et est ignoré pendant 24 heures après un contrôl
 Le bloc `system` est fusionné aux autres clés puis persisté par `.tmp` et
 `rename`. Les erreurs réseau ne remontent pas à l'UI et sont consignées en
 DEBUG. La commande `open_external` n'accepte que les pages HTTPS des releases
-du dépôt Aldus.
+du dépôt Aldus et lance le navigateur par défaut (`cmd.exe start` sans fenêtre
+sur Windows, `open` sur macOS, `xdg-open` sur Linux). La modale React ferme son
+élément `<dialog>` à la demande explicite, sur `cancel` (Échap) et au clic
+direct sur le fond, sans propager les clics venant du panneau. `bronzeGlowPulse`
+anime en CSS uniquement la plaque quand une mise à jour est disponible; la règle
+`prefers-reduced-motion` remplace l'animation par un halo statique.
 ---
 
 ## 5. Composant `GoldCrucible.tsx` (spécification impérative)
