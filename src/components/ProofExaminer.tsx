@@ -40,6 +40,8 @@ export const ProofExaminer: React.FC = () => {
     proofEnabledRules,
     proofChapter,
     proofText,
+    proofDirty,
+    proofSaved,
     proofLoading,
     proofError,
     loadProofChapter,
@@ -241,6 +243,14 @@ export const ProofExaminer: React.FC = () => {
             >
               <RefreshCw size={12} className="mr-1 inline" />
               Recharger
+            </button>
+            <button
+              type="button"
+              onClick={() => void persistProofChapter()}
+              disabled={!proofDirty || proofChapter === "" || proofLoading}
+              className={`rounded-xs border px-2.5 py-1.5 font-cinzel text-[10px] tracking-wider uppercase transition-colors disabled:cursor-not-allowed disabled:opacity-40 ${proofDirty ? "border-[#8f6e2b] bg-[#211c15] text-[#d4af37] hover:border-[#d4af37]" : "border-[#3a3022] text-[#756b5d]"}`}
+            >
+              {proofSaved ? "Corrections validées" : "Valider les corrections"}
             </button>
             {proofLoading && <Loader2 size={14} className="animate-spin text-[#c5a059]" />}
           </div>

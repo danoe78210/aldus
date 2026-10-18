@@ -221,7 +221,7 @@ pistes MP3/M4B référencées dans le dossier d'export.
 
 Le mode développement et macOS/Linux conservent un wrapper localhost configurable
 par `ALDUS_TTS_URL` (défaut `http://127.0.0.1:8020`). Le client refuse tout hôte
-autre que `localhost`, `127.0.0.1` ou `::1` en HTTP. Le MSI Windows 1.4.3
+autre que `localhost`, `127.0.0.1` ou `::1` en HTTP. Le MSI Windows 1.4.4
 embarque un sidecar `aldus-audio-server` gelé par PyInstaller `--onefile`
 (Python 3.10.11, PyTorch CPU 2.2.2, Coqui TTS 0.22.0, Transformers 4.41.2) et
 un sidecar FFmpeg 8.1.3 statique LGPL. Le texte LGPL accompagne l'application.
@@ -497,6 +497,17 @@ partir de `300 DPI`. Le DPI d'une image raster ne peut être relevé par l'expor
   les noms contenant un chemin ou une extension différente de `.md`. La lecture
   utilise `read_chapter_file`. `list_chapter_files` et `write_chapter_file`
   restent disponibles comme alias de compatibilité.
+
+### 8.6 Banc X — persistance des corrections
+
+`save_chapter_content(app, chapter_file, content)` résout le nom dans le dossier
+Sources configuré (aucun chemin arbitraire fourni par le frontend), écrit le
+texte complet dans un temporaire voisin `<fichier>.md.tmp`, puis remplace la
+source par `rename`. Les échecs de lecture, d'écriture ou de renommage sont
+retournés au frontend et journalisés dans `Aldus.log`; le log de succès est
+spécifique aux corrections validées. `proofDirty` reste actif si la commande
+échoue; un rechargement ou changement de chapitre non enregistré exige une
+confirmation explicite avant lecture d'un autre texte.
 
 ## 9. Évolutions v1.2.0 — Commandes, état partagé & styles
 

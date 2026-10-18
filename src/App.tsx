@@ -32,7 +32,7 @@ import {
 import { isImageFile, splitSourceFiles } from "./utils/sources";
 import { finalizeExit, onCloseRequested } from "./utils/shutdown";
 import { EXPORT_FORMS, PRESS_STAGES, PRESS_TOTAL_MS, type ExportFormId } from "./utils/exportEngine";
-import { createChapterFile, listSourceFiles, readChapterFile, saveChapterFile } from "./utils/projectApi";
+import { createChapterFile, listSourceFiles, readChapterFile, saveChapterFile, saveChapterCorrections } from "./utils/projectApi";
 import { showSpaces } from "./utils/proofLayout";
 import {
   ALL_RULES,
@@ -221,6 +221,9 @@ const App: React.FC = () => {
   );
   const [proofChapter, setProofChapter] = useState("");
   const [proofText, setProofText] = useState("");
+  const [proofDirty, setProofDirty] = useState(false);
+  const [proofSaved, setProofSaved] = useState(false);
+  const proofSavedTimer = useRef<number | null>(null);
   const [proofLoading, setProofLoading] = useState(false);
   const [proofError, setProofError] = useState<string | null>(null);
   const [proofPage, setProofPage] = useState(1);
@@ -1102,8 +1105,30 @@ const App: React.FC = () => {
   // L'état partagé vit ici afin que les deux pages du livre (gauche & droite)
   // basculent de concert et travaillent sur le même chapitre.
 
+  const clearProofSavedIndicator = useCallback(() => {
+    if (proofSavedTimer.current !== null) {
+      window.clearTimeout(proofSavedTimer.current);
+      proofSavedTimer.current = null;
+    }
+    setProofSaved(false);
+  }, []);
+
+  const showProofSavedIndicator = useCallback(() => {
+    if (proofSavedTimer.current !== null) window.clearTimeout(proofSavedTimer.current);
+    setProofSaved(true);
+    proofSavedTimer.current = window.setTimeout(() => {
+      setProofSaved(false);
+      proofSavedTimer.current = null;
+    }, 2200);
+  }, []);
+
   /** Charge (ou recharge) un chapitre dans le Correcteur — lecture native du fichier. */
   const handleLoadProofChapter = useCallback(async (file: string) => {
+    if (proofDirty && !window.confirm("Des corrections typographiques n'ont pas été enregistrées sur le disque. Voulez-vous abandonner ces modifications ?")) {
+      return;
+    }
+    setProofDirty(false);
+    clearProofSavedIndicator();
     setProofChapter(file);
     setProofError(null);
     setProofPage(1);
@@ -1121,7 +1146,7 @@ const App: React.FC = () => {
     } finally {
       setProofLoading(false);
     }
-  }, []);
+  }, [clearProofSavedIndicator, proofDirty]);
 
   // ───────────────── Écritoire (Feuillets III & IV) ────────────────────────
   const handleLoadWritingChapter = useCallback(async (file: string) => {
@@ -1270,13 +1295,15 @@ const App: React.FC = () => {
       return;
     }
     setProofText(next);
+    setProofDirty(true);
+    clearProofSavedIndicator();
     addLog(
       "success",
       `Usage aldin imposé : ${applied} correction${applied > 1 ? "s" : ""} sur ${
         before > applied ? `${before} anomalies relevées` : "le chapitre"
       }${proofChapter ? ` — ${proofChapter}` : ""}.`,
     );
-  }, [proofText, proofEnabledRules, proofChapter, addLog]);
+  }, [proofText, proofEnabledRules, proofChapter, addLog, clearProofSavedIndicator]);
 
   /** **Consignation au registre** : écriture atomique du chapitre justifié. */
   const handlePersistProofChapter = useCallback(async () => {
@@ -1285,12 +1312,16 @@ const App: React.FC = () => {
       return;
     }
     try {
-      await saveChapterFile(proofChapter, proofText);
+      await saveChapterCorrections(proofChapter, proofText);
+      setProofDirty(false);
       addLog("success", `Chapitre consigné au registre : ${proofChapter}.`);
+      showProofSavedIndicator();
     } catch (cause) {
-      addLog("error", `Consignation impossible : ${String(cause)}`);
+      const message = cause instanceof Error ? cause.message : String(cause);
+      setProofError(message);
+      addLog("error", `Consignation impossible : ${message}`);
     }
-  }, [proofChapter, proofText, addLog]);
+  }, [proofChapter, proofText, addLog, showProofSavedIndicator]);
 
   /** **Consignation des retouches du vélin** (Feuillet VIII) : met à jour le texte
       partagé (l'analyse des anomalies est relancée, compteurs de droite recalculés)
@@ -1302,30 +1333,39 @@ const App: React.FC = () => {
       }
       if (proofChapter === "") {
         setProofText(next); // repli mémoire sans fichier
+        setProofDirty(true);
         addLog("warning", "Aucun chapitre sélectionné : retouches gardées en mémoire.");
         return;
       }
       try {
         await saveChapterFile(proofChapter, next);
         setProofText(next);
+        setProofDirty(false);
+        setActiveAnomalyId(null);
         addLog("success", `Retouches consignées dans ${proofChapter} — analyse relancée.`);
+        showProofSavedIndicator();
       } catch (cause) {
-        addLog("error", `Consignation impossible : ${String(cause)}`);
+        const message = cause instanceof Error ? cause.message : String(cause);
+        setProofError(message);
+        addLog("error", `Consignation impossible : ${message}`);
       }
     },
-    [proofChapter, proofText, addLog],
+    [proofChapter, proofText, addLog, showProofSavedIndicator],
   );
 
   /** **Correctif unitaire** : une seule occurrence, depuis les conseils de l'Imprimeur. */
   const handleApplyProofAnomaly = useCallback(
     (anomaly: TypographyAnomaly) => {
       setProofText((current) => applyAnomaly(current, anomaly));
+      setProofDirty(true);
+      setProofError(null);
+      clearProofSavedIndicator();
       addLog(
         "success",
         `Usage aldin imposé (ligne ${anomaly.line}) : ${showSpaces(anomaly.found)} → ${showSpaces(anomaly.replacement)}.`,
       );
     },
-    [addLog],
+    [addLog, clearProofSavedIndicator],
   );
 
   // État applicatif exposé aux pages du livre virtuel (via `StudioContext`).
@@ -1352,6 +1392,8 @@ const App: React.FC = () => {
     onToggleProofRule: handleToggleProofRule,
     proofChapter,
     proofText,
+    proofDirty,
+    proofSaved,
     proofLoading,
     proofError,
     loadProofChapter: (file: string) => handleLoadProofChapter(file),

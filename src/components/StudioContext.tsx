@@ -168,6 +168,10 @@ export interface StudioContextValue {
   proofChapter: string;
   /** Texte brut du chapitre en épreuve : toute correction (ordres ou unitaires) se répercute sur les deux pages. */
   proofText: string;
+  /** Des corrections du Banc d'Épreuve restent à valider sur disque. */
+  proofDirty: boolean;
+  /** Feedback bref après l'écriture du chapitre corrigé. */
+  proofSaved: boolean;
   /** `true` pendant la lecture native du fichier. */
   proofLoading: boolean;
   /** Erreur de lecture du chapitre, ou `null`. */

@@ -539,18 +539,36 @@ mod chapter_filename_tests {
     }
 }
 
-/// Écrit le **texte brut** d'un chapitre (fichier de « Mes sources ») via une
-/// **écriture atomique** (`.tmp` puis `rename`) : aucune corruption possible si
-/// l'application est fermée pendant la sauvegarde.
-#[tauri::command]
-pub async fn save_chapter_file(
-    app: tauri::AppHandle,
-    filename: String,
-    content: String,
+/// Écrit dans le même dossier puis remplace le manuscrit par renommage atomique.
+fn write_chapter_atomically(path: &std::path::Path, content: &str) -> Result<(), String> {
+    let name = path
+        .file_name()
+        .and_then(|value| value.to_str())
+        .unwrap_or("chapter");
+    let temporary = path.with_file_name(format!("{name}.tmp"));
+    if let Err(error) = std::fs::write(&temporary, content) {
+        if let Err(cleanup_error) = std::fs::remove_file(&temporary) {
+            if cleanup_error.kind() != std::io::ErrorKind::NotFound {
+                log::warn!("Chapter temp cleanup failed for {}: {cleanup_error}", temporary.display());
+            }
+        }
+        return Err(format!("Écriture impossible « {} » : {error}", temporary.display()));
+    }
+    if let Err(error) = std::fs::rename(&temporary, path) {
+        if let Err(cleanup_error) = std::fs::remove_file(&temporary) {
+            log::warn!("Chapter temp cleanup failed for {}: {cleanup_error}", temporary.display());
+        }
+        return Err(format!("Enregistrement impossible « {} » : {error}", path.display()));
+    }
+    Ok(())
+}
+
+fn write_source_chapter(
+    app: &tauri::AppHandle,
+    filename: &str,
+    content: &str,
 ) -> Result<(), String> {
-    println!("──────── save_chapter_file ────────");
-    println!("fichier : {filename} ({} octets)", content.len());
-    let payload = load_persisted_payload(&app)?;
+    let payload = load_persisted_payload(app)?;
     let root = payload
         .directories
         .sources
@@ -558,23 +576,87 @@ pub async fn save_chapter_file(
         .map(str::trim)
         .filter(|value| !value.is_empty())
         .ok_or_else(|| "Dossier des sources non configuré (onglet Réglages).".to_string())?;
-    let path = resolve_source_file(std::path::Path::new(root), &filename)
+    let path = resolve_source_file(std::path::Path::new(root), filename)
         .ok_or_else(|| format!("Fichier source introuvable : {filename}"))?;
+    write_chapter_atomically(&path, content)
+}
 
-    // Fichier temporaire **dans le même dossier** (rename atomique garanti).
-    let name = path
-        .file_name()
-        .and_then(|value| value.to_str())
-        .unwrap_or("chapter");
-    let temporary = path.with_file_name(format!("{name}.tmp"));
-    std::fs::write(&temporary, &content)
-        .map_err(|e| format!("Écriture impossible « {} » : {e}", temporary.display()))?;
-    std::fs::rename(&temporary, &path).map_err(|e| {
-        format!(
-            "Enregistrement impossible « {} » : {e}",
-            path.display()
-        )
-    })
+/// Sauvegarde générique utilisée par l'Écritoire et les retouches du vélin.
+#[tauri::command]
+pub async fn save_chapter_file(
+    app: tauri::AppHandle,
+    filename: String,
+    content: String,
+) -> Result<(), String> {
+    match write_source_chapter(&app, &filename, &content) {
+        Ok(()) => {
+            log::info!("Chapitre écrit atomiquement pour {filename}");
+            Ok(())
+        }
+        Err(error) => {
+            log::error!("Écriture du chapitre impossible pour {filename} : {error}");
+            Err(error)
+        }
+    }
+}
+
+/// Valide les corrections du Banc d'Épreuve dans le fichier source Markdown.
+#[tauri::command]
+pub async fn save_chapter_content(
+    app: tauri::AppHandle,
+    chapter_file: String,
+    content: String,
+) -> Result<(), String> {
+    match write_source_chapter(&app, &chapter_file, &content) {
+        Ok(()) => {
+            log::info!("Corrections validées et écrites pour {chapter_file}");
+            Ok(())
+        }
+        Err(error) => {
+            log::error!("Écriture des corrections impossible pour {chapter_file} : {error}");
+            Err(error)
+        }
+    }
+}
+
+#[cfg(test)]
+mod chapter_atomic_write_tests {
+    use super::write_chapter_atomically;
+    use std::{
+        fs,
+        sync::atomic::{AtomicU64, Ordering},
+        time::SystemTime,
+    };
+
+    static TEMP_SEQUENCE: AtomicU64 = AtomicU64::new(0);
+
+    #[test]
+    fn atomically_replaces_existing_chapter_contents() -> Result<(), String> {
+        let unique = SystemTime::now()
+            .duration_since(SystemTime::UNIX_EPOCH)
+            .map_err(|error| error.to_string())?
+            .as_nanos();
+        let sequence = TEMP_SEQUENCE.fetch_add(1, Ordering::Relaxed);
+        let path = std::env::temp_dir().join(format!(
+            "aldus-proof-{}-{unique}-{sequence}.md",
+            std::process::id()
+        ));
+        let temporary = path.with_file_name(format!(
+            "{}.tmp",
+            path.file_name()
+                .and_then(|name| name.to_str())
+                .unwrap_or("chapter")
+        ));
+        fs::write(&path, "Texte source.").map_err(|error| error.to_string())?;
+
+        let result = write_chapter_atomically(&path, "Texte corrigé.")
+            .and_then(|()| fs::read_to_string(&path).map_err(|error| error.to_string()));
+        let _ = fs::remove_file(&path);
+
+        assert_eq!(result?, "Texte corrigé.");
+        assert!(!temporary.exists());
+        Ok(())
+    }
 }
 
 #[tauri::command]

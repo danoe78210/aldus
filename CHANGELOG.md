@@ -1,4 +1,15 @@
 # Registre des Évolutions — Aldus
+## [1.4.4] - Persistance des épreuves & finition Studio Audio
+### Ajouté
+- Banc d'Épreuve : bouton de validation du chapitre, état non enregistré protégé contre rechargement/changement de chapitre, et écriture atomique `.tmp` + `rename` via `save_chapter_content`.
+- Studio Audio strictement unitaire : métriques de pages, mots et durée par chapitre; suppression physique individuelle des MP3.
+- Assistant CPML fermé dès l'acceptation et progression Python/PyTorch/XTTS centralisée dans le pupitre supérieur.
+- Plaque de bronze centrée en bas de la page gauche avec version dynamique et alerte de release quotidienne.
+
+### Corrigé
+- Packaging PyInstaller autonome vérifiant `gruut/VERSION` et embarquant les ressources `inflect`, `typeguard`, `gruut` et FFmpeg.
+- Échec d'initialisation XTTS remonté immédiatement par `/status` sans attendre le timeout.
+
 ## [1.4.3] - MSI autonome XTTS & plaque de version
 ### Corrigé
 - Sidecar PyInstaller : collecte de `gruut`, `inflect` et `typeguard`, copie des métadonnées Gruut et vérification de `gruut/VERSION` avant le packaging MSI.

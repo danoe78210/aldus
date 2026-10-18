@@ -157,6 +157,12 @@ fichier de projet (journalisation de l'opération).
 | **Couverture** | **VII. Le Marbre de Montage** — ardoise veinée, bascule d'épreuve `[ Planche Dépliée 2D ]` / `[ Volume Relié 3D ]` (repères de coupe, fond perdu, réserve code-barres, ombre de reliure), bannière de dérive et dialogue de conformité pré-export. | **VIII. Calibrage de la Reliure** — pagination déclarée, papier, pelliculage, visuels des plats + inspection DPI, texte de tranche et dégradé, métriques temps réel et contrôle du plat IV / code-barres. |
 | **Correcteur** | **IX. Examen Typographique Aldin** — vérifications automatiques et annotations en marge : **rouge carmin** (fautes critiques) / **bistre** (conseils de style). | **X. Épreuves & Annotations Marginales** — éditeur décoré in-situ par le correcteur linguistique, suggestions, localisation, journal de session et application de l’Usage Aldin. |
 
+Sur le **Banc X**, le bouton `[ Valider les corrections ]` écrit le texte partagé
+du chapitre dans son fichier Markdown. Toute correction non validée active un
+état *dirty*; `[ Recharger ]` et le changement de chapitre demandent confirmation
+avant d'abandonner les modifications. Après validation, l'analyse est recalculée
+sur le texte enregistré et les anomalies corrigées disparaissent des conseils.
+
 ### 4.5 Bibliothèque — Banc IV et Studio Audio — Banc V
 
 L'onglet **Bibliothèque**, placé après Export, occupe la zone de travail entière
@@ -184,7 +190,7 @@ DOCX fournissent leurs titres et chapitres; un PDF textuel constitue un seul
 segment. Les éléments structurels (couverture, titre, sommaire, mentions
 légales) et les parasites évidents sont écartés.
 
-Dans le MSI Windows 1.4.3, Aldus démarre automatiquement les sidecars XTTS v2 et
+Dans le MSI Windows 1.4.4, Aldus démarre automatiquement les sidecars XTTS v2 et
 FFmpeg; aucun Python, FFmpeg ni réglage du `PATH` système n'est requis. Au
 premier démarrage, l'assistant présente la CPML et exige une acceptation
 explicite avant de télécharger les poids du modèle. Dès le clic d'acceptation,

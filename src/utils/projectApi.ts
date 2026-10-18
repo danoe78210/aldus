@@ -18,6 +18,10 @@ export const readChapterFile = (filename: string): Promise<string> =>
 export const saveChapterFile = (filename: string, content: string): Promise<void> =>
   invokeCommand<void>("save_chapter_file", { filename, content });
 
+/** Enregistre explicitement le texte corrigé du Banc d'Épreuve. */
+export const saveChapterCorrections = (chapterFile: string, content: string): Promise<void> =>
+  invokeCommand<void>("save_chapter_content", { chapterFile, content });
+
 /** Alias conservé pour les modules historiques. */
 export const writeChapterFile = saveChapterFile;
 

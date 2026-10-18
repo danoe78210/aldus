@@ -452,6 +452,7 @@ pub fn run() {
             corrector::add_place,
             commands::read_chapter_file,
             commands::save_chapter_file,
+            commands::save_chapter_content,
             commands::write_chapter_file,
             commands::list_source_files,
             commands::list_chapter_files,
