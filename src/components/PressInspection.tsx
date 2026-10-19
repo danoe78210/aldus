@@ -98,6 +98,7 @@ export const PressInspection: React.FC = () => {
             return (
               <li key={form.id}>
                 <label
+                  title={form.tooltip}
                   className={`flex cursor-pointer items-start gap-2.5 rounded-xs border px-3.5 py-2.5 transition-colors ${
                     checked
                       ? "border-[#8f6e2b]/70 bg-[#1c1814]"

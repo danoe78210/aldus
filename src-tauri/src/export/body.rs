@@ -361,7 +361,7 @@ pub(super) fn build_body(
 
     // Zone d'impression utile : sert à la mise à l'échelle stricte des images
     // (largeur utile = page − marges latérales − gouttière de reliure).
-    let gutter = gutter_twips(estimate_page_count(payload));
+    let gutter = gutter_twips(estimate_page_count(payload)?);
     let content_w = page_w.saturating_sub((SIDE_MARGIN_TWIPS as u32) * 2 + gutter);
     let content_h = page_h.saturating_sub(TOP_MARGIN_TWIPS as u32 + BOTTOM_MARGIN_TWIPS as u32);
 

@@ -1,4 +1,15 @@
 # Registre des Évolutions — Aldus
+## [1.4.8] - 2026-10-19 — Pagination mesurée & sécurité du manuscrit
+### Amélioré
+- Pagination : comptage des pages physiques du document Typst à chaque aperçu/export PDF, persistance dans le projet et actualisation de l'Imposition et de la Couverture. Le dos utilise la mesure en priorité, avec une page blanche de parité si nécessaire ; avant composition, estimation à 250 mots/page arrondie au pair.
+- La mesure est invalidée si les sources, la structure ou les réglages de composition changent. La gouttière est recomposée si la pagination franchit un seuil KDP ; les placements de chapitres restent explicitement estimés.
+- Historique : instantané atomique avant modification d'une source Markdown depuis l'Écritoire ou le Banc X, sous `.aldus/history/`, limité à 15 versions par chapitre. Le dialogue « Historique des versions » confirme la restauration, conserve le texte enregistré précédent et recharge les deux éditeurs concernés.
+- Libellés : « PDF Imprimeur (Haute Définition) » et « EPUB (Standard) », avec limites de validation explicites dans l'interface et la vitrine ; aucune garantie de rejet zéro ni certification PDF/X/EPUB 3.2.
+### Corrigé
+- Sauvegarde atomique du projet : une autosauvegarde ne peut plus écraser la mesure issue d'une compilation.
+- Audio : budget de 900 s partagé par la synthèse et l'assemblage d'un chapitre, sans réinitialisation à chaque segment. L'initialisation XTTS conserve son budget distinct.
+- Spécifications : numérotation des sections, doublon de traçabilité et génération audio uniquement par chapitre harmonisés.
+
 ## [1.4.7] - 2026-10-19 — Initialisation XTTS & disponibilité des voix
 ### Corrigé
 - Studio Audio : la route `/voices` indexe les profils dès que le modèle est chargé, sans exiger au préalable l'état `ready` qu'elle doit elle-même établir ; les erreurs de chargement restent explicites.

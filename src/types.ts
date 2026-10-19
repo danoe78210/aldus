@@ -128,6 +128,17 @@ export interface LogEntry {
   message: string;
 }
 
+export interface PaginationResult {
+  pageCount: number;
+  isMeasured: boolean;
+}
+
+export interface SnapshotEntry {
+  filename: string;
+  createdAt: string;
+  sizeBytes: number;
+}
+
 /** Correction appliquée pendant une session de relecture (journal du correcteur). */
 export interface AppliedCorrection {
   id: string;
@@ -395,6 +406,8 @@ export interface ProjectOptions {
  * dossiers, options et structure/organisation).
  */
 export interface ProjectFile {
+  lastCompiledPageCount?: number | null;
+  compiledPaginationSignature?: string | null;
   /** Version du format de fichier. */
   projectVersion: string;
   metadata: ProjectMetadata;

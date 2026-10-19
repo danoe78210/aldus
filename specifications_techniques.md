@@ -171,16 +171,10 @@ séquentiellement à `/synthesize`; le wrapper impose lui aussi cette limite et
 renvoie HTTP 422 au lieu de laisser XTTS tronquer un texte trop long. Les MP3
 temporaires sont assemblés par FFmpeg en une piste unique par chapitre, puis
 supprimés. Le client reqwest applique un timeout de connexion de 10 s et un
-timeout total de 900 s par segment. Les erreurs incluent le chapitre, le
+budget total de 900 s par chapitre (synthèse et assemblage). Chaque requête
+dispose seulement du temps restant ; FFmpeg est arrêté à l'échéance.
+Les erreurs incluent le chapitre, le
 segment et, si présent, le statut HTTP et le corps de réponse du wrapper.
-
-`tauri-plugin-log` écrit les niveaux Rust dans stdout et dans
-`%LOCALAPPDATA%\\net.danoe.aldus\\logs\\Aldus.log`. Les erreurs de connexion
-et timeout nomment leur catégorie et l'URL; les HTTP 4xx sont des warnings et
-les 5xx des erreurs avec corps brut. Le texte du manuscrit n'est jamais consigné.
-Le wrapper journalise le contexte du segment, sa durée et les exceptions avec
-traceback. Les erreurs d'inférence génériques retournent HTTP 500; les erreurs
-de mémoire CUDA/hôte HTTP 503; les refus de validation restent des 4xx.
 
 #### Traçabilité et erreurs
 
@@ -356,6 +350,31 @@ et appelle sous Windows `rundll32.exe url.dll,FileProtocolHandler` avec le
 chemin comme argument (sans interpolation shell). Le dialogue de dossier
 utilise `@tauri-apps/plugin-dialog`. Un flush borné est demandé à la sortie.
 
+### 4.6 Pagination Typst mesurée
+
+`pdf::CompiledPdf` conserve les octets et `document.pages.len()` du document
+Typst. L'aperçu `render_pdf` et l'export `export_pdf` partagent la composition
+hors du thread UI. Si la mesure change de seuil de gouttière KDP, le document
+est recomposé jusqu'à stabilisation (six passes maximum, sinon erreur).
+Seules les compilations du manuscrit, jamais celles de la couverture, mettent
+à jour `lastCompiledPageCount` et `compiledPaginationSignature` du projet.
+
+`get_book_pagination(payload?)` renvoie `{ pageCount, isMeasured }` en camelCase ;
+sans payload, il lit le projet persistant. La signature couvre métadonnées,
+mise en page, structure, dossier et contenu des sources liées. Toute dérive
+invalide la mesure. Le repli compte les mots des sources Markdown/texte/DOCX
+et titres, divise par 250 puis arrondit au pair, sans borner artificiellement
+le résultat aux limites d'éligibilité KDP. Les écritures du projet sont
+atomiques sous `PROJECT_LOCK` et préservent les champs détenus par la
+compilation lors d'une autosauvegarde concurrente.
+
+L'événement `book-pagination-changed` déclenche une relecture dans React ;
+les réponses obsolètes sont rejetées. Les sauvegardes de texte et le retour de
+focus rafraîchissent aussi le calcul. `StudioContext.bookPagination` alimente
+l'Imposition et la pagination effective de toutes les vues/export de couverture.
+Le nombre physique exact du PDF reste affiché ; le bloc relié conserve
+l'arrondi pair de `cover::geometry`, indiqué comme page blanche de parité.
+
 ## 5. Composant `GoldCrucible.tsx` (spécification impérative)
 
 ### 5.1 Structure
@@ -466,11 +485,11 @@ Source de vérité : `src-tauri/src/kdp.rs` (`MIN_PAGES = 24`, `MAX_PAGES = 828`
 et `src-tauri/src/cover/geometry.rs` (coefficients papier `0,05720` blanc ·
 `0,06350` crème · `0,05960` couleur ; fond perdu 3,2 mm).
 
-Fonctions pures exportées : `romanNumeral`, `estimateKdpPages`
-(`24 + 20 × chapitres`, bornée), `spineThicknessMm` (Pages × coefficient),
+Fonctions pures exportées : `romanNumeral`, `spineThicknessMm` (Pages × coefficient),
 `sheetsOf`, `planCahiers` (16/20/24), `placeChapters` (liminaires puis
-répartition uniforme ; belle page = page impaire), `misplacedChapters`,
-`paginationDrift`. Couvertes par `src/data/__tests__/imposition.test.ts`.
+répartition uniforme ; belle page = page impaire), `misplacedChapters`.
+Couvertes par `src/data/__tests__/imposition.test.ts`. Le forfait par chapitre
+est supprimé ; la pagination est fournie par `get_book_pagination`.
 
 Consommé par `src/components/ImpositionPanel.tsx` (Feuillet VI, page de droite
 de l'onglet Organisation) et par `OrganizationView` (rangs romains des lignes).
@@ -573,6 +592,23 @@ spécifique aux corrections validées. `proofDirty` reste actif si la commande
 échoue; un rechargement ou changement de chapitre non enregistré exige une
 confirmation explicite avant lecture d'un autre texte.
 
+Les écritures Markdown des deux éditeurs et la restauration passent par
+`storage.rs`, sérialisées sous `CHAPTER_LOCK` et exécutées via `spawn_blocking`.
+Avant remplacement, le texte précédent est écrit atomiquement dans
+`<workspace>/.aldus/history/<nom-assaini>-<empreinte-chemin>_<YYYYMMDD_HHMMSS_nanosecondes>.bak.md`.
+Le suffixe sous-seconde distingue les sauvegardes rapprochées ; la clé stable
+du chemin relatif distingue les homonymes. La rétention garde 15 instantanés
+par chapitre. Un échec de snapshot ou de purge interrompt l'écriture de la source.
+Les sauvegardes identiques n'effectuent ni écriture ni instantané.
+
+`list_chapter_history(workspace, chapter_id)` renvoie
+`{ filename, createdAt, sizeBytes }[]`, par date décroissante ;
+`restore_chapter_snapshot(workspace, chapter_id, snapshot_filename)` sauvegarde
+d'abord le contenu enregistré courant. Les chemins sont bornés au workspace
+configuré, les noms d'instantanés doivent appartenir au chapitre et les liens
+symboliques de l'historique sont refusés. Le dialogue du Banc X confirme
+l'opération, attend les écritures en cours et recharge les éditeurs concernés.
+
 ## 9. Évolutions v1.2.0 — Commandes, état partagé & styles
 
 ### 9.1 Commandes Rust (Tauri v2)
@@ -624,7 +660,7 @@ texte de l’Écritoire et son état de sauvegarde sont partagés de la même ma
 ### 9.5 Formes proposées et pipeline réel
 
 Le pupitre propose quatre formes (`src/utils/exportEngine.ts`) : PDF intérieur,
-EPUB étiqueté 3.2 dans l'interface, couverture PDF 300 DPI et DOCX révisé. Le
+EPUB (Standard), couverture PDF 300 DPI et DOCX révisé. Le
 routage Rust actuel est :
 
 1. Projet → AST Markdown / enrichissements → générateur Typst et compilateur
@@ -637,16 +673,17 @@ routage Rust actuel est :
    images et notes restent à traiter.
 4. Projet → `docx-rs` pour le document DOCX.
 
-Le dépôt ne référence **ni pandoc ni scripts externes d'imposition PDF/X**. Le
-choix d'interface « PDF/X KDP », les assertions marketing de PDF/X ou de noir
-100 % K ne prouvent pas une validation de norme : aucun profil/output intent,
-contrôle PDF/X dédié ou préflight correspondant n'est présent dans le pipeline
-audité. Documenter ces étapes comme implémentées serait inexact; elles relèvent
-d'un chantier distinct si une certification PDF/X est requise.
+Le dépôt ne référence **ni pandoc ni scripts externes d'imposition PDF/X**.
+Le libellé « PDF Imprimeur (Haute Définition) » n'atteste aucune certification
+PDF/X ou colorimétrie 100 % K : aucun output intent ni prévol normatif n'est
+intégré. « EPUB (Standard) » n'atteste pas EPUB 3.2 et aucun EPUBCheck n'est
+exécuté. Les infobulles et la vitrine indiquent ces limites, sans garantie
+d'acceptation KDP/IngramSpark ou de rejet zéro. Les identifiants internes
+`pdf-x` et `epub32` restent inchangés pour compatibilité.
 
 ---
 
-## 9. Persistance
+## 10. Persistance
 
 - `app_data_dir/project.danoe` (JSON) — **jamais purgé**.
 - `app_data_dir/library.json` — rayons, livres, fichiers/statistiques par format
@@ -659,7 +696,7 @@ d'un chantier distinct si une certification PDF/X est requise.
 
 ---
 
-## 10. Qualité & politique
+## 11. Qualité & politique
 
 ```bash
 npx tsc --noEmit -p tsconfig.app.json   # 0 erreur (strict + noUnusedLocals)
@@ -675,7 +712,7 @@ d'information) et respecte `prefers-reduced-motion`.
 
 ---
 
-## 11. Renvois
+## 12. Renvois
 
 - **Spécifications fonctionnelles** : `specifications_fonctionnelles.md`
 - **Module Couverture** : `SPECIFICATIONS_COVER_STUDIO_v1.2.0.md`

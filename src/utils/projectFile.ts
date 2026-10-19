@@ -223,8 +223,9 @@ export const saveProject = async (
     try {
       await invokeCommand("write_project_data", { contents: json });
       saved = true;
-    } catch {
-      // repli ci-dessous.
+    } catch (error) {
+      console.error("Sauvegarde du projet Aldus impossible :", error);
+      return "error";
     }
   }
 

@@ -6,9 +6,7 @@ import {
   PAPER_COEFFICIENT_MM,
   PAPER_LABEL,
   SPINE_SAFETY_ZONE_MM,
-  estimateKdpPages,
   misplacedChapters,
-  paginationDrift,
   placeChapters,
   planCahiers,
   romanNumeral,
@@ -44,29 +42,37 @@ const Row: React.FC<{ label: string; value: React.ReactNode }> = ({ label, value
  * Organisation) : répartition en cahiers, épaisseur de dos, zones de sécurité
  * et détection d'anomalies de mise en page.
  *
- * La pagination de référence est celle **déclarée** dans l'atelier de couverture
- * (`cover.pageCount`) ; l'estimation KDP (`KDP_MIN_PAGES + 20 × chapitres`) sert
- * de contrôle croisé. `src/data/imposition.ts` est le miroir frontend de
+ * La pagination mesurée par Typst prévaut sur l'estimation au volume de mots.
+ * `src/data/imposition.ts` est le miroir frontend de
  * `src-tauri/src/kdp.rs` et `cover/geometry.rs`.
  */
 export const ImpositionPanel: React.FC = () => {
-  const { structure, cover } = useStudio();
+  const { structure, cover, bookPagination, paginationError } = useStudio();
 
   const chapters = useMemo(
     () => structure.filter((item) => item.type === "chapter"),
     [structure],
   );
 
-  const totalPages = Math.max(1, cover.pageCount);
-  const spineMm = spineThicknessMm(totalPages, cover.paperType);
-  const estimatedPages = estimateKdpPages(chapters.length);
-  const drift = paginationDrift(totalPages, chapters.length);
+  const totalPages = bookPagination?.pageCount ?? 0;
+  const bindingPages = totalPages + totalPages % 2;
+  const spineMm = spineThicknessMm(bindingPages, cover.paperType);
   const cahiers = planCahiers(totalPages);
   const placements = useMemo(
     () => placeChapters(structure, totalPages),
     [structure, totalPages],
   );
   const misplaced = misplacedChapters(placements);
+
+  if (!bookPagination) {
+    return <div className="mx-auto w-full max-w-2xl p-4 font-serif text-sm text-[#9e9587]">
+      <h2 className="mb-6 text-center text-lg tracking-[0.25em] text-[#d4af37] uppercase">
+        VI. Imposition &amp; Calibrage KDP
+      </h2>
+      {paginationError ? <p role="alert" className="text-[#c25454]">{paginationError}</p>
+        : <p>Pagination en attente du calcul natif du manuscrit.</p>}
+    </div>;
+  }
 
   // Schéma proportionnel de la tranche : largeur du dos + zones de sécurité.
   const schemaWidthMm = spineMm + 2 * SPINE_SAFETY_ZONE_MM;
@@ -77,22 +83,20 @@ export const ImpositionPanel: React.FC = () => {
       <h2 className="mb-6 text-center font-serif text-lg tracking-[0.25em] text-[#d4af37] uppercase">
         VI. Imposition &amp; Calibrage KDP
       </h2>
-<Panel title="Pagination de référence" icon={<BookOpen size={13} />}>
-        <Row label="Pagination déclarée (atelier de couverture)" value={`${totalPages} pages`} />
+      <Panel title="Pagination de référence" icon={<BookOpen size={13} />}>
+        <Row label="Pagination du manuscrit" value={
+          bookPagination ? <span className="inline-flex items-center gap-2">
+            {bookPagination.isMeasured && <span aria-hidden className="h-1.5 w-1.5 rounded-full bg-[#80946c]" />}
+            {bookPagination.isMeasured ? "" : "~"}{totalPages} pages ({bookPagination.isMeasured ? "mesurées" : "estimées"})
+          </span> : "Pagination indisponible"
+        } />
+        {paginationError && <p role="alert" className="text-xs text-[#c25454]">{paginationError}</p>}
+        {!bookPagination?.isMeasured && <p className="mt-2 font-serif text-xs text-[#9e9587]">
+          Estimation à 250 mots par page, arrondie au pair. Composez l'aperçu PDF pour mesurer la pagination.
+        </p>}
         <Row label="Feuillets" value={`${sheetsOf(totalPages)}`} />
         <Row label="Chapitres composés" value={`${chapters.length}`} />
-        <Row
-          label={`Estimation KDP (${KDP_MIN_PAGES} + 20 × chapitres)`}
-          value={`${estimatedPages} pages`}
-        />
-        <Row
-          label="Écart estimation / déclaré"
-          value={
-            <span className={Math.abs(drift) > 40 ? "text-[#c8a06a]" : "text-[#c5a059]"}>
-              {drift > 0 ? `+${drift}` : drift} pages
-            </span>
-          }
-        />
+        {bindingPages !== totalPages && <Row label="Bloc relié (page blanche de parité)" value={`${bindingPages} pages`} />}
       </Panel>
 
       <Panel title="Répartition en cahiers" icon={<Scissors size={13} />}>
@@ -122,7 +126,7 @@ export const ImpositionPanel: React.FC = () => {
         </p>
         <Row
           label="Calcul"
-          value={`${totalPages} × ${PAPER_COEFFICIENT_MM[cover.paperType].toFixed(4)}`}
+          value={`${bindingPages} × ${PAPER_COEFFICIENT_MM[cover.paperType].toFixed(4)}`}
         />
         <Row
           label="Épaisseur de dos"
@@ -160,6 +164,7 @@ export const ImpositionPanel: React.FC = () => {
       </Panel>
 
       <Panel title="Détection d'anomalies" icon={<AlertTriangle size={13} />}>
+        <p className="mb-2 font-serif text-xs text-[#9e9587]">Placement des chapitres estimé ; seule la pagination totale est mesurée par le PDF.</p>
         {chapters.length === 0 ? (
           <p className="font-serif text-xs text-[#9e9587] italic">
             Aucun chapitre composé : la détection s'activera dès le premier chapitre.

@@ -17,6 +17,7 @@ export const BARCODE_SAFETY_MARGIN_MM = 6.4;
 export const COVER_BOARD_MM = 0.6;
 
 export interface CoverMetrics {
+  pagesUsed: number;
   /** Largeur du dos : `Pages × coefficient papier`. */
   spineWidthMm: number;
   /** Largeur du document déplié : `2 × fond perdu + 2 × plat + dos`. */
@@ -39,8 +40,10 @@ export const coverMetrics = (
   pages: number,
   paper: CoverPaperType,
 ): CoverMetrics => {
-  const spineWidthMm = Math.max(0, pages) * PAPER_COEFFICIENT_MM[paper];
+  const pagesUsed = Math.ceil(Math.max(0, pages) / 2) * 2;
+  const spineWidthMm = pagesUsed * PAPER_COEFFICIENT_MM[paper];
   return {
+    pagesUsed,
     spineWidthMm,
     totalWidthMm: 2 * BLEED_MM + 2 * trimWidthMm + spineWidthMm,
     totalHeightMm: trimHeightMm + 2 * BLEED_MM,

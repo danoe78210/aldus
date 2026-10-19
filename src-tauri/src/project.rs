@@ -4,12 +4,12 @@
 //! fond perdu) ne sont **pas** définies ici : elles vivent dans le module
 //! central [`crate::kdp`] (source unique de vérité). Ce module se limite au
 //! modèle de données transmis par le frontend et à l'estimation du nombre de
-//! pages (bornée par les limites KDP).
+//! pages par volume de mots (sans masquer un livre hors des limites KDP).
 
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 
 /// Métadonnées du roman (onglet « Informations »). Champs camelCase côté JSON.
-#[derive(Debug, Default, Deserialize)]
+#[derive(Debug, Default, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase", default)]
 pub struct ProjectMetadata {
     pub saga_title: String,
@@ -28,7 +28,7 @@ pub struct ProjectMetadata {
 }
 
 /// Configuration de mise en page du manuscrit exporté.
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase", default)]
 pub struct LayoutConfig {
     /// Format de coupe KDP (ex. « 6x9 »).
@@ -86,7 +86,7 @@ impl Default for LayoutConfig {
 }
 
 /// Options de projet (sous-ensemble utile à l'export).
-#[derive(Debug, Default, Deserialize)]
+#[derive(Debug, Default, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase", default)]
 pub struct ProjectOptions {
     /// Estimation optionnelle du nombre de pages (épaisseur → gouttière).
@@ -121,7 +121,7 @@ impl ProjectOptions {
 }
 
 /// Dossiers de travail du projet.
-#[derive(Debug, Default, Deserialize)]
+#[derive(Debug, Default, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase", default)]
 pub struct ProjectDirectories {
     /// Dossier unique « Mes sources » (peut contenir une surcharge `couverture.*`).
@@ -129,7 +129,7 @@ pub struct ProjectDirectories {
 }
 
 /// Élément de l'arborescence (« chemin de fer »), forme hiérarchique sérialisée.
-#[derive(Debug, Clone, Default, Deserialize)]
+#[derive(Debug, Clone, Default, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase", default)]
 pub struct OrganizationNode {
     pub id: String,
@@ -153,29 +153,24 @@ pub struct ProjectPayload {
     pub directories: ProjectDirectories,
     /// Arborescence ordonnée (actes → chapitres / images / pages spéciales).
     pub organization: Vec<OrganizationNode>,
+    pub last_compiled_page_count: Option<u32>,
+    pub compiled_pagination_signature: Option<String>,
 }
 
 /// Estime le nombre de pages du manuscrit.
 ///
 /// Si le frontend fournit une estimation explicite, elle est utilisée telle
-/// quelle (bornée par les limites de pagination KDP). Sinon, repli déterministe
-/// `MIN_PAGES + chapitres × 20`, borné `[MIN_PAGES, MAX_PAGES]`.
+/// quelle (bornée par les limites de pagination KDP). Sinon, le volume des mots
+/// des sources est divisé par 250 et arrondi au nombre pair supérieur.
 ///
 /// Les bornes proviennent du module central [`crate::kdp`] : aucune constante
 /// physique n'est dupliquée ici.
-pub fn estimate_page_count(payload: &ProjectPayload) -> u32 {
+pub fn estimate_page_count(payload: &ProjectPayload) -> Result<u32, String> {
     use crate::kdp::{MAX_PAGES, MIN_PAGES};
     if let Some(count) = payload.options.estimated_page_count {
-        return count.clamp(MIN_PAGES, MAX_PAGES);
+        return Ok(count.clamp(MIN_PAGES, MAX_PAGES));
     }
-    let chapters = payload.organization.iter().map(count_chapters).sum::<u32>();
-    (MIN_PAGES + chapters * 20).clamp(MIN_PAGES, MAX_PAGES)
-}
-
-/// Compte récursivement les nœuds de type `chapter`.
-fn count_chapters(node: &OrganizationNode) -> u32 {
-    let own = if node.kind == "chapter" { 1 } else { 0 };
-    own + node.children.iter().map(count_chapters).sum::<u32>()
+    crate::pagination::estimate_words(payload)
 }
 
 #[cfg(test)]
@@ -198,56 +193,54 @@ mod tests {
         assert_eq!(
             estimate_page_count(&payload(serde_json::json!({
                 "options": { "estimatedPageCount": 300 }
-            }))),
+            }))).expect("pagination"),
             300
         );
         // Borne basse : jamais moins de 24 pages.
         assert_eq!(
             estimate_page_count(&payload(serde_json::json!({
                 "options": { "estimatedPageCount": 5 }
-            }))),
+            }))).expect("pagination"),
             24
         );
         // Borne haute : jamais plus de 828 pages.
         assert_eq!(
             estimate_page_count(&payload(serde_json::json!({
                 "options": { "estimatedPageCount": 5000 }
-            }))),
+            }))).expect("pagination"),
             828
         );
     }
 
     #[test]
-    fn estimate_counts_chapters_recursively_when_absent() {
-        // Sans estimation : 24 + chapitres × 20 → 24 + 2 × 20 = 64.
+    fn empty_chapters_do_not_add_a_page_allowance() {
         let value = payload(serde_json::json!({
             "organization": [
                 { "type": "act", "children": [ { "type": "chapter" }, { "type": "chapter" } ] }
             ]
         }));
-        assert_eq!(estimate_page_count(&value), 64);
+        assert_eq!(estimate_page_count(&value).expect("pagination"), 0);
     }
 
     #[test]
-    fn estimate_clamps_minimum_without_any_chapter() {
+    fn empty_manuscript_has_no_estimated_pages() {
         let value = payload(serde_json::json!({ "organization": [] }));
-        assert_eq!(estimate_page_count(&value), 24);
+        assert_eq!(estimate_page_count(&value).expect("pagination"), 0);
     }
 
     #[test]
-    fn estimate_clamps_maximum_with_many_chapters() {
-        // 60 chapitres → 24 + 1200 = 1224, borné à 828.
+    fn empty_chapter_count_does_not_affect_word_estimate() {
         let chapters: Vec<serde_json::Value> = (0..60)
             .map(|_| serde_json::json!({ "type": "chapter" }))
             .collect();
         let value = payload(serde_json::json!({
             "organization": [ { "type": "act", "children": chapters } ]
         }));
-        assert_eq!(estimate_page_count(&value), 828);
+        assert_eq!(estimate_page_count(&value).expect("pagination"), 0);
     }
 
     #[test]
-    fn count_chapters_is_recursive_and_ignores_other_kinds() {
+    fn empty_nested_nodes_and_images_do_not_add_text_pages() {
         let node: OrganizationNode = serde_json::from_value(serde_json::json!({
             "type": "act",
             "children": [
@@ -256,7 +249,8 @@ mod tests {
             ]
         }))
         .unwrap();
-        assert_eq!(count_chapters(&node), 2);
+        let value = ProjectPayload { organization: vec![node], ..Default::default() };
+        assert_eq!(estimate_page_count(&value).expect("pagination"), 0);
     }
 
     #[test]

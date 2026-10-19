@@ -3,6 +3,7 @@ import { ChevronLeft, ChevronRight, Feather, Loader2, RefreshCw, ScrollText, Sta
 import { useStudio } from "./StudioContext";
 import { ProofTabToggle } from "./proof/ProofTabToggle";
 import { ProofReader } from "./proof/ProofReader";
+import { ChapterHistoryDialog } from "./proof/ChapterHistoryDialog";
 import { buildProofFolio } from "../utils/proofLayout";
 import {
   ALL_RULES,
@@ -53,6 +54,8 @@ export const ProofExaminer: React.FC = () => {
     persistProofChapter,
     saveProofRevisions,
     activeAnomalyId,
+    sourceConfig,
+    restoreProofSnapshot,
   } = useStudio();
 
   const report = useMemo(
@@ -66,6 +69,7 @@ export const ProofExaminer: React.FC = () => {
 
   // Survol : voile doré discret sur les anomalies du grand feuillet de lecture.
   const [hovered, setHovered] = useState<string | null>(null);
+  const [historyOpen, setHistoryOpen] = useState(false);
 
   const severityOf = report.bySeverity;
 
@@ -78,6 +82,16 @@ export const ProofExaminer: React.FC = () => {
           {proofTab === "purete" ? "IX. Indice de Qualité Typographique" : "X. Le Banc d'Épreuve"}
         </h2>
       </div>
+
+      <button type="button" onClick={() => setHistoryOpen(true)}
+        disabled={!proofChapter.toLowerCase().endsWith(".md") || !sourceConfig?.directory || proofLoading}
+        className="mb-3 self-end border border-[#3a3022] px-2 py-1.5 font-serif text-xs text-[#a89f91] hover:text-[#d4af37] disabled:opacity-40">
+        Historique des versions
+      </button>
+      {historyOpen && sourceConfig.directory && (
+        <ChapterHistoryDialog key={`${sourceConfig.directory}/${proofChapter}`} workspace={sourceConfig.directory}
+          chapter={proofChapter} onRestore={restoreProofSnapshot} onClose={() => setHistoryOpen(false)} />
+      )}
 
       {proofTab === "purete" ? (
         /* ═══════ Feuillet IX — Indice de Qualité Typographique (volet gauche) ═══════ */

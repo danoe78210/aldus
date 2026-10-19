@@ -19,6 +19,7 @@ import {
   trimToMm,
 } from "../data/coverMetrics";
 import { PAPER_COEFFICIENT_MM } from "../data/imposition";
+import { isInvokeAvailable } from "../utils/tauri";
 import type { CoverFinish, CoverPaperType } from "../types";
 
 /** Libellé de champ — petite capitale vénitienne. */
@@ -75,7 +76,7 @@ const FINISHES: { id: CoverFinish; title: string; note: string }[] = [
  * Feuillet VII (marbre de montage).
  */
 export const CoverCalibration: React.FC = () => {
-  const { cover, onCoverChange, manuscriptConfig, onRequestCoverExport } = useStudio();
+  const { cover, bookPagination, paginationError, onCoverChange, manuscriptConfig, onRequestCoverExport } = useStudio();
   const trim = findTrimPreset(manuscriptConfig.trimSize);
   const trimWidthMm = trim ? trimToMm(trim.width, trim.unit) : 152.4;
   const trimHeightMm = trim ? trimToMm(trim.height, trim.unit) : 228.6;
@@ -130,17 +131,24 @@ export const CoverCalibration: React.FC = () => {
 
       <Section index={1} title="Matière & Finitions">
         <div className="mb-4">
-          <label className={labelClass}>Pagination déclarée</label>
+          <label className={labelClass}>Pagination {bookPagination ? (bookPagination.isMeasured ? "mesurée" : "estimée") : (isInvokeAvailable() ? "en attente" : "déclarée")}</label>
           <input
+            key={`${bookPagination?.pageCount ?? "manual"}`}
             type="number"
             min={1}
             defaultValue={cover.pageCount}
+            readOnly={isInvokeAvailable() || Boolean(bookPagination)}
             onBlur={(event) => {
+              if (isInvokeAvailable() || bookPagination) return;
               const value = Number.parseInt(event.target.value, 10);
               onCoverChange({ pageCount: Number.isFinite(value) && value > 0 ? value : 1 });
             }}
             className={inputBase}
           />
+          {paginationError && <p role="alert" className="mt-1 text-xs text-[#c25454]">{paginationError}</p>}
+          {bookPagination && <p className="mt-1 font-serif text-xs text-[#a89f91]">
+            {bookPagination.isMeasured ? "Issue du PDF Typst ; le dos utilise cette mesure." : "250 mots/page, arrondi au pair. Composez l'aperçu PDF pour mesurer le dos."}
+          </p>}
         </div>
 
         <label className={labelClass}>Papier d&rsquo;imprimerie</label>
@@ -273,8 +281,10 @@ export const CoverCalibration: React.FC = () => {
         <Row label="Format de coupe" value={trim ? trim.label : manuscriptConfig.trimSize} />
         <Row
           label="Formule du dos : pages × coefficient"
-          value={`${cover.pageCount} × ${PAPER_COEFFICIENT_MM[cover.paperType].toFixed(4)} mm`}
+          value={`${metrics.pagesUsed} × ${PAPER_COEFFICIENT_MM[cover.paperType].toFixed(4)} mm`}
         />
+        {metrics.pagesUsed !== cover.pageCount &&
+          <Row label="Bloc relié (page blanche de parité)" value={`${metrics.pagesUsed} pages`} />}
         <Row
           label="Largeur du dos (tranche)"
           value={
@@ -358,7 +368,7 @@ export const CoverCalibration: React.FC = () => {
         onClick={onRequestCoverExport}
         className="mb-2 w-full border border-[#997728]/70 bg-linear-to-b from-[#2e1d0f] to-[#170f07] py-3.5 font-serif text-xs tracking-[0.28em] text-[#eedcb8] uppercase shadow-xl transition-all duration-300 hover:border-[#ffd700] hover:text-[#ffd700] hover:shadow-[0_0_20px_rgba(212,175,55,0.25)] active:scale-[0.99]"
       >
-        [ Générer le gabarit KDP certifié (PDF/PNG 300 DPI) &rsaquo; ]
+        [ Générer le gabarit de couverture KDP &rsaquo; ]
       </button>
     </div>
   );

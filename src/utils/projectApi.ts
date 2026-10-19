@@ -1,4 +1,14 @@
 import { invokeCommand } from "./tauri";
+import type { PaginationResult, ProjectFile, SnapshotEntry } from "../types";
+
+export const getBookPagination = (payload?: ProjectFile): Promise<PaginationResult> =>
+  invokeCommand<PaginationResult>("get_book_pagination", { payload });
+
+export const listChapterHistory = (workspace: string, chapterId: string): Promise<SnapshotEntry[]> =>
+  invokeCommand<SnapshotEntry[]>("list_chapter_history", { workspace, chapterId });
+
+export const restoreChapterSnapshot = (workspace: string, chapterId: string, snapshotFilename: string): Promise<void> =>
+  invokeCommand<void>("restore_chapter_snapshot", { workspace, chapterId, snapshotFilename });
 
 /**
  * Lit le **texte brut** d'un chapitre du projet (`read_chapter_file`).

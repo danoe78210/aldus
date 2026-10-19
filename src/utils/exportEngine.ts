@@ -16,6 +16,7 @@ export interface ExportForm {
   label: string;
   /** Moteur d'atelier employé. */
   engine: string;
+  tooltip?: string;
   /** Points de conformité de la forme. */
   bullets: string[];
   /** Identifiant du moteur d'export existant (`runExport`). */
@@ -25,22 +26,24 @@ export interface ExportForm {
 export const EXPORT_FORMS: ExportForm[] = [
   {
     id: "pdf-x",
-    label: "Volume Relié Broché (PDF/X KDP)",
+    label: "PDF Imprimeur (Haute Définition)",
     engine: "Typst embarqué → PDF prêt-à-imprimer",
+    tooltip: "Préparé pour l'impression KDP / IngramSpark. Acceptation à vérifier auprès de l'imprimeur ; aucune certification PDF/X ni garantie de rejet zéro.",
     bullets: [
-      "Résolution vectorielle certifiée KDP, polices incorporées en sous-ensembles.",
-      "Noir de texte pur (100 % K, sans mélange quadrichromique).",
-      "Marges de mors (gouttière) calculées sur la pagination réelle.",
+      "Composition vectorielle et polices incorporées par Typst.",
+      "Conformité PDF/X et colorimétrie non certifiées par un prévol automatisé.",
+      "Gouttière recalculée sur les pages du document composé.",
     ],
     handler: "PDF prêt-à-imprimer",
   },
   {
     id: "epub32",
-    label: "In-Folio Numérique (ePub 3.2 Reflow)",
+    label: "EPUB (Standard)",
     engine: "epub-builder → EPUB 3 reflowable",
+    tooltip: "EPUB reflowable sans validation EPUBCheck intégrée. La conformité et l'acceptation par la plateforme restent à vérifier.",
     bullets: [
       "Contenu reflowable avec feuille de style typographique noble.",
-      "Lettrines et césures préservées, sommaire XHTML conforme.",
+      "Sommaire de navigation ; images intérieures et notes non prises en charge.",
       "Couverture incorporée au manifeste.",
     ],
     handler: "Ebook (.epub)",

@@ -7,6 +7,7 @@ import type {
   LogDiagnosticLevel,
   LogLevel,
   ManuscriptLayoutConfig,
+  PaginationResult,
   SourcesConfig,
   SpecialPageRole,
   StructureItem,
@@ -27,6 +28,9 @@ export type ProofTab = "purete" | "banc";
  * les pages conservent une **identité stable** tout en restant **vivantes**.
  */
 export interface StudioContextValue {
+  bookPagination: PaginationResult | null;
+  paginationError: string | null;
+  restoreProofSnapshot: (filename: string) => Promise<void>;
   // --- Réglages ---
   manuscriptConfig: ManuscriptLayoutConfig;
   sourceConfig: SourcesConfig;

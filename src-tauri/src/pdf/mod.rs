@@ -18,17 +18,32 @@ pub fn compile_to_pdf(source: &str) -> Result<Vec<u8>, String> {
 
 /// Compile une source Typst en résolvant les images depuis `root`.
 pub fn compile_to_pdf_with_root(source: &str, root: &std::path::Path) -> Result<Vec<u8>, String> {
-    render(TypstWorld::new_with_root(source, Some(root.to_path_buf())))
+    compile_with_pagination(source, root).map(|output| output.bytes)
+}
+
+pub struct CompiledPdf {
+    pub bytes: Vec<u8>,
+    pub page_count: u32,
+}
+
+pub fn compile_with_pagination(source: &str, root: &std::path::Path) -> Result<CompiledPdf, String> {
+    render_document(TypstWorld::new_with_root(source, Some(root.to_path_buf())))
 }
 
 /// Met en page puis exporte un [`TypstWorld`] en octets PDF.
 fn render(world: TypstWorld) -> Result<Vec<u8>, String> {
+    render_document(world).map(|output| output.bytes)
+}
+
+fn render_document(world: TypstWorld) -> Result<CompiledPdf, String> {
     let warned = typst::compile(&world);
     let document = warned
         .output
         .map_err(|errors| format!("échec de compilation Typst : {errors:?}"))?;
-    typst_pdf::pdf(&document, &typst_pdf::PdfOptions::default())
-        .map_err(|errors| format!("échec de l'export PDF : {errors:?}"))
+    let page_count = u32::try_from(document.pages.len()).map_err(|error| error.to_string())?;
+    let bytes = typst_pdf::pdf(&document, &typst_pdf::PdfOptions::default())
+        .map_err(|errors| format!("échec de l'export PDF : {errors:?}"))?;
+    Ok(CompiledPdf { bytes, page_count })
 }
 
 #[cfg(test)]
@@ -36,6 +51,15 @@ mod tests {
     use super::*;
     use crate::kdp::KdpPageSpec;
     use crate::markdown::Block;
+
+    #[test]
+    fn measures_physical_pages_from_typst_document() {
+        let output = compile_with_pagination("Première page #pagebreak() Deuxième #pagebreak() Troisième", std::path::Path::new("."))
+            .expect("composition");
+        assert_eq!(output.page_count, 3);
+        let pdf = lopdf::Document::load_mem(&output.bytes).expect("PDF lisible");
+        assert_eq!(pdf.get_pages().len(), 3);
+    }
 
     /// Génère un PNG **valide** (2×2) via la crate `image`.
     fn tiny_png() -> Vec<u8> {

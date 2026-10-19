@@ -33,7 +33,8 @@ import {
 import { compareSourcePaths, isImageFile, splitSourceFiles } from "./utils/sources";
 import { finalizeExit, onCloseRequested } from "./utils/shutdown";
 import { EXPORT_FORMS, PRESS_STAGES, PRESS_TOTAL_MS, type ExportFormId } from "./utils/exportEngine";
-import { createChapterFile, listSourceFiles, readChapterFile, saveChapterFile, saveChapterCorrections } from "./utils/projectApi";
+import { createChapterFile, listSourceFiles, readChapterFile, restoreChapterSnapshot, saveChapterFile, saveChapterCorrections } from "./utils/projectApi";
+import { useBookPagination } from "./utils/useBookPagination";
 import { showSpaces } from "./utils/proofLayout";
 import {
   ALL_RULES,
@@ -260,9 +261,11 @@ const App: React.FC = () => {
   const writingRequestRef = useRef(0);
   const writingLatestRef = useRef({ chapter: "", text: "" });
   const writingSaveQueueRef = useRef<Promise<void>>(Promise.resolve());
+  const [sourceRevision, setSourceRevision] = useState(0);
 
   const persistWritingText = useCallback((chapter: string, text: string) => {
-    const queuedWrite = writingSaveQueueRef.current.then(() => saveChapterFile(chapter, text));
+    const queuedWrite = writingSaveQueueRef.current.then(() => saveChapterFile(chapter, text))
+      .then(() => setSourceRevision((revision) => revision + 1));
     writingSaveQueueRef.current = queuedWrite.catch(() => undefined);
     return queuedWrite;
   }, []);
@@ -566,6 +569,9 @@ const App: React.FC = () => {
     }
   }, [buildCurrentProject, hydrated, projectFilePath]);
 
+  const currentProject = useMemo(() => hydrated ? buildCurrentProject() : null, [buildCurrentProject, hydrated]);
+  const { result: bookPagination, error: paginationError } = useBookPagination(currentProject, sourceRevision);
+
   // Ouvre l'aperçu interactif : fige le payload courant (généré en mémoire par Typst).
   const handlePreview = useCallback(() => {
     setPreviewPayload(buildCurrentProject());
@@ -582,6 +588,7 @@ const App: React.FC = () => {
       saveProject(json, projectFilePath).then((method) => {
         if (method === 'error') {
           setSaveState('idle');
+          addLog("error", "Sauvegarde du projet impossible. Consultez Aldus.log.");
           return;
         }
         setSaveState('saved');
@@ -593,6 +600,7 @@ const App: React.FC = () => {
     hydrated,
     buildCurrentProject,
     projectFilePath,
+    addLog,
   ]);
 
   const runExport = useCallback(
@@ -1248,7 +1256,7 @@ const App: React.FC = () => {
   }, [addLog, handleLoadWritingChapter, persistCurrentProject]);
 
   useEffect(() => {
-    if (!writingDirty || !writingChapter || !hydrated) {
+    if (!writingDirty || !writingChapter || !hydrated || writingLoading) {
       return;
     }
     const chapter = writingChapter;
@@ -1268,7 +1276,7 @@ const App: React.FC = () => {
       });
     }, 650);
     return () => window.clearTimeout(timer);
-  }, [hydrated, persistWritingText, writingChapter, writingDirty, writingText]);
+  }, [hydrated, persistWritingText, writingChapter, writingDirty, writingLoading, writingText]);
 
   useEffect(() => {
     if (writingChapter === "" && chapterFiles.length > 0 && sourceConfig.directory) {
@@ -1344,6 +1352,7 @@ const App: React.FC = () => {
     }
     try {
       await saveChapterCorrections(proofChapter, proofText);
+      setSourceRevision((revision) => revision + 1);
       setProofDirty(false);
       addLog("success", `Chapitre consigné au registre : ${proofChapter}.`);
       showProofSavedIndicator();
@@ -1370,6 +1379,7 @@ const App: React.FC = () => {
       }
       try {
         await saveChapterFile(proofChapter, next);
+        setSourceRevision((revision) => revision + 1);
         setProofText(next);
         setProofDirty(false);
         setActiveAnomalyId(null);
@@ -1399,8 +1409,62 @@ const App: React.FC = () => {
     [addLog, clearProofSavedIndicator],
   );
 
+  const handleRestoreProofSnapshot = async (filename: string) => {
+    const workspace = sourceConfig.directory;
+    if (!workspace || !proofChapter) throw new Error("Aucun chapitre du workspace sélectionné.");
+    const sameWritingChapter = writingChapter === proofChapter;
+    let pendingWritingSave = sameWritingChapter && writingDirty;
+    let restored = false;
+    setProofLoading(true);
+    if (sameWritingChapter) setWritingLoading(true);
+    try {
+      await persistCurrentProject();
+      if (sameWritingChapter && writingDirty) {
+        setWritingDirty(false);
+        await persistWritingText(writingChapter, writingText);
+        pendingWritingSave = false;
+      }
+      await writingSaveQueueRef.current;
+      await restoreChapterSnapshot(workspace, proofChapter, filename);
+      restored = true;
+      setSourceRevision((revision) => revision + 1);
+      const text = await readChapterFile(proofChapter);
+      setProofText(text);
+      setProofDirty(false);
+      setProofError(null);
+      setProofPage(1);
+      setActiveAnomalyId(null);
+      clearProofSavedIndicator();
+      if (sameWritingChapter) {
+        writingLatestRef.current = { chapter: writingChapter, text };
+        setWritingText(text);
+        setWritingDirty(false);
+        setWritingError(null);
+        setWritingSaveState("saved");
+      }
+      addLog("success", `Version restaurée : ${proofChapter}.`);
+    } catch (error) {
+      if (pendingWritingSave) setWritingDirty(true);
+      if (restored) {
+        setProofText("");
+        setProofDirty(false);
+        setProofError(`Version restaurée sur disque, mais relecture impossible : ${String(error)}`);
+        if (sameWritingChapter) setWritingText("");
+      }
+      addLog("error", `Restauration impossible : ${String(error)}`);
+      if (sameWritingChapter) setWritingError(String(error));
+      throw error;
+    } finally {
+      setProofLoading(false);
+      if (sameWritingChapter) setWritingLoading(false);
+    }
+  };
+
   // État applicatif exposé aux pages du livre virtuel (via `StudioContext`).
   const studioValue: StudioContextValue = {
+    bookPagination,
+    paginationError,
+    restoreProofSnapshot: handleRestoreProofSnapshot,
     exportForms,
     onToggleExportForm: (id) =>
       setExportForms((current) => ({ ...current, [id]: !current[id] })),
@@ -1481,7 +1545,7 @@ const App: React.FC = () => {
     },
     onExport: runExport,
     onPreview: handlePreview,
-    cover,
+    cover: bookPagination ? { ...cover, pageCount: bookPagination.pageCount } : cover,
     onCoverChange: handleCoverChange,
     structureSignature,
     coverExportRequest,

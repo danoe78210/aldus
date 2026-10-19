@@ -8,8 +8,6 @@ import type { CoverPaperType, StructureItem } from "../types";
  */
 export const KDP_MIN_PAGES = 24;
 export const KDP_MAX_PAGES = 828;
-/** Allotissement nominal d'un chapitre dans l'estimation KDP (`project.rs`). */
-export const KDP_PAGES_PER_CHAPTER = 20;
 /** Zone de sécurité KDP autour de la tranche : 1,6 mm ≈ 0,0625 po. */
 export const SPINE_SAFETY_ZONE_MM = 1.6;
 
@@ -62,12 +60,6 @@ export const romanNumeral = (value: number): string => {
   return out;
 };
 
-/** Estimation KDP du nombre de pages (miroir de `estimate_page_count`). */
-export const estimateKdpPages = (chapterCount: number): number =>
-  Math.min(
-    KDP_MAX_PAGES,
-    Math.max(KDP_MIN_PAGES, KDP_MIN_PAGES + chapterCount * KDP_PAGES_PER_CHAPTER),
-  );
 
 /** Épaisseur du dos (mm) : **Pages × coefficient papier**. */
 export const spineThicknessMm = (pages: number, paper: CoverPaperType): number =>
@@ -136,9 +128,3 @@ export const placeChapters = (
 export const misplacedChapters = (
   placements: ChapterPlacement[],
 ): ChapterPlacement[] => placements.filter((placement) => !placement.recto);
-
-/** Écart (pages) entre la pagination déclarée et l'estimation KDP. */
-export const paginationDrift = (
-  declaredPages: number,
-  chapterCount: number,
-): number => declaredPages - estimateKdpPages(chapterCount);

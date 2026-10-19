@@ -1,10 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
-  KDP_MIN_PAGES,
   PAPER_COEFFICIENT_MM,
-  estimateKdpPages,
   misplacedChapters,
-  paginationDrift,
   placeChapters,
   planCahiers,
   romanNumeral,
@@ -35,11 +32,6 @@ describe("imposition — numération romaine du registre", () => {
 });
 
 describe("imposition — estimation KDP et feuillets", () => {
-  it("applique la formule 24 + 20 × chapitres, bornée", () => {
-    expect(estimateKdpPages(0)).toBe(KDP_MIN_PAGES);
-    expect(estimateKdpPages(3)).toBe(84);
-    expect(estimateKdpPages(10_000)).toBe(828);
-  });
 
   it("calcule les feuillets (recto + verso)", () => {
     expect(sheetsOf(1)).toBe(1);
@@ -47,10 +39,6 @@ describe("imposition — estimation KDP et feuillets", () => {
     expect(sheetsOf(85)).toBe(43);
   });
 
-  it("mesure l'écart entre pagination déclarée et estimation", () => {
-    expect(paginationDrift(100, 3)).toBe(16);
-    expect(paginationDrift(24, 0)).toBe(0);
-  });
 });
 
 describe("imposition — épaisseur de dos et cahiers", () => {

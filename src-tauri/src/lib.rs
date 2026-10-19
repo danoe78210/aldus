@@ -11,6 +11,8 @@ pub mod kdp;
 mod markdown;
 pub mod pdf;
 mod project;
+mod pagination;
+mod storage;
 mod updater;
 mod workspace;
 
@@ -341,9 +343,10 @@ async fn read_project_data(app: tauri::AppHandle) -> Result<Option<String>, Stri
 /// Écrit le projet persistant (données utilisateur) — survit aux mises à jour.
 #[tauri::command]
 async fn write_project_data(app: tauri::AppHandle, contents: String) -> Result<(), String> {
-    let path = project_data_path(&app)?;
-    std::fs::write(&path, contents)
-        .map_err(|e| format!("Écriture du projet impossible « {} » : {e}", path.display()))
+    let result = tauri::async_runtime::spawn_blocking(move || {
+        crate::pagination::write_project(&project_data_path(&app)?, &contents)
+    }).await.map_err(|error| format!("Sauvegarde du projet interrompue : {error}")).and_then(|result| result);
+    result.inspect_err(|error| log::error!("Sauvegarde du projet : {error}"))
 }
 
 /// Purge le **cache volatile** (fichiers temporaires) puis ferme proprement
@@ -418,6 +421,9 @@ pub fn run() {
             generate_epub,
             commands::export_pdf,
             commands::render_pdf,
+            pagination::get_book_pagination,
+            commands::list_chapter_history,
+            commands::restore_chapter_snapshot,
             corrector::analyze_chapter,
             corrector::list_ignored_words,
             corrector::update_ignored_words,

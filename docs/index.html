@@ -523,7 +523,7 @@
     <!-- CTA Principal -->
     <div class="flex flex-col sm:flex-row items-center justify-center gap-4 mt-8">
       <a href="#telechargement" class="w-full sm:w-auto px-8 py-3.5 bg-gradient-to-r from-[#221b14] via-[#2d241a] to-[#221b14] border border-atelier-brass text-atelier-ivory font-cinzel text-xs uppercase tracking-[0.2em] rounded-xs hover:border-atelier-gold hover:text-atelier-gold transition-all shadow-lg">
-        Obtenir Aldus v1.4.7 ›
+        Obtenir Aldus v1.4.8 ›
       </a>
       <a href="https://github.com/danoe78210/aldus" target="_blank" rel="noopener noreferrer" class="w-full sm:w-auto px-8 py-3.5 border border-atelier-border text-atelier-bistre font-cinzel text-xs uppercase tracking-[0.2em] rounded-xs hover:border-atelier-brass hover:text-atelier-ivory transition-all">
         Code Source GitHub ↗
@@ -900,7 +900,7 @@
               <div id="banc-6-narrative" class="banc-narrative-box">
                 <p class="banc-subtitle" data-banc-subtitle>L'Inspection Pré-Presse &amp; la Génération des Formes</p>
                 <p class="text-atelier-bistre text-base leading-relaxed mt-5" data-banc-desc>
-                  Constitution du dossier de fabrication et pilotage des formes d'édition multiples : génération certifiée du PDF/X KDP (noir pur 100% K, polices incorporées), de l'ePub 3.2 reflowable, de la jaquette haute définition à 300 DPI avec zone de code-barres, et du manuscrit DOCX révisé pour relecture.
+                  Constitution du dossier de fabrication : PDF Imprimeur (Haute Définition), EPUB (Standard), jaquette 300 DPI et DOCX révisé. Aucun prévol PDF/X ni validateur EPUBCheck intégré ; l'acceptation par KDP / IngramSpark reste à vérifier.
                 </p>
               </div>
             </div>
@@ -909,10 +909,10 @@
             <div class="flex flex-col" data-banc-viewer="banc-6">
               <div class="banc-viewer" id="banc-6-viewer">
                 <span class="banc-viewer-placeholder" data-banc-placeholder>Épreuve à venir — Export01.png</span>
-                <img class="banc-viewer-img is-active" data-banc-img="prepresse" src="assets/screenshots/Export01.png" alt="Inspection Pré-Presse — génération certifiée du PDF/X, ePub 3.2, jaquette et manuscrit DOCX" loading="lazy" onload="bancShotLoaded(this)" onerror="this.dataset.broken='1'; bancShotLoaded(this)">
+                <img class="banc-viewer-img is-active" data-banc-img="prepresse" src="assets/screenshots/Export01.png" alt="Inspection Pré-Presse — PDF Imprimeur, EPUB (Standard), jaquette et manuscrit DOCX" loading="lazy" onload="bancShotLoaded(this)" onerror="this.dataset.broken='1'; bancShotLoaded(this)">
               </div>
 
-              <p class="banc-viewer-caption" id="banc-6-caption" data-banc-caption>Inspection Pré-Presse — génération certifiée du PDF/X, ePub 3.2, jaquette et manuscrit DOCX</p>
+              <p class="banc-viewer-caption" id="banc-6-caption" data-banc-caption>Inspection Pré-Presse — PDF Imprimeur, EPUB (Standard), jaquette et manuscrit DOCX</p>
 
               <button type="button" class="banc-zoom" id="banc-6-zoom" onclick="zoomBancView('banc-6')" title="Ouvrir l'épreuve active en haute définition">⤢ Examiner en grand format</button>
             </div>
@@ -951,12 +951,12 @@
       </div>
     </section>
 
-    <!-- Nouveautés v1.4.7 -->
+    <!-- Nouveautés v1.4.8 -->
     <section id="nouveautes-v1-4" class="pt-32 text-left">
       <div class="text-center mb-16">
         <span class="text-atelier-gold text-xl">❦</span>
-        <h2 class="font-cinzel text-2xl sm:text-3xl tracking-[0.2em] uppercase text-atelier-ivory mt-2">Version 1.4.7 — Voix XTTS disponibles</h2>
-        <p class="text-atelier-muted text-sm mt-1 uppercase tracking-widest">Initialisation corrigée, sources récursives et journal pédagogique</p>
+        <h2 class="font-cinzel text-2xl sm:text-3xl tracking-[0.2em] uppercase text-atelier-ivory mt-2">Version 1.4.8 — Pagination &amp; sécurité du texte</h2>
+        <p class="text-atelier-muted text-sm mt-1 uppercase tracking-widest">Pages Typst mesurées, historique des chapitres et formats clarifiés</p>
       </div>
 
       <div class="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-6xl mx-auto">
@@ -977,9 +977,9 @@
         </figure>
       </div>
 
-      <p class="text-sm text-atelier-bistre mt-8 text-center">Le MSI Windows embarque XTTS v2 et FFmpeg, avec les données Jamo et Gruut vérifiées. La 1.4.7 corrige l'indexation des voix et laisse jusqu'à 15 minutes au premier chargement des modèles après consentement, puis ils restent disponibles hors ligne. L'Organisation garde ses contrôles dans le cadre, les sources sont explorées récursivement et le journal explique les erreurs dans le dossier choisi.</p>
+      <p class="text-sm text-atelier-bistre mt-8 text-center">La pagination réelle du PDF Typst alimente le dos de couverture ; avant composition, elle est estimée au volume de mots. Quinze versions de chaque chapitre Markdown sont conservées avant modification et restaurables depuis le Banc X. Les libellés PDF Imprimeur (Haute Définition) et EPUB (Standard) indiquent leurs limites, sans certification normative. Le MSI conserve XTTS et FFmpeg ; les modèles sont téléchargés après consentement CPML, puis disponibles hors ligne. Le budget de génération audio est de 900 secondes par chapitre.</p>
       <p class="text-sm text-center mt-3"><a href="manuel-scribe-audio.md" class="text-atelier-gold underline hover:text-atelier-goldhover">Lire le Manuel du Scribe Audio</a></p>
-      <p class="text-xs text-atelier-muted mt-5 text-center"><a href="https://github.com/danoe78210/aldus/blob/v1.4.7/CHANGELOG.md" class="text-atelier-gold underline hover:text-atelier-goldhover">Registre des évolutions 1.4.7</a></p>
+      <p class="text-xs text-atelier-muted mt-5 text-center"><a href="https://github.com/danoe78210/aldus/blob/v1.4.8/CHANGELOG.md" class="text-atelier-gold underline hover:text-atelier-goldhover">Registre des évolutions 1.4.8</a></p>
     </section>
 
     <!-- Archive des nouveautés v1.3.0 -->
@@ -1035,7 +1035,7 @@
       <div class="mb-12">
         <span class="text-atelier-gold text-xl">❦</span>
         <h2 class="font-cinzel text-3xl sm:text-4xl tracking-[0.2em] uppercase text-atelier-ivory mt-2">Prendre Place dans l'Atelier</h2>
-        <p class="text-atelier-muted text-sm mt-1 uppercase tracking-widest">Version 1.4.7 (Stable) — Sources &amp; journal pédagogique</p>
+        <p class="text-atelier-muted text-sm mt-1 uppercase tracking-widest">Version 1.4.8 (Stable) — Pagination &amp; historique des chapitres</p>
       </div>
 
       <div class="grid grid-cols-1 md:grid-cols-3 gap-6 text-left max-w-4xl mx-auto">
@@ -1052,7 +1052,7 @@
             </div>
           </div>
           <div class="space-y-2 pt-4 border-t border-atelier-border/50">
-            <a href="https://github.com/danoe78210/aldus/releases/download/v1.4.7/Aldus_1.4.7_x64_en-US.msi" class="block w-full py-2 text-center bg-[#1f1913] border border-atelier-brass text-atelier-ivory font-cinzel text-xs uppercase tracking-wider rounded-xs hover:border-atelier-gold hover:text-atelier-gold transition-colors">
+            <a href="https://github.com/danoe78210/aldus/releases/download/v1.4.8/Aldus_1.4.8_x64_en-US.msi" class="block w-full py-2 text-center bg-[#1f1913] border border-atelier-brass text-atelier-ivory font-cinzel text-xs uppercase tracking-wider rounded-xs hover:border-atelier-gold hover:text-atelier-gold transition-colors">
               Télécharger l’installeur autonome .MSI
             </a>
           </div>
@@ -1069,7 +1069,7 @@
             </div>
           </div>
           <div class="pt-4 border-t border-atelier-border/50">
-            <a href="https://github.com/danoe78210/aldus/releases/download/v1.4.7/Aldus_1.4.7_universal.dmg" class="block w-full py-2 text-center bg-[#1f1913] border border-atelier-brass text-atelier-ivory font-cinzel text-xs uppercase tracking-wider rounded-xs hover:border-atelier-gold hover:text-atelier-gold transition-colors">
+            <a href="https://github.com/danoe78210/aldus/releases/download/v1.4.8/Aldus_1.4.8_universal.dmg" class="block w-full py-2 text-center bg-[#1f1913] border border-atelier-brass text-atelier-ivory font-cinzel text-xs uppercase tracking-wider rounded-xs hover:border-atelier-gold hover:text-atelier-gold transition-colors">
               Télécharger .DMG (39 Mo)
             </a>
           </div>
@@ -1086,14 +1086,14 @@
             </div>
           </div>
           <div class="space-y-2 pt-4 border-t border-atelier-border/50">
-            <a href="https://github.com/danoe78210/aldus/releases/download/v1.4.7/Aldus_1.4.7_amd64.AppImage" class="block w-full py-2 text-center bg-[#1f1913] border border-atelier-brass text-atelier-ivory font-cinzel text-xs uppercase tracking-wider rounded-xs hover:border-atelier-gold hover:text-atelier-gold transition-colors">
+            <a href="https://github.com/danoe78210/aldus/releases/download/v1.4.8/Aldus_1.4.8_amd64.AppImage" class="block w-full py-2 text-center bg-[#1f1913] border border-atelier-brass text-atelier-ivory font-cinzel text-xs uppercase tracking-wider rounded-xs hover:border-atelier-gold hover:text-atelier-gold transition-colors">
               AppImage Portable (94 Mo)
             </a>
             <div class="grid grid-cols-2 gap-2">
-              <a href="https://github.com/danoe78210/aldus/releases/download/v1.4.7/Aldus_1.4.7_amd64.deb" class="py-1 text-center border border-atelier-border text-atelier-muted font-cinzel text-[10px] uppercase tracking-wider rounded-xs hover:border-atelier-brass hover:text-atelier-bistre transition-colors">
+              <a href="https://github.com/danoe78210/aldus/releases/download/v1.4.8/Aldus_1.4.8_amd64.deb" class="py-1 text-center border border-atelier-border text-atelier-muted font-cinzel text-[10px] uppercase tracking-wider rounded-xs hover:border-atelier-brass hover:text-atelier-bistre transition-colors">
                 .DEB
               </a>
-              <a href="https://github.com/danoe78210/aldus/releases/download/v1.4.7/Aldus-1.4.7-1.x86_64.rpm" class="py-1 text-center border border-atelier-border text-atelier-muted font-cinzel text-[10px] uppercase tracking-wider rounded-xs hover:border-atelier-brass hover:text-atelier-bistre transition-colors">
+              <a href="https://github.com/danoe78210/aldus/releases/download/v1.4.8/Aldus-1.4.8-1.x86_64.rpm" class="py-1 text-center border border-atelier-border text-atelier-muted font-cinzel text-[10px] uppercase tracking-wider rounded-xs hover:border-atelier-brass hover:text-atelier-bistre transition-colors">
                 .RPM
               </a>
             </div>
@@ -1104,7 +1104,7 @@
 
       <p class="text-xs text-atelier-muted mt-8">
         Tous les installeurs sont compilés de manière reproductible via GitHub Actions. Consultez le
-        <a href="https://github.com/danoe78210/aldus/releases/tag/v1.4.7" class="text-atelier-gold underline hover:text-atelier-goldhover">journal de version complet</a>.
+        <a href="https://github.com/danoe78210/aldus/releases/tag/v1.4.8" class="text-atelier-gold underline hover:text-atelier-goldhover">journal de version complet</a>.
       </p>
     </section>
 
@@ -1313,9 +1313,9 @@
       views: {
         prepresse: {
           src: "assets/screenshots/Export01.png",
-          caption: "Inspection Pré-Presse — génération certifiée du PDF/X, ePub 3.2, jaquette et manuscrit DOCX",
+          caption: "Inspection Pré-Presse — PDF Imprimeur, EPUB (Standard), jaquette et manuscrit DOCX",
           subtitle: "L'Inspection Pré-Presse & la Génération des Formes",
-          description: "Constitution du dossier de fabrication et pilotage des formes d'édition multiples : génération certifiée du PDF/X KDP (noir pur 100% K, polices incorporées), de l'ePub 3.2 reflowable, de la jaquette haute définition à 300 DPI avec zone de code-barres, et du manuscrit DOCX révisé pour relecture.",
+          description: "Constitution du dossier de fabrication : PDF Imprimeur (Haute Définition), EPUB (Standard), jaquette 300 DPI et DOCX révisé. Aucun prévol PDF/X ni validateur EPUBCheck intégré ; l'acceptation par KDP / IngramSpark reste à vérifier.",
         },
       },
     },

@@ -45,6 +45,8 @@ export const CoverPlate: React.FC = () => {
     manuscriptConfig,
     bookInfo,
     cover,
+    bookPagination,
+    paginationError,
     onCoverChange,
     structureSignature,
     coverExportRequest,
@@ -54,7 +56,9 @@ export const CoverPlate: React.FC = () => {
   const trimSize = manuscriptConfig.trimSize;
 
   const [activeSubTab, setActiveSubTab] = useState<SubTab>("canvas2d");
-  const [geometry, setGeometry] = useState<CoverGeometry | null>(null);
+  const [geometryResult, setGeometryResult] = useState<{
+    value: CoverGeometry; pageCount: number; paperType: string; trimSize: string;
+  } | null>(null);
   const [inspection, setInspection] = useState<ImageInspectionReport | null>(null);
   const [suggestion, setSuggestion] = useState<SpineColorSuggestion | null>(null);
   const [busy, setBusy] = useState(false);
@@ -63,6 +67,9 @@ export const CoverPlate: React.FC = () => {
   const textInitialized = useRef(false);
 
   const { frontPath, backPath, pageCount, paperType, spineText, gradient } = cover;
+  const geometry = geometryResult?.pageCount === pageCount &&
+    geometryResult.paperType === paperType && geometryResult.trimSize === trimSize
+    ? geometryResult.value : null;
 
   // Texte de tranche par défaut : « Titre — Auteur » (une seule fois).
   useEffect(() => {
@@ -78,13 +85,13 @@ export const CoverPlate: React.FC = () => {
   useEffect(() => {
     if (!isInvokeAvailable()) {
       // eslint-disable-next-line react-hooks/set-state-in-effect -- repli synchrone si le moteur natif est absent
-      setGeometry(null);
+      setGeometryResult(null);
       return;
     }
     let active = true;
     calculateCoverGeometry(pageCount, paperType, trimSize)
       .then((result) => {
-        if (active) setGeometry(result);
+        if (active) setGeometryResult({ value: result, pageCount, paperType, trimSize });
       })
       .catch((error) => {
         if (active) setMessage(String(error));
@@ -235,6 +242,14 @@ export const CoverPlate: React.FC = () => {
   const runExport = async () => {
     setModalOpen(false);
     if (!frontPath || !backPath) return;
+    if (isInvokeAvailable() && !bookPagination) {
+      setMessage(paginationError ?? "Attendez le calcul de la pagination avant l'export.");
+      return;
+    }
+    if (!geometry) {
+      setMessage("Attendez le recalcul du gabarit de couverture avant l'export.");
+      return;
+    }
     try {
       setMessage(null);
       const destination = await pickCoverOutputPath(`couverture-${trimSize}.pdf`);

@@ -18,6 +18,25 @@ const DEFAULT_TTS_ENDPOINT: &str = "http://127.0.0.1:8020";
 const MAX_TTS_SEGMENT_CHARS: usize = 240;
 pub(super) const AUDIO_INIT_TIMEOUT: Duration = Duration::from_secs(900);
 const SIDECAR_STARTUP_TIMEOUT: Duration = Duration::from_secs(60);
+const CHAPTER_AUDIO_TIMEOUT: Duration = Duration::from_secs(900);
+
+fn chapter_time_remaining(started: Instant) -> Result<Duration, String> {
+    CHAPTER_AUDIO_TIMEOUT.checked_sub(started.elapsed())
+        .filter(|remaining| !remaining.is_zero())
+        .ok_or_else(|| "Délai audio de 900 s dépassé pour le chapitre.".into())
+}
+
+#[cfg(test)]
+mod chapter_deadline_tests {
+    use super::*;
+
+    #[test]
+    fn chapter_budget_does_not_restart_for_each_segment() {
+        let started = Instant::now() - Duration::from_secs(899);
+        assert!(chapter_time_remaining(started).expect("temps restant") <= Duration::from_secs(1));
+        assert!(chapter_time_remaining(Instant::now() - CHAPTER_AUDIO_TIMEOUT).is_err());
+    }
+}
 #[derive(Clone, Copy, Debug, Default, Deserialize, PartialEq, Serialize)]
 #[serde(rename_all = "snake_case")]
 pub enum AudioEngineMode {
@@ -1079,7 +1098,9 @@ fn assemble_mp3_segments(
     output_path: &Path,
     chapter_title: &str,
     ffmpeg_path: &Path,
+    chapter_started: Instant,
 ) -> Result<(), String> {
+    chapter_time_remaining(chapter_started)?;
     if segments.is_empty() {
         return Err(format!(
             "Aucun segment audio pour le chapitre « {chapter_title} »."
@@ -1105,7 +1126,9 @@ fn assemble_mp3_segments(
     std::fs::write(&manifest_path, manifest)
         .map_err(|error| format!("Liste de segments impossible à écrire : {error}"))?;
 
-    let output = Command::new(ffmpeg_path)
+    let stderr_path = directory.join("ffmpeg.stderr");
+    let stderr = File::create(&stderr_path).map_err(|error| format!("Trace FFmpeg inaccessible : {error}"))?;
+    let mut process = Command::new(ffmpeg_path)
         .current_dir(directory)
         .args([
             "-nostdin",
@@ -1122,15 +1145,34 @@ fn assemble_mp3_segments(
         .arg("segments.concat.txt")
         .args(["-vn", "-c:a", "libmp3lame", "-b:a", "192k"])
         .arg(output_path)
-        .output()
+        .stdout(std::process::Stdio::null())
+        .stderr(stderr)
+        .spawn()
         .map_err(|error| {
             format!(
                 "Impossible de lancer FFmpeg pour assembler le chapitre « {chapter_title} » : {error}"
             )
         })?;
-    let _ = std::fs::remove_file(&manifest_path);
-    if !output.status.success() {
-        let detail = String::from_utf8_lossy(&output.stderr);
+    let status = loop {
+        match process.try_wait() {
+            Ok(Some(status)) => break status,
+            Ok(None) => {
+                if let Err(error) = chapter_time_remaining(chapter_started) {
+                    process.kill().map_err(|kill| format!("{error} Arrêt FFmpeg impossible : {kill}"))?;
+                    process.wait().map_err(|wait| format!("{error} Attente FFmpeg impossible : {wait}"))?;
+                    return Err(error);
+                }
+                std::thread::sleep(Duration::from_millis(50));
+            }
+            Err(error) => {
+                if let Err(kill) = process.kill() { log::error!("Arrêt FFmpeg : {kill}"); }
+                if let Err(wait) = process.wait() { log::error!("Attente FFmpeg : {wait}"); }
+                return Err(format!("Suivi FFmpeg impossible : {error}"));
+            }
+        }
+    };
+    if !status.success() {
+        let detail = std::fs::read_to_string(&stderr_path).map_err(|error| format!("Lecture de la trace FFmpeg : {error}"))?;
         return Err(format!(
             "Assemblage FFmpeg échoué pour le chapitre « {chapter_title} » : {}",
             detail.trim()
@@ -1289,6 +1331,7 @@ pub async fn generate_book_audio(
     let mut completed_segments = 0usize;
     let mut audio_chapters = Vec::with_capacity(selected_chapters.len());
     for (index, segments) in selected_chapters {
+        let chapter_started = Instant::now();
         let chapter = &chapters[index];
         let chapter_number = index as u32 + 1;
         let safe_title = safe_component(&chapter.title);
@@ -1330,8 +1373,15 @@ pub async fn generate_book_audio(
                 segment_text.chars().count()
             );
             let request_started = std::time::Instant::now();
+            let remaining = chapter_time_remaining(chapter_started).map_err(|error| {
+                log::error!("audio chapter timeout book_id={book_id} chapter={chapter_number}: {error}");
+                emit_segment_failure(&app, &book_id, chapter_number, total, &chapter.title,
+                    ((completed_segments * 90) / total_segments) as u32, segment_number as u32, segment_count as u32, &error);
+                error
+            })?;
             let response = match client
                 .post(&request_url)
+                .timeout(remaining)
                 .json(&SynthesisRequest {
                     text: segment_text,
                     voice_id: &voice.id,
@@ -1557,6 +1607,7 @@ pub async fn generate_book_audio(
             &path,
             &chapter.title,
             &ffmpeg_path,
+            chapter_started,
         ) {
             log::error!(
                 "audio segment assembly failed book_id={} chapter={}/{} segment_count={} output={} error={}",

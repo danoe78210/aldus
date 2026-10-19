@@ -176,7 +176,7 @@ pub fn build_docx(
     };
 
     let (page_w, page_h) = trim_size_twips(&payload.layout_config.trim_size);
-    let gutter = gutter_twips(estimate_page_count(payload)) as i32;
+    let gutter = gutter_twips(estimate_page_count(payload)?) as i32;
 
     // Marges KDP : miroir (vis-à-vis) + gouttière de reliure ajoutée à la marge
     // intérieure (`w:gutter`). Le miroir est activé au niveau document via

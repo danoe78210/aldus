@@ -20,7 +20,7 @@ terminal rétro-futuriste, monospace d'interface).
 **Proposition fonctionnelle** : transformer des chapitres (Markdown / texte /
 Word) et des illustrations en un livre prêt à publier (Amazon KDP broché et
 ebook), avec quatre formes proposées au pupitre de presse : **PDF prêt-à-imprimer**
-(libellé de vitrine « PDF/X KDP »), **EPUB** (étiqueté 3.2 dans l'interface), **jaquette KDP PDF** et
+(libellé « PDF Imprimeur (Haute Définition) »), **EPUB (Standard)**, **jaquette KDP PDF** et
 **DOCX révisé**. Les moteurs effectivement reliés sont Rust/Typst pour les PDF,
 `epub-builder` pour l'EPUB et `docx-rs` pour le DOCX ; voir les limites de conformité
 dans `specifications_techniques.md`.
@@ -142,12 +142,20 @@ fichier de projet (journalisation de l'opération).
 | Page | Feuillet | Contenu |
 |---|---|---|
 | **Gauche** | **V. Table des Matières & Feuillets** | Registre de composition : chaque ligne porte son **rang en chiffres romains**, une **ligne de pointillés traditionnelle** et une **poignée de réorganisation en fer forgé** (`#5a4f3f` → `#d4af37` au survol). Le glisser-déposer réordonne la structure (multi-pages), et les commandes d'ajout (Acte, Chapitre, Image, Page spéciale), de renommage, de rôle et d'import de sources restent disponibles. |
-| **Droite** | **VI. Imposition & Calibrage KDP** | Panneaux techniques : pagination de référence (déclarée vs estimation KDP `24 + 20 × chapitres`), **répartition en cahiers** (16 / 20 / 24 pages, multiples de 4), **calculateur d'épaisseur de dos** (`Pages × Coeff. papier` : 0,0572 mm blanc · 0,0635 mm crème · 0,0596 mm couleur) avec **schéma proportionnel** du dos et **zones de sécurité de 1,6 mm (≈ 0,0625 po)**, et **détection d'anomalies** : tout chapitre ouvrant sur un feuillet **pair** (page de gauche) au lieu d'une **belle page impaire** est signalé avec sa page de départ. |
+| **Droite** | **VI. Imposition & Calibrage KDP** | Pagination mesurée par Typst ou estimation au mot, **répartition en cahiers** (16 / 20 / 24 pages), **calculateur d'épaisseur de dos** (`Pages × Coeff. papier` : 0,0572 mm blanc · 0,0635 mm crème · 0,0596 mm couleur), **schéma proportionnel** et **zones de sécurité de 1,6 mm (≈ 0,0625 po)**. Les alertes de belle page restent fondées sur un placement estimé des chapitres. |
 
-> Modèle d'estimation : les pages liminaires (`24`) précèdent la répartition
-> uniforme de la pagination déclarée sur les chapitres ; le recto KDP (belle
-> page) est la page **impaire**. La pagination per-chapitre exacte sera
-> disponible lorsque le moteur Rust exposera les comptes de mots au frontend.
+La pagination est affichée sous la forme « 184 pages (mesurées) » après
+composition Typst de l'aperçu ou du PDF exporté, avec un témoin vert discret,
+ou « ~190 pages (estimées) » avant composition : total de mots des sources
+divisé par 250, arrondi au pair supérieur. Un manuscrit vide estime zéro page ;
+les limites d'éligibilité KDP sont signalées sans falsifier la mesure.
+La mesure est mémorisée dans le projet et cesse d'être utilisée lorsque les
+sources ou les paramètres de composition changent. Le dos et les vues de
+couverture utilisent cette pagination en priorité ; un PDF impair nécessite
+une page blanche de parité pour le bloc relié, explicitement affichée.
+Les cahiers utilisent le total mesuré ; le placement individuel des chapitres
+reste une approximation (répartition uniforme après les liminaires), jamais
+une attestation des belles pages du PDF réel.
 
 Les contrôles des lignes restent dans leur carte, avec retour à la ligne si
 nécessaire, sélecteur de source fluide et boutons-icônes de parcours/import
@@ -177,6 +185,16 @@ du chapitre dans son fichier Markdown. Toute correction non validée active un
 état *dirty*; `[ Recharger ]` et le changement de chapitre demandent confirmation
 avant d'abandonner les modifications. Après validation, l'analyse est recalculée
 sur le texte enregistré et les anomalies corrigées disparaissent des conseils.
+
+Avant toute modification sauvegardée d'un chapitre Markdown, l'Écritoire et
+le Banc X conservent le texte précédent sous `<workspace>/.aldus/history/`.
+Les 15 versions les plus récentes de chaque chapitre sont conservées, y compris
+pour les sources imbriquées ou homonymes. Une sauvegarde identique n'écrit rien.
+« Historique des versions » présente les dates ; une confirmation est exigée
+avant remplacement du texte actuel et des corrections non validées. La
+restauration sauvegarde d'abord le texte enregistré précédent, puis recharge
+le Correcteur et l'Écritoire si le même chapitre y est ouvert. Si la création
+de l'instantané échoue, le manuscrit n'est pas remplacé.
 
 ### 4.5 Bibliothèque — Banc IV et Studio Audio — Banc V
 
@@ -227,7 +245,8 @@ progression visible et remontée immédiate des erreurs. Les voix sont indexées
 dès que le modèle est chargé, puis le moteur est annoncé prêt.
 
 Les chapitres sont découpés en segments de 240 caractères maximum et synthétisés
-séquentiellement. Les fragments temporaires restent sous
+séquentiellement. La synthèse et l'assemblage disposent ensemble de 900 s par
+chapitre, indépendamment de l'initialisation du moteur. Les fragments temporaires restent sous
 `%LOCALAPPDATA%\net.danoe.aldus\temp\audio\` et sont supprimés après assemblage.
 Une piste MP3 finale est produite par chapitre dans un sous-dossier `Audio` du
 dossier d'export. À chaque réussite, la piste est ajoutée ou remplace uniquement celle
@@ -311,7 +330,7 @@ est partagée entre les deux pages du livre via `StudioContext` (état
   ouverture de `https://danoeecrivain.net/` via le navigateur par défaut
   (commande Rust `open_author_website`).
 
-## 5. Instruments du registre
+## 6. Instruments du registre
 
 - **Barre de progression** au-dessus du livre : avancement **0–100 %** et libellé
   de l'opération en cours (parité tri-format).
@@ -323,7 +342,7 @@ est partagée entre les deux pages du livre via `StudioContext` (état
 
 ---
 
-## 6. Persistance & sécurité (vue utilisateur)
+## 7. Persistance & sécurité (vue utilisateur)
 
 - **Fichier de projet** : `project.danoe` (JSON) — structure, métadonnées,
   réglages, état du module Couverture. Sauvegarde **automatique** dès qu'un
@@ -341,7 +360,7 @@ est partagée entre les deux pages du livre via `StudioContext` (état
 
 ---
 
-## 7. Critères d'acceptation (recette fonctionnelle)
+## 8. Critères d'acceptation (recette fonctionnelle)
 
 1. Le lancement ouvre le frontispice double ; aucun titre/auteur ne s'affiche
    au-dessus du creuset.
@@ -372,7 +391,7 @@ est partagée entre les deux pages du livre via `StudioContext` (état
 
 ---
 
-## 8. Inventaire fonctionnel des Bancs de l'Atelier
+## 9. Inventaire fonctionnel des Bancs de l'Atelier
 
 Les bancs sont des parcours éditoriaux; ils ne correspondent pas tous à un
 ruban de navigation distinct. L'application expose huit rubans : Réglages,
@@ -387,14 +406,14 @@ parcours fonctionnel et partagent le contexte du projet.
 | **II — Identité & Colophon** | Menu Informations : renseigner titre/sous-titre, saga et tome, auteur et collaborateurs, éditeur, ISBN, date, lieu et bibliographie sur les deux feuillets. Validation au blur et sauvegarde automatique. | Métadonnées persistées dans le projet, réutilisées pour les pages liminaires et le colophon de tirage. |
 | **III — L’Écritoire** | Éditer un chapitre Markdown du dossier source, le créer, utiliser le réglet typographique et consulter le Manuel du Scribe. | Sauvegarde automatique du fichier source et aperçu live mis en page avec les réglages du manuscrit. |
 | **IV — Bibliothèque** | Après Export, consulter les rayons principaux/personnalisés, scanner le dossier de fabrication, agréger EPUB/PDF/DOCX par nom, inspecter les formats et supprimer un ouvrage après confirmation. | Une fiche et une tranche par titre normalisé; suppression limitée aux exports configurés, sans effacer les sources ou fichiers partagés. |
-| **V — Studio Audio** | Depuis le Registre du Livre, choisir une voix française locale, accepter la CPML au premier démarrage du MSI Windows, puis lancer la génération ciblée ou complète. | Sidecars XTTS/FFmpeg intégrés au MSI, hub global chapitre/segment, MP3 chapitrés, badge AUDIO et lecteur intégré; wrapper externe conservé en développement. |
+| **V — Studio Audio** | Depuis le Registre du Livre, choisir une voix française locale, accepter la CPML au premier démarrage du MSI Windows, puis lancer la génération du chapitre sélectionné uniquement. | Sidecars XTTS/FFmpeg intégrés au MSI, hub global chapitre/segment, MP3 chapitrés, badge AUDIO et lecteur intégré; wrapper externe conservé en développement. |
 | **Organisation & Imposition** | Menu Organisation : créer/importer actes, chapitres, images et pages spéciales, renommer, régler le rôle, puis réordonner par glisser-déposer. Consulter la table des matières, l'estimation KDP, les cahiers et les ouvertures de chapitres. | Numérotation romaine et alertes de belle page paire ; calculs de pagination et dos avec coefficients de papier. Une illustration non liée peut bloquer l'export. |
 | **Correcteur — Qualité Typographique & Épreuve** | Menu Correcteur : sélectionner un chapitre, examiner la jauge de qualité et les anomalies pondérées, activer/désactiver les 18 règles, parcourir les signalements dans le diptyque, localiser une occurrence, puis corriger par suggestion ou dans la retouche Markdown. | Les vues IX (examen/registre) et X (épreuve/conseils) partagent chapitre, texte, page et règles. |
 | **VI — Mise en couverture** | Menu Couverture : saisir la pagination, sélectionner papier crème/blanc/couleur, choisir Mat Velouté ou Brillant Éclatant, charger les plats, composer le texte et la couleur/dégradé du dos. Examiner le marbre 2D ou le volume 3D, puis passer la checklist avant export. | Calcul du dos et des dimensions dépliées, inspection DPI, repères de fond perdu/pliure/sécurité/code-barres et détection de dérive de pagination ou de structure. |
-| **VII — Inspection Pré-Presse** | Menu Export, Feuillet XI : choisir le dossier de fabrication et cocher une ou plusieurs formes, consulter le bilan d'intégrité KDP et lancer les formes retenues. | Quatre formes proposées : PDF intérieur prêt-à-imprimer, EPUB 3.2, couverture PDF 300 DPI et DOCX révisé. |
+| **VII — Inspection Pré-Presse** | Menu Export, Feuillet XI : choisir le dossier de fabrication et cocher une ou plusieurs formes, consulter le bilan d'intégrité KDP et lancer les formes retenues. | Quatre formes proposées : PDF Imprimeur (Haute Définition), EPUB (Standard), couverture PDF 300 DPI et DOCX révisé. |
 | **VIII — Tirage sous Presse** | Menu Export, Feuillet XII : contrôler le justificatif d'achevé d'imprimer, actionner la presse, ouvrir le dossier des épreuves ou feuilleter le PDF composé. | Séquence de pressage à trois étapes, sceau temporaire, accès natif au dossier et aperçu paginé. Le tirage n'altère pas le manuscrit source. |
 
-### 8.1 Sous-vues de la vitrine `docs/index.html`
+### 9.1 Sous-vues de la vitrine `docs/index.html`
 
 La vitrine statique conserve actuellement son ancien parcours de sept Bancs et
 ses ancres `#banc-1` à `#banc-7` ; son réordonnancement pour intégrer le nouveau
@@ -418,18 +437,19 @@ défiler en douceur et l'état actif suit la section visible via
 `IntersectionObserver` (Scroll Spy). Le sommaire n'est affiché qu'à partir de
 1024 px de largeur.
 
-### 8.2 Portée des formes d'export
+### 9.2 Portée des formes d'export
 
 Les intitulés détaillés par la vitrine décrivent les objectifs éditoriaux des
 formes. Dans le code actuel, le PDF intérieur et la couverture sont compilés par
 Typst embarqué, le DOCX par `docx-rs`, et l'EPUB par `epub-builder`. Le dépôt ne
 contient pas de pipeline pandoc, de scripts externes d'imposition PDF/X, ni de
-validateur de conformité PDF/X : « PDF/X KDP » reste le nom de la forme proposée,
-pas une certification technique attestée. De même, « ePub 3.2 » est le libellé
-du pupitre; le moteur actuel est un scaffold EPUB et ne déclare pas explicitement
-la version 3.2.
+validateur de conformité PDF/X. « PDF Imprimeur (Haute Définition) » désigne un
+objectif d'impression, sans certification PDF/X, prévol automatisé ni garantie
+de rejet zéro chez KDP/IngramSpark. « EPUB (Standard) » désigne le scaffold
+EPUB reflowable ; les images intérieures et notes restent à traiter et
+EPUBCheck n'est pas intégré. Les infobulles rendent ces limites explicites.
 
-## 9. Renvois
+## 10. Renvois
 
 - **Spécifications techniques** : `specifications_techniques.md`
 - **Module Couverture** : `SPECIFICATIONS_COVER_STUDIO_v1.2.0.md`

@@ -30,6 +30,14 @@ describe("presse — formes d'édition", () => {
       expect(form.handler).not.toBe("");
     });
   });
+
+  it("does not present unaudited format certifications as guarantees", () => {
+    expect(EXPORT_FORMS[0].label).toBe("PDF Imprimeur (Haute Définition)");
+    expect(EXPORT_FORMS[1].label).toBe("EPUB (Standard)");
+    expect(EXPORT_FORMS.every((form) => !/PDF\/X|3\.2/i.test(form.label))).toBe(true);
+    expect(EXPORT_FORMS[0].tooltip).toContain("aucune certification");
+    expect(EXPORT_FORMS[1].tooltip).toContain("sans validation EPUBCheck");
+  });
 });
 
 describe("presse — bilan d'intégrité KDP", () => {

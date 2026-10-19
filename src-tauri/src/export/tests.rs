@@ -239,7 +239,7 @@ fn build_docx_excludes_cover_from_interior() {
     );
 
     // Gouttière de reliure injectée dans les propriétés de section (`<w:pgMar ... w:gutter=…>`).
-    let gutter = crate::kdp::gutter_twips(crate::project::estimate_page_count(&payload));
+    let gutter = crate::kdp::gutter_twips(crate::project::estimate_page_count(&payload).expect("pagination"));
     assert!(gutter > 0, "gouttière non nulle");
     assert!(
         document.contains(&format!("w:gutter=\"{gutter}\"")),
