@@ -437,8 +437,29 @@
     }
     .showcase-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr));
-      gap: 1.5rem;
+      grid-template-columns: repeat(auto-fit, minmax(min(100%, 420px), 1fr));
+      gap: 2rem;
+    }
+    .pillar-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr));
+      gap: 2rem;
+    }
+    .pillar-card {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      padding: 2.5rem 2rem;
+      border: 1px solid rgba(212, 175, 55, 0.3);
+      border-radius: 4px;
+      background: #161310;
+      line-height: 1.7;
+      text-align: center;
+    }
+    .pillar-mark {
+      font-family: var(--font-cinzel);
+      color: #8f6e2b;
+      letter-spacing: 0.3em;
     }
     .showcase-shot {
       margin: 0;
@@ -446,7 +467,7 @@
       border: 1px solid rgba(212, 175, 55, 0.3);
       border-radius: 4px;
       background: #161310;
-      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8);
       transition: transform 0.3s ease, border-color 0.3s ease;
     }
     .showcase-shot:hover, .showcase-shot:focus-within {
@@ -463,9 +484,10 @@
     }
     .showcase-shot a:hover img { transform: scale(1.025); }
     .showcase-shot figcaption {
-      padding: 1rem;
+      padding: 1rem 1.25rem;
       color: #f3e5ab;
       font-style: italic;
+      text-align: center;
     }
     :focus-visible { outline: 2px solid #d4af37; outline-offset: 4px; }
     #lightbox {
@@ -551,7 +573,7 @@
     <!-- CTA Principal -->
     <div class="flex flex-col sm:flex-row items-center justify-center gap-4 mt-8">
       <a href="https://github.com/danoe78210/aldus/releases/download/v1.4.8/Aldus_1.4.8_x64_en-US.msi" class="w-full sm:w-auto px-8 py-3.5 bg-gradient-to-r from-[#221b14] via-[#2d241a] to-[#221b14] border border-atelier-brass text-atelier-ivory font-cinzel text-xs uppercase tracking-[0.2em] rounded-xs hover:border-atelier-gold hover:text-atelier-gold transition-all shadow-lg">
-        Télécharger Aldus v1.4.8 (Windows x64)
+        Télécharger Aldus v1.4.8 pour Windows
       </a>
       <a href="https://github.com/danoe78210/aldus" target="_blank" rel="noopener noreferrer" class="w-full sm:w-auto px-8 py-3.5 border border-atelier-border text-atelier-bistre font-cinzel text-xs uppercase tracking-[0.2em] rounded-xs hover:border-atelier-brass hover:text-atelier-ivory transition-all">
         Code Source GitHub ↗
@@ -978,76 +1000,64 @@
       </div>
     </section>
 
-    <!-- Nouveautés v1.4.8 -->
+    <!-- Vitrine v1.4.8 -->
     <section id="nouveautes" class="pt-32 text-left">
       <span id="nouveautes-v1-4"></span>
       <div class="text-center mb-16">
         <span class="text-atelier-gold text-xl">❦</span>
-        <h2 class="font-cinzel text-2xl sm:text-3xl tracking-[0.2em] uppercase text-atelier-ivory mt-2">Les grandes évolutions de l'atelier — de la v1.3 à la v1.4.8</h2>
-        <p class="text-atelier-bistre text-sm mt-3 uppercase tracking-widest">De la plume au livre audio : un écosystème complet d'édition autonome</p>
+        <h2 class="font-cinzel text-2xl sm:text-3xl tracking-[0.2em] uppercase text-atelier-ivory mt-2">Aldus — L'Atelier du Livre Moderne</h2>
+        <p class="text-atelier-bistre text-sm mt-3 uppercase tracking-widest">Composition typographique, livre audio local et imposition de précision</p>
       </div>
 
-      <div class="showcase-grid">
-        <article class="p-8 rounded-xs bg-atelier-card brass-border flex flex-col gap-3">
-          <h3 class="font-cinzel text-lg text-atelier-gold">Banc V — Le Studio Audio Intégré (XTTS v2)</h3>
-          <p class="italic text-atelier-ivory">La voix du texte sans quitter l'atelier</p>
-          <p class="text-atelier-bistre text-base">
-            Synthèse vocale neuronale locale hors ligne avec un catalogue de 58 voix. Contrôle unitaire par chapitre, génération par segments et pupitre d'écoute intégré. Après téléchargement initial des modèles et acceptation de la licence CPML, les sessions suivantes fonctionnent sans connexion.
-          </p>
+      <div class="pillar-grid">
+        <article class="pillar-card">
+          <span class="pillar-mark" aria-hidden="true">I</span>
+          <h3 class="font-cinzel text-xl text-atelier-gold">L'Écritoire &amp; le Banc d'Épreuve</h3>
+          <p class="text-atelier-bistre">Composition Markdown en direct, ligatures et espaces insécables respectés.</p>
+          <p class="text-atelier-bistre">Chaque chapitre est protégé par des instantanés automatiques (<code>.aldus/history</code>), restaurables en un clic.</p>
         </article>
-        <article class="p-8 rounded-xs bg-atelier-card brass-border flex flex-col gap-3">
-          <h3 class="font-cinzel text-lg text-atelier-gold">Imposition Typst &amp; Dos de Couverture Réel</h3>
-          <p class="italic text-atelier-ivory">Calibrage millimétrique pour KDP &amp; IngramSpark</p>
-          <p class="text-atelier-bistre text-base">
-            La pagination physique mesurée par le moteur Typst remplace l'estimation forfaitaire et alimente le calcul du dos de couverture. Avant la première composition, une estimation au volume de mots est clairement signalée. Premier et second plat se positionnent sur cette géométrie, sans promesse de certification imprimeur.
-          </p>
+        <article class="pillar-card">
+          <span class="pillar-mark" aria-hidden="true">II</span>
+          <h3 class="font-cinzel text-xl text-atelier-gold">Imposition &amp; Dos Réel</h3>
+          <p class="text-atelier-bistre">La pagination physique est mesurée par Typst lors de la composition du livre.</p>
+          <p class="text-atelier-bistre">L'épaisseur du dos en découle : un gabarit de couverture millimétrique, calibré pour KDP et IngramSpark.</p>
         </article>
-        <article class="p-8 rounded-xs bg-atelier-card brass-border flex flex-col gap-3">
-          <h3 class="font-cinzel text-lg text-atelier-gold">Sécurité du Manuscrit &amp; Historique des Versions</h3>
-          <p class="italic text-atelier-ivory">Instantanés automatiques (<code>.aldus/history</code>)</p>
-          <p class="text-atelier-bistre text-base">
-            Sauvegarde préventive horodatée avant chaque modification Markdown validée dans l'Écritoire, le Banc d'Épreuve ou par l'Usage Aldin. Les quinze dernières versions sont conservées par chapitre. Choisissez un instantané, puis confirmez sa restauration ; le texte remplacé est lui aussi sauvegardé.
-          </p>
-        </article>
-        <article class="p-8 rounded-xs bg-atelier-card brass-border flex flex-col gap-3">
-          <h3 class="font-cinzel text-lg text-atelier-gold">Indexation Récursive &amp; Coffres Obsidian</h3>
-          <p class="italic text-atelier-ivory">Prise en charge native des arborescences complexes</p>
-          <p class="text-atelier-bistre text-base">
-            Découverte automatique des fichiers Markdown et banques d'images dans l'ensemble des sous-dossiers du workspace. Les chemins relatifs distinguent les fichiers homonymes. Les métadonnées système (<code>.obsidian</code>, <code>.git</code>), les dossiers cachés et les liens symboliques sont exclus du parcours.
-          </p>
+        <article class="pillar-card">
+          <span class="pillar-mark" aria-hidden="true">III</span>
+          <h3 class="font-cinzel text-xl text-atelier-gold">Studio Audio XTTS v2</h3>
+          <p class="text-atelier-bistre">Moteur neuronal 100 % local : hors ligne après le premier téléchargement des modèles (licence CPML).</p>
+          <p class="text-atelier-bistre">58 voix sélectionnables, génération chapitre par chapitre.</p>
         </article>
       </div>
 
-      <h3 class="font-cinzel text-2xl text-atelier-ivory text-center mt-16 mb-4" id="galerie">Atelier en Images</h3>
-      <p class="text-center text-atelier-bistre mb-8">Sélectionnez une capture pour l'examiner en grand format. Fermez avec Échap ou le bouton Fermer.</p>
+      <h3 class="font-cinzel text-2xl text-atelier-ivory text-center mt-20 mb-4" id="galerie">L'Atelier en Images</h3>
+      <p class="text-center text-atelier-bistre mb-10">Cliquez sur une capture pour l'examiner en grand format.</p>
       <div class="showcase-grid" aria-labelledby="galerie">
         <figure class="showcase-shot">
-          <a href="assets/screenshots/studio-audio-player.png" data-gallery><img src="assets/screenshots/studio-audio-player.png" alt="Studio Audio : pupitre de lecture et piste audio par chapitre" loading="lazy" decoding="async"></a>
-          <figcaption>Studio Audio — le pupitre d'écoute intégré</figcaption>
+          <a href="assets/screenshots/studio-audio-player.png" data-gallery><img src="assets/screenshots/studio-audio-player.png" alt="Le Studio Audio : pupitre d'écoute et génération XTTS v2." loading="lazy" decoding="async"></a>
+          <figcaption>Le Studio Audio : pupitre d'écoute et génération XTTS v2.</figcaption>
         </figure>
         <figure class="showcase-shot">
-          <a href="assets/screenshots/studio-audio-chapter-selector.png" data-gallery><img src="assets/screenshots/studio-audio-chapter-selector.png" alt="Studio Audio : registre, choix de voix et sélecteur de chapitre à synthétiser" loading="lazy" decoding="async"></a>
-          <figcaption>Studio Audio — choisir une voix et un chapitre</figcaption>
+          <a href="assets/screenshots/imposition-typst-spine.png" data-gallery><img src="assets/screenshots/imposition-typst-spine.png" alt="L'Imposition : calcul du dos de reliure selon la pagination Typst mesurée." loading="lazy" decoding="async"></a>
+          <figcaption>L'Imposition : calcul du dos de reliure selon la pagination Typst mesurée.</figcaption>
         </figure>
         <figure class="showcase-shot">
-          <a href="assets/screenshots/imposition-typst-spine.png" data-gallery><img src="assets/screenshots/imposition-typst-spine.png" alt="Imposition v1.4.8 : pagination Typst et calcul de l'épaisseur du dos" loading="lazy" decoding="async"></a>
-          <figcaption>Imposition — pagination physique et dos de couverture</figcaption>
+          <a href="assets/screenshots/banc-epreuve-history.png" data-gallery><img src="assets/screenshots/banc-epreuve-history.png" alt="Le Banc d'Épreuve : typographie fine et restauration des versions antérieures." loading="lazy" decoding="async"></a>
+          <figcaption>Le Banc d'Épreuve : typographie fine et restauration des versions antérieures.</figcaption>
         </figure>
         <figure class="showcase-shot">
-          <a href="assets/screenshots/banc-epreuve-history.png" data-gallery><img src="assets/screenshots/banc-epreuve-history.png" alt="Banc d'Épreuve v1.4.8 : liste horodatée des versions d'un chapitre" loading="lazy" decoding="async"></a>
-          <figcaption>Banc d'Épreuve — retrouver une version du manuscrit</figcaption>
-        </figure>
-        <figure class="showcase-shot">
-          <a href="assets/screenshots/organisation-workspace.png" data-gallery><img src="assets/screenshots/organisation-workspace.png" alt="Organisation v1.4.8 : chapitres issus de sous-dossiers du workspace" loading="lazy" decoding="async"></a>
-          <figcaption>Organisation — une arborescence de sources lisible</figcaption>
-        </figure>
-        <figure class="showcase-shot">
-          <a href="assets/screenshots/page-garde-bronze-plate.png" data-gallery><img src="assets/screenshots/page-garde-bronze-plate.png" alt="Accueil d'Aldus et plaque de bronze affichant la version 1.4.8" loading="lazy" decoding="async"></a>
-          <figcaption>L'atelier — ébène, diptyque et bronze patiné</figcaption>
+          <a href="assets/screenshots/organisation-workspace.png" data-gallery><img src="assets/screenshots/organisation-workspace.png" alt="L'Organisation : arborescence récursive pour coffres Obsidian et manuscrits." loading="lazy" decoding="async"></a>
+          <figcaption>L'Organisation : arborescence récursive pour coffres Obsidian et manuscrits.</figcaption>
         </figure>
       </div>
-      <p class="text-sm text-center mt-8"><a href="manuel-scribe-audio.md" class="text-atelier-gold underline hover:text-atelier-goldhover">Lire le Manuel du Scribe Audio</a></p>
-      <p class="text-sm text-atelier-bistre mt-4 text-center">Exports PDF Imprimeur (Haute Définition) et EPUB (Standard), sans certification PDF/X ni validation EPUBCheck intégrée. Budget de génération audio : 900 secondes par chapitre.</p>
+
+      <div class="flex flex-col sm:flex-row items-center justify-center gap-4 mt-16">
+        <a href="https://github.com/danoe78210/aldus/releases/download/v1.4.8/Aldus_1.4.8_x64_en-US.msi" class="w-full sm:w-auto text-center px-8 py-3.5 border border-atelier-brass text-atelier-ivory font-cinzel text-xs uppercase tracking-[0.2em] rounded-xs hover:border-atelier-gold hover:text-atelier-gold transition-all shadow-lg">Télécharger Aldus v1.4.8 pour Windows</a>
+      </div>
+      <p class="flex flex-wrap justify-center gap-x-6 gap-y-2 text-sm mt-6">
+        <a href="manuel-scribe-audio.md" class="text-atelier-gold underline hover:text-atelier-goldhover">Manuel du Scribe Audio</a>
+        <a href="https://github.com/danoe78210/aldus/blob/main/CHANGELOG.md" class="text-atelier-gold underline hover:text-atelier-goldhover">Journal des modifications complet</a>
+      </p>
     </section>
 
     <!-- Section Téléchargement -->
