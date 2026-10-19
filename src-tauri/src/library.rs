@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 use std::collections::{BTreeMap, BTreeSet};
 use std::path::{Path, PathBuf};
-use std::time::{Duration, SystemTime, UNIX_EPOCH};
+use std::time::{SystemTime, UNIX_EPOCH};
 use tauri::Manager;
 
 mod deletion;
@@ -687,7 +687,7 @@ async fn initialize_audio_engine(
         Ok(voices)
     };
 
-    match tokio::time::timeout(Duration::from_secs(60), initialization).await {
+    match tokio::time::timeout(audio::AUDIO_INIT_TIMEOUT, initialization).await {
         Ok(Ok(voices)) => {
             audio::emit_audio_init_progress(app, 100, "Prêt");
             Ok(voices)
@@ -698,11 +698,14 @@ async fn initialize_audio_engine(
             Err(error)
         }
         Err(_) => {
-            let error = "Délai d'initialisation du Studio Audio dépassé après 60 secondes.";
+            let error = format!(
+                "Délai d'initialisation du Studio Audio dépassé après {} secondes.",
+                audio::AUDIO_INIT_TIMEOUT.as_secs()
+            );
             audio::stop_bundled_engine(app);
             log::error!("audio voice initialization timeout: {error}");
-            audio::emit_audio_init_failure(app, error);
-            Err(error.into())
+            audio::emit_audio_init_failure(app, &error);
+            Err(error)
         }
     }
 }

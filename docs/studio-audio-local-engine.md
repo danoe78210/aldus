@@ -36,4 +36,11 @@ Le wrapper refuse en HTTP 422 tout segment dépassant 240 caractères. Une erreu
 
 Aldus applique un timeout de connexion reqwest de 10 secondes et un timeout total de 15 minutes par segment. Les erreurs indiquent URL, catégorie (serveur arrêté, timeout ou transport), chapitre, segment, statut HTTP et corps brut dans stdout/`Aldus.log`; l'IHM reçoit un message contextualisé. `audio-generation-progress` est émis avant/après chaque segment et pendant l'assemblage. `Book.audio` n'est publié qu'après réussite de l'opération et sauvegarde.
 
+Depuis la 1.4.7, l'initialisation du Studio Audio dispose également d'un budget
+global de 15 minutes. Le sidecar intégré doit commencer à répondre à `/status`
+sous 60 secondes ; un statut valide permet ensuite au téléchargement/chargement
+des modèles de continuer dans ce budget, sans interrompre les erreurs explicites.
+La route `/voices` indexe les profils dès `model_loaded`, puis positionne
+`ready` ; elle ne peut pas exiger `ready` avant cette première indexation.
+
 PDF : Aldus utilise l’EPUB ou le DOCX associé en priorité. Si seul un PDF est disponible, le texte extractible est lu page par page et fourni comme une seule section; un PDF scanné sans couche texte renvoie une erreur explicite et requiert un OCR en amont.

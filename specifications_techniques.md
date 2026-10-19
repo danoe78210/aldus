@@ -221,7 +221,7 @@ pistes MP3/M4B référencées dans le dossier d'export.
 
 Le mode développement et macOS/Linux conservent un wrapper localhost configurable
 par `ALDUS_TTS_URL` (défaut `http://127.0.0.1:8020`). Le client refuse tout hôte
-autre que `localhost`, `127.0.0.1` ou `::1` en HTTP. Le MSI Windows 1.4.6
+autre que `localhost`, `127.0.0.1` ou `::1` en HTTP. Le MSI Windows 1.4.7
 embarque un sidecar `aldus-audio-server` gelé par PyInstaller `--onefile`
 (Python 3.10.11, PyTorch CPU 2.2.2, Coqui TTS 0.22.0, Transformers 4.41.2) et
 un sidecar FFmpeg 8.1.3 statique LGPL. Le texte LGPL accompagne l'application.
@@ -249,7 +249,14 @@ wrapper externe.
 Le wrapper expose la phase d'initialisation par `GET /status` (`status` vaut
 `initializing`, `ready` ou `error`, avec `percent`, `stage`, `model_loaded` et
 `error`). Dès `status == "error"`, Rust arrête le sidecar et remonte l'erreur
-sans attendre le timeout de 60 s. Le build PyInstaller collecte explicitement
+sans attendre le timeout. Le sidecar dispose de 60 s pour commencer à répondre ;
+dès qu'un statut valide est reçu, le téléchargement/chargement bénéficie d'un
+budget de 900 s, également utilisé par l'initialisation globale du Studio Audio.
+Ces délais sont bornés et les erreurs `/status` interrompent immédiatement
+l'attente. `/voices` attend `model_loaded` (pas `ready`), indexe les profils et
+positionne ensuite `ready`, pour éviter une dépendance circulaire. Les tests
+`scripts/test_xtts_wrapper.py` couvrent ce cycle et sont exécutés en CI Windows.
+Le build PyInstaller collecte explicitement
 les modules, données et binaires de `inflect`, `typeguard`, `gruut` et `jamo`, ainsi
 que les métadonnées de distribution Gruut (`--copy-metadata gruut`); il inspecte
 ensuite l'archive et échoue si `gruut/VERSION` ou `jamo/data/U+11xx.json` est
@@ -275,6 +282,9 @@ au consentement CPML ; les modèles mis en cache permettent ensuite le
 fonctionnement hors ligne. Les dossiers de projets, exports et le miroir de
 logs personnalisé sont des destinations utilisateur explicites, distinctes
 du sanctuaire LocalAppData des états internes.
+Les emplacements historiques du projet persistant, de la bibliothèque et du
+correcteur restent dans `%APPDATA%\net.danoe.aldus` (Roaming) sous Windows ;
+aucune migration générale de ces données n'est effectuée en 1.4.7.
 
 - `GET /voices` : tableau de voix ou `{ "voices": [...] }`, chaque entrée
   portant `id`, `name` et éventuellement `language`.

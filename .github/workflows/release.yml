@@ -56,6 +56,11 @@ jobs:
         shell: pwsh
         run: ./scripts/build_windows_audio_sidecars.ps1
 
+      - name: Test XTTS voice initialization
+        if: matrix.platform == 'windows-latest'
+        shell: pwsh
+        run: python -m unittest discover -s scripts -p "test_xtts_wrapper.py" -v
+
       - name: Build Tauri App & Publish Release
         uses: tauri-apps/tauri-action@v0
         env:
@@ -64,7 +69,11 @@ jobs:
           tagName: ${{ github.ref_name }}
           releaseName: 'Aldus ${{ github.ref_name }}'
           releaseBody: |
-            ## Aldus 1.4.6 — sources récursives & journal pédagogique
+            ## Aldus 1.4.7 — initialisation XTTS & disponibilité des voix
+
+            - Correctif de la recette 1.4.6 : `/voices` indexe les profils dès le chargement du modèle, sans rester bloqué en HTTP 503.
+            - Premier démarrage : le sidecar doit répondre sous 60 s ; le téléchargement/chargement des modèles bénéficie ensuite du budget global de 15 minutes, avec progression et erreurs explicites.
+            - Tests Python de non-régression du cycle d'initialisation exécutés en CI Windows.
 
             - XTTS : données Unicode jamo collectées et vérifiées dans le sidecar PyInstaller, avec gruut, inflect et typeguard.
             - Organisation : lignes sans débordement horizontal, boutons-icônes compacts et pièces liminaires sans tirets résiduels.
@@ -73,11 +82,11 @@ jobs:
             - Windows : MSI WiX autonome avec Python/XTTS et FFmpeg embarqués. Les modèles sont téléchargés après consentement CPML au premier usage, puis conservés dans LocalAppData pour les usages hors ligne.
 
             ### Captures
-            - [Registre & sélecteur de chapitre](https://github.com/danoe78210/aldus/blob/v1.4.6/docs/assets/screenshots/studio-audio-chapter-selector.png)
-            - [Pupitre Audio & badge AUDIO](https://github.com/danoe78210/aldus/blob/v1.4.6/docs/assets/screenshots/studio-audio-player.png)
-            - [Progression supérieure](https://github.com/danoe78210/aldus/blob/v1.4.6/docs/assets/screenshots/studio-audio-progress.png)
+            - [Registre & sélecteur de chapitre](https://github.com/danoe78210/aldus/blob/v1.4.7/docs/assets/screenshots/studio-audio-chapter-selector.png)
+            - [Pupitre Audio & badge AUDIO](https://github.com/danoe78210/aldus/blob/v1.4.7/docs/assets/screenshots/studio-audio-player.png)
+            - [Progression supérieure](https://github.com/danoe78210/aldus/blob/v1.4.7/docs/assets/screenshots/studio-audio-progress.png)
 
-            Voir [CHANGELOG.md](https://github.com/danoe78210/aldus/blob/v1.4.6/CHANGELOG.md) et le [Manuel du Scribe Audio](https://github.com/danoe78210/aldus/blob/v1.4.6/docs/manuel-scribe-audio.md).
+            Voir [CHANGELOG.md](https://github.com/danoe78210/aldus/blob/v1.4.7/CHANGELOG.md) et le [Manuel du Scribe Audio](https://github.com/danoe78210/aldus/blob/v1.4.7/docs/manuel-scribe-audio.md).
           releaseDraft: false
           prerelease: false
           args: ${{ matrix.args }}

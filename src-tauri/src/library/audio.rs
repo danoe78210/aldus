@@ -16,6 +16,8 @@ use zip::ZipArchive;
 
 const DEFAULT_TTS_ENDPOINT: &str = "http://127.0.0.1:8020";
 const MAX_TTS_SEGMENT_CHARS: usize = 240;
+pub(super) const AUDIO_INIT_TIMEOUT: Duration = Duration::from_secs(900);
+const SIDECAR_STARTUP_TIMEOUT: Duration = Duration::from_secs(60);
 #[derive(Clone, Copy, Debug, Default, Deserialize, PartialEq, Serialize)]
 #[serde(rename_all = "snake_case")]
 pub enum AudioEngineMode {
@@ -349,18 +351,21 @@ pub async fn ensure_bundled_engine(app: &tauri::AppHandle) -> Result<(), String>
         .build()
         .map_err(|error| format!("Client de santé XTTS impossible : {error}"))?;
     let endpoint = format!("{DEFAULT_TTS_ENDPOINT}/status");
-    let response_deadline = Instant::now() + Duration::from_secs(60);
-    let mut last_error = "aucune réponse de statut".to_string();
+    let started = Instant::now();
+    let mut timeout = SIDECAR_STARTUP_TIMEOUT;
     loop {
         if !engine.running.load(Ordering::SeqCst) {
             let error = "Le moteur XTTS intégré s'est arrêté pendant son initialisation.";
             log::error!("audio init failed endpoint={} error={}", endpoint, error);
             return Err(error.into());
         }
+        let last_error;
         match client.get(&endpoint).send().await {
             Ok(response) if response.status().is_success() => {
                 match response.json::<EngineInitStatus>().await {
                     Ok(status) => {
+                        timeout = AUDIO_INIT_TIMEOUT;
+                        last_error = status.stage.clone();
                         emit_audio_init_progress(app, status.percent, &status.stage);
                         if status.status == "error" || status.error.is_some() {
                             let error = status.error.unwrap_or(status.stage);
@@ -380,14 +385,18 @@ pub async fn ensure_bundled_engine(app: &tauri::AppHandle) -> Result<(), String>
             }
             Err(error) => last_error = error.to_string(),
         }
-        if Instant::now() >= response_deadline {
+        if started.elapsed() >= timeout {
             engine.shutdown();
             log::error!(
-                "audio init timeout endpoint={} timeout_seconds=60 last_error={}",
+                "audio init timeout endpoint={} timeout_seconds={} last_error={}",
                 endpoint,
+                timeout.as_secs(),
                 last_error
             );
-            let error = format!("Le moteur XTTS n'a pas répondu sous 60 secondes : {last_error}");
+            let error = format!(
+                "Le moteur XTTS n'a pas terminé son initialisation sous {} secondes : {last_error}",
+                timeout.as_secs()
+            );
             return Err(error);
         }
         tokio::time::sleep(Duration::from_millis(300)).await;
@@ -1636,10 +1645,11 @@ mod tests {
         selected_chapter_indices, validate_local_endpoint, AudioGenerationProgress,
         AudioConfig, AudioEngineMode, AudioInitProgress, AudioOutputDirectory,
         AudioTempDirectory, EngineInitStatus, SynthesisRequest,
-        MAX_TTS_SEGMENT_CHARS,
+        AUDIO_INIT_TIMEOUT, MAX_TTS_SEGMENT_CHARS, SIDECAR_STARTUP_TIMEOUT,
     };
     use crate::library::AudioChapter;
     use std::io::Write;
+    use std::time::Duration;
 
     #[test]
     fn only_accepts_loopback_tts_endpoints() {
@@ -1714,6 +1724,13 @@ mod tests {
         assert_eq!(failure["isReady"], false);
         assert_eq!(failure["error"], "timeout");
         Ok(())
+    }
+
+    #[test]
+    fn model_initialization_has_a_separate_bounded_download_budget() {
+        assert_eq!(SIDECAR_STARTUP_TIMEOUT, Duration::from_secs(60));
+        assert_eq!(AUDIO_INIT_TIMEOUT, Duration::from_secs(900));
+        assert!(AUDIO_INIT_TIMEOUT > SIDECAR_STARTUP_TIMEOUT);
     }
 
     #[test]

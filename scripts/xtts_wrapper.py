@@ -204,7 +204,7 @@ class SynthesisRequest(BaseModel):
 def list_voices() -> dict[str, list[dict[str, str]]]:
     global VOICES
     initialization = _current_init_status()
-    if not initialization["ready"] or MODEL is None:
+    if not initialization["model_loaded"] or initialization["error"] or MODEL is None:
         raise HTTPException(
             status_code=503,
             detail=initialization["error"] or initialization["stage"],

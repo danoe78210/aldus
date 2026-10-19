@@ -205,7 +205,7 @@ DOCX fournissent leurs titres et chapitres; un PDF textuel constitue un seul
 segment. Les éléments structurels (couverture, titre, sommaire, mentions
 légales) et les parasites évidents sont écartés.
 
-Dans le MSI Windows 1.4.6, Aldus démarre automatiquement les sidecars XTTS v2 et
+Dans le MSI Windows 1.4.7, Aldus démarre automatiquement les sidecars XTTS v2 et
 FFmpeg; aucun Python, FFmpeg ni réglage du `PATH` système n'est requis. Au
 premier démarrage, l'assistant présente la CPML et exige une acceptation
 explicite avant de télécharger les poids du modèle. Dès le clic d'acceptation,
@@ -221,6 +221,10 @@ du wrapper de référence.
 Les modèles ne sont pas inclus dans le MSI : une connexion est nécessaire au
 premier téléchargement après consentement CPML. Les utilisations suivantes
 fonctionnent hors ligne tant que les modèles sont conservés dans LocalAppData.
+Le sidecar doit répondre sous 60 secondes ; une fois son statut disponible,
+le premier téléchargement/chargement peut durer jusqu'à 15 minutes, avec
+progression visible et remontée immédiate des erreurs. Les voix sont indexées
+dès que le modèle est chargé, puis le moteur est annoncé prêt.
 
 Les chapitres sont découpés en segments de 240 caractères maximum et synthétisés
 séquentiellement. Les fragments temporaires restent sous

@@ -1,4 +1,13 @@
 # Registre des Évolutions — Aldus
+## [1.4.7] - 2026-10-19 — Initialisation XTTS & disponibilité des voix
+### Corrigé
+- Studio Audio : la route `/voices` indexe les profils dès que le modèle est chargé, sans exiger au préalable l'état `ready` qu'elle doit elle-même établir ; les erreurs de chargement restent explicites.
+- Premier démarrage XTTS : séparation du délai de réponse du sidecar (60 s) et du budget global d'initialisation (15 min), afin de laisser le téléchargement/chargement des modèles progresser sans coupure prématurée.
+
+### Vérifié
+- Tests Python de non-régression de l'indexation des voix, exécutés aussi avant publication du MSI Windows.
+- Le tag et les assets 1.4.6 sont conservés ; cette version corrige les blocages révélés par leur recette réelle.
+
 ## [1.4.6] - 2026-10-19 — Sources récursives & journal pédagogique
 ### Corrigé
 - Sidecar XTTS : collecte complète de `jamo` et vérification de `jamo/data/U+11xx.json` dans l'archive PyInstaller pour éviter le crash au chargement.
