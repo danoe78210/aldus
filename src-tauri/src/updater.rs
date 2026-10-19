@@ -42,7 +42,9 @@ struct GitHubRelease {
     body: Option<String>,
 }
 
-fn config_path(app: &AppHandle) -> Result<std::path::PathBuf, String> {
+pub(crate) static CONFIG_LOCK: std::sync::Mutex<()> = std::sync::Mutex::new(());
+
+pub(crate) fn config_path(app: &AppHandle) -> Result<std::path::PathBuf, String> {
     let directory = app
         .path()
         .app_local_data_dir()
@@ -52,12 +54,14 @@ fn config_path(app: &AppHandle) -> Result<std::path::PathBuf, String> {
     Ok(directory.join("config.json"))
 }
 
-fn read_config(path: &Path) -> Result<Value, String> {
-    if !path.is_file() {
-        return Ok(serde_json::json!({}));
-    }
-    let contents = std::fs::read_to_string(path)
-        .map_err(|error| format!("Lecture de config.json impossible : {error}"))?;
+pub(crate) fn read_config(path: &Path) -> Result<Value, String> {
+    let contents = match std::fs::read_to_string(path) {
+        Ok(contents) => contents,
+        Err(error) if error.kind() == std::io::ErrorKind::NotFound => {
+            return Ok(serde_json::json!({}))
+        }
+        Err(error) => return Err(format!("Lecture de config.json impossible : {error}")),
+    };
     serde_json::from_str(&contents).map_err(|error| format!("config.json invalide : {error}"))
 }
 
@@ -70,7 +74,7 @@ fn load_system_config(root: &Value) -> Result<SystemConfig, String> {
         .map_err(|error| format!("Configuration système invalide : {error}"))
 }
 
-fn write_config(path: &Path, root: &Value) -> Result<(), String> {
+pub(crate) fn write_config(path: &Path, root: &Value) -> Result<(), String> {
     let contents = serde_json::to_vec_pretty(root)
         .map_err(|error| format!("Sérialisation de config.json impossible : {error}"))?;
     let temporary = path.with_extension("json.tmp");
@@ -91,13 +95,30 @@ fn store_system_config(root: &mut Value, system: &SystemConfig) -> Result<(), St
     let object = root
         .as_object_mut()
         .ok_or("La racine de config.json doit être un objet JSON.")?;
-    object.insert(
-        "system".into(),
-        serde_json::to_value(system).map_err(|error| {
-            format!("Sérialisation de la configuration système impossible : {error}")
-        })?,
+    let system_object = object
+        .entry("system")
+        .or_insert_with(|| serde_json::json!({}))
+        .as_object_mut()
+        .ok_or("La configuration système doit être un objet JSON.")?;
+    system_object.extend(
+        serde_json::to_value(system)
+            .map_err(|error| {
+                format!("Sérialisation de la configuration système impossible : {error}")
+            })?
+            .as_object()
+            .ok_or("Configuration système invalide.")?
+            .clone(),
     );
     Ok(())
+}
+
+fn save_system_config(path: &Path, system: &SystemConfig) -> Result<(), String> {
+    let _guard = CONFIG_LOCK
+        .lock()
+        .map_err(|error| format!("Verrou de configuration : {error}"))?;
+    let mut root = read_config(path)?;
+    store_system_config(&mut root, system)?;
+    write_config(path, &root)
 }
 
 fn checked_within_last_day(system: &SystemConfig, now: DateTime<Utc>) -> bool {
@@ -154,7 +175,7 @@ pub async fn check_update_status(app: &AppHandle, force: bool) -> Result<UpdateS
     let checker = app.state::<UpdateChecker>();
     let _request = checker.request_lock.lock().await;
     let path = config_path(app)?;
-    let mut root = read_config(&path)?;
+    let root = read_config(&path)?;
     let mut system = load_system_config(&root)?;
     let current_version = app.package_info().version.to_string();
     let now = Utc::now();
@@ -167,10 +188,9 @@ pub async fn check_update_status(app: &AppHandle, force: bool) -> Result<UpdateS
     let release = match fetch_latest_release().await {
         Ok(release) => release,
         Err(error) => {
-            log::debug!("GitHub release check unavailable: {error}");
+            log::warn!("GitHub release check unavailable: {error}");
             system.available = false;
-            store_system_config(&mut root, &system)?;
-            write_config(&path, &root)?;
+            save_system_config(&path, &system)?;
             return Ok(status_from_cache(&system, &current_version));
         }
     };
@@ -179,8 +199,7 @@ pub async fn check_update_status(app: &AppHandle, force: bool) -> Result<UpdateS
     system.latest_known_version = release.tag_name;
     system.update_url = release.html_url;
     system.release_notes = release.body.unwrap_or_default();
-    store_system_config(&mut root, &system)?;
-    write_config(&path, &root)?;
+    save_system_config(&path, &system)?;
     Ok(status_from_cache(&system, &current_version))
 }
 
@@ -287,7 +306,8 @@ mod tests {
     #[test]
     fn system_cache_round_trips_without_replacing_audio_config() -> Result<(), String> {
         let mut root = serde_json::json!({
-            "audio": { "cpml_accepted": true, "engine_mode": "integrated" }
+            "audio": { "cpml_accepted": true, "engine_mode": "integrated" },
+            "system": { "custom_log_dir": "E:\\Erreurs", "log_diagnostic": true }
         });
         let system = SystemConfig {
             last_update_check: Some("2026-10-18T08:30:00Z".into()),
@@ -302,6 +322,8 @@ mod tests {
 
         assert_eq!(root["audio"]["cpml_accepted"], true);
         assert_eq!(root["system"]["latest_known_version"], "1.4.5");
+        assert_eq!(root["system"]["custom_log_dir"], "E:\\Erreurs");
+        assert_eq!(root["system"]["log_diagnostic"], true);
         assert!(status.available);
         assert_eq!(status.notes.as_deref(), Some("Notes"));
         assert!(!status_from_cache(&loaded, "1.4.5").available);

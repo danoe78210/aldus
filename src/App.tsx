@@ -12,6 +12,7 @@ import { INHERIT_FONT, numberFr } from "./data/fonts";
 import { DEFAULT_SPECIAL_ROLE, specialRoleLabel } from "./data/specialPages";
 import { openPathExternal } from "./utils/shell";
 import { invokeCommand, isInvokeAvailable, listenEvent } from "./utils/tauri";
+import { getLogConfig, openLogFile, setLogConfig } from "./utils/logApi";
 import {
   importFileIntoFolder,
   isFsAvailable,
@@ -29,7 +30,7 @@ import {
   saveProject,
   treeToFlat,
 } from "./utils/projectFile";
-import { isImageFile, splitSourceFiles } from "./utils/sources";
+import { compareSourcePaths, isImageFile, splitSourceFiles } from "./utils/sources";
 import { finalizeExit, onCloseRequested } from "./utils/shutdown";
 import { EXPORT_FORMS, PRESS_STAGES, PRESS_TOTAL_MS, type ExportFormId } from "./utils/exportEngine";
 import { createChapterFile, listSourceFiles, readChapterFile, saveChapterFile, saveChapterCorrections } from "./utils/projectApi";
@@ -280,6 +281,11 @@ const App: React.FC = () => {
 
   const addLog = useCallback((level: LogLevel, message: string) => {
     setLogs((previous) => [...previous, createLog(level, message)]);
+    if (isInvokeAvailable()) {
+      void invokeCommand("log_frontend", { level, message }).catch((error) => {
+        console.error("Transmission au journal Aldus impossible :", error);
+      });
+    }
   }, []);
 
   // Mise à jour partielle de l'état de la couverture (autosauvegardé).
@@ -438,7 +444,7 @@ const App: React.FC = () => {
   // Restauration du projet au démarrage (fichier Tauri ou repli localStorage).
   useEffect(() => {
     let active = true;
-    loadProject(null).then((text) => {
+    loadProject(null).then(async (text) => {
       if (!active) {
         return;
       }
@@ -504,12 +510,23 @@ const App: React.FC = () => {
           setCover((previous) => ({ ...previous, ...data.cover }));
         }
       }
-      setHydrated(true);
+      if (isInvokeAvailable()) {
+        try {
+          const config = await getLogConfig() ?? await setLogConfig({
+            directory: data?.directories?.logs ?? DEFAULT_ERROR_LOG.directory,
+            level: data?.options?.logLevel ?? DEFAULT_ERROR_LOG.level,
+          });
+          if (active) setErrorLogConfig(config);
+        } catch (error) {
+          addLog("error", `Chargement du journal impossible : ${String(error)}`);
+        }
+      }
+      if (active) setHydrated(true);
     });
     return () => {
       active = false;
     };
-  }, []);
+  }, [addLog]);
 
   // Compile l'état courant en fichier de projet (réutilisé par la sauvegarde et l'export).
   const buildCurrentProject = useCallback(
@@ -723,8 +740,17 @@ const App: React.FC = () => {
   );
 
   const handleLogLevelChange = useCallback(
-    (level: LogDiagnosticLevel) => {
-      setErrorLogConfig((previous) => ({ ...previous, level }));
+    async (level: LogDiagnosticLevel) => {
+      try {
+        if (isInvokeAvailable()) {
+          setErrorLogConfig(await setLogConfig({ level }));
+        } else {
+          setErrorLogConfig((previous) => ({ ...previous, level }));
+        }
+      } catch (error) {
+        addLog("error", `Enregistrement du niveau du journal impossible : ${String(error)}`);
+        return;
+      }
       addLog(
         'info',
         `Niveau de diagnostic défini sur : ${LOG_LEVEL_LABELS[level]}`,
@@ -734,27 +760,30 @@ const App: React.FC = () => {
   );
 
   const handleLogDirectoryChange = useCallback(
-    (path: string) => {
-      setErrorLogConfig((previous) => ({ ...previous, directory: path }));
+    async (path: string) => {
+      try {
+        if (isInvokeAvailable()) {
+          setErrorLogConfig(await setLogConfig({ directory: path }));
+        } else {
+          setErrorLogConfig((previous) => ({ ...previous, directory: path }));
+        }
+      } catch (error) {
+        addLog("error", `Enregistrement du dossier du journal impossible : ${String(error)}`);
+        return;
+      }
       addLog('success', `Emplacement du journal mis à jour : ${path}`);
     },
     [addLog],
   );
 
   const handleOpenLog = useCallback(async () => {
-    const path = errorLogConfig.directory
-      ? `${errorLogConfig.directory}/danoe-studio.log`
-      : "danoe-studio.log";
-    const opened = await openPathExternal(path);
-    if (opened) {
-      addLog('success', `Ouverture du fichier de bord : ${path}`);
-    } else {
-      addLog(
-        'warning',
-        "Ouverture du fichier de bord indisponible (nécessite l'application empaquetée).",
-      );
+    try {
+      const path = await openLogFile();
+      addLog("success", `Ouverture du fichier de bord : ${path}`);
+    } catch (error) {
+      addLog("error", `Ouverture du fichier de bord impossible : ${String(error)}`);
     }
-  }, [errorLogConfig, addLog]);
+  }, [addLog]);
 
   const handleInfoFieldChange = useCallback(
     (section: string, label: string, field: keyof BookInfoConfig, value: string) => {
@@ -943,7 +972,7 @@ const App: React.FC = () => {
         setFiles((previous) =>
           previous.includes(result.fileName)
             ? previous
-            : [...previous, result.fileName].sort((a, b) => a.localeCompare(b)),
+            : [...previous, result.fileName].sort(compareSourcePaths),
         );
       } else {
         addLog(
@@ -1202,12 +1231,14 @@ const App: React.FC = () => {
       await persistCurrentProject();
       const filename = await createChapterFile(name);
       setChapterFiles((current) =>
-        [...new Set([...current, filename])].sort((left, right) => left.localeCompare(right)),
+        [...new Set([...current, filename])].sort(compareSourcePaths),
       );
       addLog("success", `Nouveau chapitre créé : ${filename}.`);
-      void listSourceFiles().then(setChapterFiles).catch(() => {
-        addLog("warning", "Le chapitre est créé, mais la liste n’a pas pu être actualisée.");
-      });
+      void listSourceFiles()
+        .then((files) => setChapterFiles(files.sort(compareSourcePaths)))
+        .catch(() => {
+          addLog("warning", "Le chapitre est créé, mais la liste n’a pas pu être actualisée.");
+        });
       await handleLoadWritingChapter(filename);
     } catch (cause) {
       const message = cause instanceof Error ? cause.message : String(cause);
@@ -1503,4 +1534,3 @@ const App: React.FC = () => {
 };
 
 export default App;
-

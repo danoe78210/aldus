@@ -111,14 +111,29 @@ const ToolbarButton: React.FC<ToolbarButtonProps> = ({
 /** Base commune des champs de saisie de titres — ébène feutré, encre ivoire,
  *  filet laiton au repos, or vif au focus (charte « Dark Atelier »). */
 const inputClass =
-  "min-w-0 flex-1 border-b border-[#4a3b2c] bg-transparent font-serif text-sm tracking-wide text-[#f5efe4] transition-colors placeholder:text-[#786c59] focus:border-[#d4af37] focus:outline-hidden disabled:cursor-not-allowed disabled:border-stone-300 disabled:text-stone-400 disabled:placeholder:text-stone-300";
+  "block w-full max-w-full min-w-0 flex-1 border-b border-[#4a3b2c] bg-transparent font-serif text-sm tracking-wide text-[#f5efe4] transition-colors placeholder:text-[#786c59] focus:border-[#d4af37] focus:outline-hidden disabled:cursor-not-allowed disabled:border-stone-300 disabled:text-stone-400 disabled:placeholder:text-stone-300";
 
 /** Sélecteurs de source — fond ébène, texte ivoire, filet laiton au focus. */
 const selectClass =
-  "shrink-0 rounded-sm border border-[#4a3b2c] bg-[#141210] font-serif text-xs text-[#e2dbce] transition-colors focus:border-[#d4af37] focus:outline-hidden";
+  "rounded-sm border border-[#4a3b2c] bg-[#141210] font-serif text-xs text-[#e2dbce] transition-colors focus:border-[#d4af37] focus:outline-hidden";
 
 /** Classe des options déroulantes (ébène & ivoire, cohérente avec le registre). */
 const optionClass = "bg-[#141210] text-[#e2dbce]";
+
+/** Sélecteur de fichier source : largeur fluide, repli lisible. */
+const sourceSelectClass = `${selectClass} min-w-[140px] flex-1 truncate`;
+
+/** Rangée supérieure de contrôles : se replie selon la largeur de la carte
+ *  (le panneau n'occupe qu'une demi-page, un point d'arrêt `sm:` ne suffit pas). */
+const controlRowClass = "flex min-w-0 flex-wrap items-center gap-2";
+
+/** Ligne « titre dans le livre » : le champ passe à la ligne plutôt que de s'écraser. */
+const titleRowClass = "flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1 pl-10";
+const titleFieldMinClass = "min-w-24!";
+
+/** Bouton-icône carré des actions de fichier. */
+const iconButtonClass =
+  "flex h-8 w-8 shrink-0 items-center justify-center rounded-xs border border-[#5a4f3f] bg-[#1a1612] text-[#d4af37] transition-colors hover:border-[#d4af37] hover:bg-[#251f18] hover:text-[#f3e5ab]";
 
 interface TitleFieldProps {
   /** Valeur courante (affichée dans l'ouvrage). */
@@ -185,10 +200,11 @@ const PickButton: React.FC<{ onClick: () => void }> = ({ onClick }) => (
   <button
     type="button"
     onClick={onClick}
-    className="flex shrink-0 items-center gap-1 rounded-xs border border-[#5a4f3f] bg-[#1a1612] px-3 py-1 font-serif text-xs uppercase tracking-wider text-[#d4af37] transition-colors hover:border-[#d4af37] hover:bg-[#251f18] hover:text-[#f3e5ab]"
+    title="Parcourir le projet"
+    aria-label="Parcourir le projet"
+    className={iconButtonClass}
   >
-    <FolderOpen size={12} />
-    Parcourir…
+    <FolderOpen size={14} />
   </button>
 );
 
@@ -197,11 +213,11 @@ const ImportButton: React.FC<{ onClick: () => void }> = ({ onClick }) => (
   <button
     type="button"
     onClick={onClick}
-    title="Importer un fichier externe dans le dossier du projet"
-    className="flex shrink-0 items-center gap-1 rounded-xs border border-[#7a5e2c] bg-[#1e1913] px-3 py-1 font-serif text-xs uppercase tracking-wider text-[#d4af37] transition-colors hover:border-[#d4af37] hover:bg-[#2a2219]"
+    title="Importer un fichier externe"
+    aria-label="Importer un fichier externe"
+    className={iconButtonClass}
   >
-    <Upload size={12} />
-    Importer
+    <Upload size={14} />
   </button>
 );
 
@@ -249,13 +265,15 @@ const SortableRow: React.FC<SortableRowProps> = ({
 }) => {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
     useSortable({ id: item.id });
+  const role = item.role ?? DEFAULT_SPECIAL_ROLE;
+  const bareMarker = item.type === "special" && !specialRoleHasTitle(role);
 
   return (
     <div
       ref={setNodeRef}
       style={{ transform: CSS.Transform.toString(transform), transition }}
-      className={`flex items-stretch gap-2 rounded-sm border border-stone-400/25 bg-stone-500/5 px-2 py-2 transition-shadow ${
-        indent ? "ml-8" : ""
+      className={`box-border flex min-w-0 max-w-full items-stretch gap-2 overflow-hidden rounded-sm border border-stone-400/25 bg-stone-500/5 px-2 py-2 transition-shadow ${
+        indent ? "ml-8" : "w-full"
       } ${isDragging ? "bg-parchment-dark/80 shadow-[0_6px_16px_rgba(0,0,0,0.25)]" : ""}`}
     >
       {/* Poignée de déplacement — fer forgé feutré */}
@@ -264,7 +282,7 @@ const SortableRow: React.FC<SortableRowProps> = ({
         {...attributes}
         {...listeners}
         aria-label="Déplacer"
-        className="flex cursor-grab items-center rounded-sm px-1 text-[#5a4f3f] transition-colors hover:text-[#d4af37] active:cursor-grabbing"
+        className="flex shrink-0 cursor-grab items-center rounded-sm px-1 text-[#5a4f3f] transition-colors hover:text-[#d4af37] active:cursor-grabbing"
       >
         <GripVertical size={16} />
       </button>
@@ -274,18 +292,22 @@ const SortableRow: React.FC<SortableRowProps> = ({
         <span className="min-w-[1.75rem] text-right font-serif text-xs tracking-widest text-[#c5a059]">
           {romanNumeral(rank)}
         </span>
-        <span aria-hidden className="h-px w-2 bg-[#5a4f3f]" />
-        <span
-          className="min-w-[3.25rem] font-mono text-[10px] text-[#786c59] tabular-nums"
-          title="Première page composée (folio)"
-        >
-          {folio ? `ff. ${folio}` : "—"}
-        </span>
-        <span aria-hidden className="h-px w-2 bg-[#5a4f3f]" />
+        {!bareMarker && (
+          <>
+            <span aria-hidden className="h-px w-2 bg-[#5a4f3f]" />
+            <span
+              className="min-w-[3.25rem] font-mono text-[10px] text-[#786c59] tabular-nums"
+              title="Première page composée (folio)"
+            >
+              {folio ? `ff. ${folio}` : "—"}
+            </span>
+            <span aria-hidden className="h-px w-2 bg-[#5a4f3f]" />
+          </>
+        )}
       </span>
 
       {item.type === "act" && (
-        <div className="flex flex-1 items-center gap-3">
+        <div className="flex min-w-0 flex-1 items-center gap-3">
           <span className="w-12 shrink-0 font-mono text-[10px] font-bold uppercase tracking-widest text-copper">
             [ACTE]
           </span>
@@ -307,14 +329,15 @@ const SortableRow: React.FC<SortableRowProps> = ({
       )}
 
       {item.type === "chapter" && (
-        <div className="flex flex-1 flex-col gap-1.5">
+        <div className="flex min-w-0 flex-1 flex-col gap-1.5">
           {/* Ligne 1 — sélection / import de la source */}
-          <div className="flex items-center gap-3">
+          <div className={controlRowClass}>
             <FileText size={16} className="shrink-0 text-stone-500" />
             <select
               value={item.sourceFileName ?? ""}
               onChange={(event) => onSourceChange(item.id, event.target.value)}
-              className={`${selectClass} w-44`}
+              title={item.sourceFileName || undefined}
+              className={sourceSelectClass}
             >
               {(sourceOptions(chapterFiles, item.sourceFileName).length === 0 ||
                 !item.sourceFileName) && (
@@ -342,26 +365,28 @@ const SortableRow: React.FC<SortableRowProps> = ({
           </div>
 
           {/* Ligne 2 — renommage pour le livre (indentée) */}
-          <div className="flex items-center gap-2 pl-10">
-            <span className="shrink-0 font-mono text-[10px] uppercase tracking-widest text-copper">
+          <div className={titleRowClass}>
+            <span className="font-mono text-[10px] uppercase tracking-widest text-copper">
               Nom dans le livre :
             </span>
             <TitleField
               value={item.displayName ?? ""}
               onCommit={(value) => onRename(item.id, value)}
               placeholder="Titre affiché dans l'ouvrage"
+              className={titleFieldMinClass}
             />
           </div>
         </div>
       )}
 
       {item.type === "image" && (
-        <div className="flex flex-1 items-center gap-3">
+        <div className={`${controlRowClass} flex-1`}>
           <ImageIcon size={16} className="shrink-0 text-stone-500" />
           <select
             value={item.sourceFileName ?? ""}
             onChange={(event) => onSourceChange(item.id, event.target.value)}
-            className={`${selectClass} min-w-0 flex-1`}
+            title={item.sourceFileName || undefined}
+            className={sourceSelectClass}
           >
             {(sourceOptions(imageFiles, item.sourceFileName).length === 0 ||
               !item.sourceFileName) && (
@@ -388,17 +413,17 @@ const SortableRow: React.FC<SortableRowProps> = ({
       )}
 
       {item.type === "special" && (
-        <div className="flex flex-1 flex-col gap-1.5">
+        <div className="flex min-w-0 flex-1 flex-col gap-1.5">
           {/* Ligne 1 — rôle éditorial et source */}
-          <div className="flex items-center gap-3">
+          <div className={controlRowClass}>
             <Bookmark size={16} className="shrink-0 text-copper" />
             <select
-              value={item.role ?? DEFAULT_SPECIAL_ROLE}
+              value={role}
               onChange={(event) =>
                 onRoleChange(item.id, event.target.value as SpecialPageRole)
               }
               aria-label="Rôle de la page spéciale"
-              className={`${selectClass} w-36`}
+              className={`${selectClass} w-36 shrink-0`}
             >
               {SPECIAL_PAGE_ROLES.map((option) => (
                 <option className={optionClass} key={option.id} value={option.id}>
@@ -406,14 +431,15 @@ const SortableRow: React.FC<SortableRowProps> = ({
                 </option>
               ))}
             </select>
-            {specialRoleHasSource(item.role ?? DEFAULT_SPECIAL_ROLE) && (
+            {specialRoleHasSource(role) && (
               <>
                 <select
                   value={item.sourceFileName ?? ""}
                   onChange={(event) =>
                     onSourceChange(item.id, event.target.value)
                   }
-                  className={`${selectClass} w-44`}
+                  title={item.sourceFileName || undefined}
+                  className={sourceSelectClass}
                 >
                   {(sourceOptions(chapterFiles, item.sourceFileName).length ===
                     0 ||
@@ -446,12 +472,10 @@ const SortableRow: React.FC<SortableRowProps> = ({
           </div>
 
           {/* Ligne 2 — titre affiché (grisé si le rôle n'admet pas de titre) */}
-          <div className="flex items-center gap-2 pl-10">
+          <div className={titleRowClass}>
             <span
-              className={`shrink-0 font-mono text-[10px] uppercase tracking-widest ${
-                specialRoleHasTitle(item.role ?? DEFAULT_SPECIAL_ROLE)
-                  ? "text-copper"
-                  : "text-stone-400"
+              className={`font-mono text-[10px] uppercase tracking-widest ${
+                !bareMarker ? "text-copper" : "text-stone-400"
               }`}
             >
               Titre dans le livre :
@@ -459,11 +483,10 @@ const SortableRow: React.FC<SortableRowProps> = ({
             <TitleField
               value={item.displayName ?? ""}
               onCommit={(value) => onRename(item.id, value)}
-              disabled={!specialRoleHasTitle(item.role ?? DEFAULT_SPECIAL_ROLE)}
+              disabled={bareMarker}
+              className={titleFieldMinClass}
               placeholder={
-                specialRoleHasTitle(item.role ?? DEFAULT_SPECIAL_ROLE)
-                  ? "Titre affiché dans l'ouvrage"
-                  : "Sans objet pour ce rôle"
+                !bareMarker ? "Titre affiché dans l'ouvrage" : "Sans objet pour ce rôle"
               }
             />
           </div>

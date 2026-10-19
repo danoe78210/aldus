@@ -134,7 +134,7 @@ export const pickDirectory = async (): Promise<string | null> => {
  * - Tauri v1 / anciens builds : API globale `__TAURI__.fs.readDir`.
  * - **Tauri v2** : le plugin `fs` n'est **pas** exposé sur `window.__TAURI__`
  *   (`withGlobalTauri` n'injecte que l'API cœur) → appel de la commande Rust
- *   `list_directory_files` (voir `src-tauri/src/lib.rs`).
+ *   `scan_workspace_files` (scan récursif, voir `src-tauri/src/workspace.rs`).
  * - Sinon (navigateur) : retourne un tableau vide (l'énumération est alors
  *   fournie par le sélecteur de dossier lui-même).
  */
@@ -159,16 +159,19 @@ export const listDirectoryFiles = async (
     }
   }
 
-  // 2) Commande Rust `list_directory_files` (Tauri v2).
+  // 2) Commande Rust `scan_workspace_files` (Tauri v2) : scan récursif,
+  //    chemins relatifs (`Chapitres/01-prologue.md`).
   if (isInvokeAvailable()) {
     try {
-      const names = await invokeCommand<string[]>("list_directory_files", {
-        path,
-      });
-      console.log("[directory] list_directory_files →", { path, names });
+      const scanned = await invokeCommand<Array<{ relativePath: string }>>(
+        "scan_workspace_files",
+        { path },
+      );
+      const names = scanned.map((file) => file.relativePath);
+      console.log("[directory] scan_workspace_files →", { path, names });
       return names;
     } catch (error) {
-      console.warn("[directory] list_directory_files a échoué :", {
+      console.warn("[directory] scan_workspace_files a échoué :", {
         path,
         error,
       });
@@ -184,7 +187,7 @@ export const listDirectoryFiles = async (
 
 /**
  * Indique si une API d'énumération de dossier est disponible : `fs.readDir`
- * (Tauri v1) **ou** les commandes Tauri (`list_directory_files`, Tauri v2).
+ * (Tauri v1) **ou** les commandes Tauri (`scan_workspace_files`, Tauri v2).
  */
 export const isFsAvailable = (): boolean => {
   if (typeof window === "undefined") {
@@ -229,7 +232,7 @@ const listHandleFiles = async (
  * Sélectionne un dossier **et** renvoie les fichiers qu'il contient.
  * - Tauri : sélecteur natif (`dialog.open` v1, sinon commande Rust
  *   `pick_directory`) puis énumération (`fs.readDir` v1, sinon commande Rust
- *   `list_directory_files`).
+ *   `scan_workspace_files`).
  * - Navigateur : File System Access API, puis repli `webkitdirectory` (la liste
  *   des fichiers est disponible au moment de la sélection ; seuls les enfants
  *   directs sont conservés, les chemins relatifs comportant exactement 2 segments).
@@ -243,7 +246,7 @@ export const pickDirectoryWithFiles = async (): Promise<DirectoryPick> => {
   // `pickNativeDirectory` tente l'API globale `dialog.open` (v1) puis la
   // commande Rust `pick_directory` (v2 : les plugins ne sont **pas** exposés
   // sur `window.__TAURI__`). Les fichiers sont ensuite énumérés via
-  // `listDirectoryFiles` (`fs.readDir` v1 ou commande Rust `list_directory_files`).
+  // `listDirectoryFiles` (`fs.readDir` v1 ou commande Rust `scan_workspace_files`).
   if (isTauriAvailable() || isInvokeAvailable()) {
     const path = await pickNativeDirectory();
     console.log("[directory] dossier sélectionné (natif Tauri) :", path);

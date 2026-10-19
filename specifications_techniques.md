@@ -221,7 +221,7 @@ pistes MP3/M4B référencées dans le dossier d'export.
 
 Le mode développement et macOS/Linux conservent un wrapper localhost configurable
 par `ALDUS_TTS_URL` (défaut `http://127.0.0.1:8020`). Le client refuse tout hôte
-autre que `localhost`, `127.0.0.1` ou `::1` en HTTP. Le MSI Windows 1.4.5
+autre que `localhost`, `127.0.0.1` ou `::1` en HTTP. Le MSI Windows 1.4.6
 embarque un sidecar `aldus-audio-server` gelé par PyInstaller `--onefile`
 (Python 3.10.11, PyTorch CPU 2.2.2, Coqui TTS 0.22.0, Transformers 4.41.2) et
 un sidecar FFmpeg 8.1.3 statique LGPL. Le texte LGPL accompagne l'application.
@@ -250,9 +250,11 @@ Le wrapper expose la phase d'initialisation par `GET /status` (`status` vaut
 `initializing`, `ready` ou `error`, avec `percent`, `stage`, `model_loaded` et
 `error`). Dès `status == "error"`, Rust arrête le sidecar et remonte l'erreur
 sans attendre le timeout de 60 s. Le build PyInstaller collecte explicitement
-les modules, données et binaires de `inflect`, `typeguard` et `gruut`, ainsi
+les modules, données et binaires de `inflect`, `typeguard`, `gruut` et `jamo`, ainsi
 que les métadonnées de distribution Gruut (`--copy-metadata gruut`); il inspecte
-ensuite l'archive et échoue si `gruut/VERSION` est absent. Rust publie
+ensuite l'archive et échoue si `gruut/VERSION` ou `jamo/data/U+11xx.json` est
+absent. Le drapeau `--collect-all jamo` corrige le crash de ressource Unicode
+manquante, sans masquer les autres causes de timeout. Rust publie
 `audio:init-progress` avec `percent`, `stage`,
 `isReady` et `error`; `App.tsx` écoute cet événement et
 alimente l'état de progression partagé par `Layout` et le composant `TopBar`.
@@ -267,6 +269,12 @@ FFmpeg est résolu par chemin sidecar absolu, sans dépendre du `PATH` système.
 Le logger Tauri écrit dans stdout et
 `%LOCALAPPDATA%\net.danoe.aldus\logs\Aldus.log`; aucun processus ne doit écrire
 dans `C:\Program Files\Aldus`.
+
+Les poids XTTS ne sont pas embarqués : le premier téléchargement est soumis
+au consentement CPML ; les modèles mis en cache permettent ensuite le
+fonctionnement hors ligne. Les dossiers de projets, exports et le miroir de
+logs personnalisé sont des destinations utilisateur explicites, distinctes
+du sanctuaire LocalAppData des états internes.
 
 - `GET /voices` : tableau de voix ou `{ "voices": [...] }`, chaque entrée
   portant `id`, `name` et éventuellement `language`.
@@ -288,7 +296,7 @@ GET `/repos/danoe78210/aldus/releases/latest` porte `User-Agent: Aldus-App`,
 utilise des timeouts bornés et est ignoré pendant 24 heures après un contrôle.
 Le bloc `system` est fusionné aux autres clés puis persisté par `.tmp` et
 `rename`. Les erreurs réseau ne remontent pas à l'UI et sont consignées en
-DEBUG. La commande `open_external` n'accepte que les pages HTTPS des releases
+WARN. La commande `open_external` n'accepte que les pages HTTPS des releases
 du dépôt Aldus et lance le navigateur par défaut (`cmd.exe start` sans fenêtre
 sur Windows, `open` sur macOS, `xdg-open` sur Linux). La modale React ferme son
 élément `<dialog>` à la demande explicite, sur `cancel` (Échap) et au clic
@@ -296,6 +304,47 @@ direct sur le fond, sans propager les clics venant du panneau. `bronzeGlowPulse`
 anime en CSS uniquement la plaque quand une mise à jour est disponible; la règle
 `prefers-reduced-motion` remplace l'animation par un halo statique.
 ---
+
+### 4.4 Indexation récursive des sources
+
+`workspace.rs` expose `scan_workspace_files(path)` et partage le parcours avec
+`list_source_files`. La crate `walkdir` utilise `follow_links(false)` et
+`filter_entry` pour élaguer les entrées cachées et `node_modules`, `target`,
+`dist`. Le parcours et les métadonnées s'exécutent via `spawn_blocking`, hors
+du thread UI. Les entrées illisibles sont signalées dans Aldus.log.
+
+Le contrat IPC `ScannedFile` est sérialisé en camelCase :
+`name`, `relativePath`, `absolutePath`, `fileType` (`chapter` / `image`),
+`sizeBytes`. Les chemins relatifs utilisent `/` sur toutes les plateformes.
+Les extensions texte sont `md`, `txt`, `docx` ; les images sont `png`, `jpg`,
+`jpeg`, `webp`, `tiff`, sans sensibilité à la casse. Le frontend réutilise
+`compareSourcePaths` (`localeCompare`, `{ numeric: true }`) et
+`workspaceFilePath` pour le tri et la résolution des sources imbriquées.
+
+### 4.5 Miroir pédagogique du journal
+
+`logger.rs` reçoit les événements du logger Tauri (tee), sans altérer le
+journal brut. Un canal borné de 2048 événements et un worker dédié évitent les
+E/S disque sur le thread appelant ; les rafales sont regroupées par 128 entrées.
+WARN/ERROR sont retenus, INFO seulement si `system.log_diagnostic` est vrai.
+`system.custom_log_dir` choisit la destination de `journal_erreurs_aldus.txt`.
+Les commandes `get_log_config`, `set_log_config`, `open_log_file` et
+`log_frontend` raccordent React au moteur.
+
+`enrich_log_entry` reconnaît par motifs les ressources PyInstaller manquantes,
+timeouts locaux audio, erreurs de permissions et quotas GitHub ; sinon le
+module et la trace technique sont présentés sans diagnostic spéculatif.
+Le fichier est réécrit via `.txt.tmp` puis renommage atomique par lot (coût
+proportionnel à sa taille). Les préférences sont fusionnées dans `config.json`
+sous `CONFIG_LOCK`, partagé avec l'updater et le consentement audio.
+
+Les incidents disque/file pleine sont signalés dans Aldus.log via un target
+interne exclu du miroir pour éviter la récursion, avec limitation des doublons.
+Le prochain événement retente l'écriture ; les entrées non écrites restent
+consultables dans le journal brut. `open_log_file` crée l'en-tête si nécessaire
+et appelle sous Windows `rundll32.exe url.dll,FileProtocolHandler` avec le
+chemin comme argument (sans interpolation shell). Le dialogue de dossier
+utilise `@tauri-apps/plugin-dialog`. Un flush borné est demandé à la sortie.
 
 ## 5. Composant `GoldCrucible.tsx` (spécification impérative)
 

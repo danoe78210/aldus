@@ -16,10 +16,14 @@ import { CoverCanvas2D } from "./CoverCanvas2D";
 import { Cover3DPreview } from "./Cover3DPreview";
 import { CoverPreExportModal, type PreExportCheck } from "./CoverPreExportModal";
 import { openNativeFile } from "../../utils/nativeDialog";
+import { workspaceFilePath } from "../../utils/sources";
 import { BRASS_BUTTON } from "./coverButtons";
 
 /** Extensions acceptées pour les visuels de couverture (plats et logo). */
 const COVER_IMAGE_EXTENSIONS = ["png", "jpg", "jpeg", "tif", "tiff"];
+
+const workspaceSelectClass =
+  "w-full min-w-0 truncate rounded-sm border border-[#4a3b2c] bg-[#141210] px-1 py-1 font-serif text-xs normal-case tracking-normal text-[#e2dbce] focus:border-[#d4af37] focus:outline-hidden";
 
 /** Bascule d'épreuve du marbre de montage (Feuillet VII). */
 const SUB_TABS = [
@@ -37,8 +41,16 @@ type SubTab = (typeof SUB_TABS)[number]["id"];
  * avant export (§9). L'état persistant vit dans le contexte projet.
  */
 export const CoverPlate: React.FC = () => {
-  const { manuscriptConfig, bookInfo, cover, onCoverChange, structureSignature, coverExportRequest } =
-    useStudio();
+  const {
+    manuscriptConfig,
+    bookInfo,
+    cover,
+    onCoverChange,
+    structureSignature,
+    coverExportRequest,
+    imageFiles,
+    projectDirectory,
+  } = useStudio();
   const trimSize = manuscriptConfig.trimSize;
 
   const [activeSubTab, setActiveSubTab] = useState<SubTab>("canvas2d");
@@ -158,6 +170,21 @@ export const CoverPlate: React.FC = () => {
     }
   };
 
+  // Images du workspace (scan récursif) utilisables en couverture.
+  const workspaceImages = projectDirectory
+    ? imageFiles
+        .filter((file) =>
+          COVER_IMAGE_EXTENSIONS.some((extension) =>
+            file.toLowerCase().endsWith(`.${extension}`),
+          ),
+        )
+        .map((file) => ({ file, path: workspaceFilePath(projectDirectory, file) }))
+    : [];
+  const workspaceImageSelectors = [
+    { label: "Plat 1 — illustration", key: "frontPath", value: frontPath },
+    { label: "Plat 4 — logo / ISBN", key: "backLogoPath", value: cover.backLogoPath ?? null },
+  ] as const;
+
   // Contrôles automatiques du dialogue de pré-export (§9).
   const checks: PreExportCheck[] = useMemo(() => {
     const frontDpi = inspection?.front.dpi ?? 0;
@@ -271,6 +298,40 @@ export const CoverPlate: React.FC = () => {
           );
         })}
       </div>
+
+      {workspaceImages.length > 0 && (
+        <div className="grid shrink-0 grid-cols-2 gap-2">
+          {workspaceImageSelectors.map((selector) => (
+            <label
+              key={selector.key}
+              className="flex min-w-0 flex-col gap-1 font-mono text-[9px] uppercase tracking-widest text-[#9e9587]"
+            >
+              {selector.label}
+              <select
+                value={
+                  workspaceImages.find((image) => image.path === selector.value)?.path ?? ""
+                }
+                title={selector.value ?? undefined}
+                onChange={(event) => {
+                  if (event.target.value) {
+                    onCoverChange({ [selector.key]: event.target.value });
+                  }
+                }}
+                className={workspaceSelectClass}
+              >
+                <option className="bg-[#141210]" value="">
+                  — Images du projet —
+                </option>
+                {workspaceImages.map((image) => (
+                  <option className="bg-[#141210]" key={image.file} value={image.path}>
+                    {image.file}
+                  </option>
+                ))}
+              </select>
+            </label>
+          ))}
+        </div>
+      )}
 
       {drift && (
         <div className="flex shrink-0 items-center justify-between gap-3 rounded-sm border border-amber-600/40 bg-amber-100/50 px-3 py-2">

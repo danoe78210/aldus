@@ -103,6 +103,24 @@ les autres pistes.
 - Sous Windows, le journal Tauri est
   `%LOCALAPPDATA%\net.danoe.aldus\logs\Aldus.log`; le pupitre inférieur conserve
   également le journal des opérations de l'interface.
+- Dans **Réglages > Journal des erreurs**, choisir un dossier pour recevoir
+  `journal_erreurs_aldus.txt`. Les alertes et erreurs y sont accompagnées d'une
+  explication et d'une action conseillée lorsqu'un motif est reconnu
+  (ressource Python absente, délai audio dépassé, accès disque refusé, quota GitHub).
+  Le module, l'heure et la trace technique sont conservés ; les pistes proposées
+  ne remplacent pas un diagnostic confirmé.
+- Le mode **Mécanique / Diagnostic** ajoute les opérations de niveau INFO.
+  **Ouvrir le fichier de bord** crée au besoin un en-tête puis ouvre le journal
+  dans l'éditeur associé aux fichiers texte. Sans dossier personnalisé, il se
+  trouve à côté d'`Aldus.log`. Les préférences globales sont conservées dans
+  `%LOCALAPPDATA%\net.danoe.aldus\config.json` (`system.custom_log_dir` et
+  `system.log_diagnostic`) ; les anciens réglages de projet sont importés
+  une seule fois si aucune préférence globale n'existe.
+- Le miroir utilise un thread dédié et des remplacements atomiques `.tmp` +
+  renommage. Si le dossier devient inaccessible ou la file d'attente est
+  saturée, l'application continue et signale l'incident dans `Aldus.log`.
+  Les entrées non dupliquées pendant l'incident restent dans la trace technique ;
+  les nouvelles entrées sont retentées sans rejouer les anciennes.
 
 Pour la recette de déploiement et les contrôles E2E, consulter la
 [recette XTTS v2 du Banc V](recette-e2e-banc-v-xtts-v2.md).

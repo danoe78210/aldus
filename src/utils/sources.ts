@@ -27,8 +27,15 @@ export const isChapterFile = (fileName: string): boolean =>
 export const isImageFile = (fileName: string): boolean =>
   (IMAGE_EXTENSIONS as readonly string[]).includes(extensionOf(fileName));
 
-/** Tri alphabétique insensible à la casse (locale-aware). */
-const sortNames = (a: string, b: string) => a.localeCompare(b);
+/** Tri naturel insensible à la casse sur le chemin relatif (`2` avant `10`). */
+export const compareSourcePaths = (a: string, b: string) =>
+  a.localeCompare(b, undefined, { numeric: true, sensitivity: "base" });
+
+/** Chemin absolu d'un fichier du workspace, avec le séparateur de la racine. */
+export const workspaceFilePath = (root: string, relativePath: string): string => {
+  const separator = root.includes("\\") ? "\\" : "/";
+  return `${root.replace(/[\\/]+$/, "")}${separator}${relativePath.replace(/[\\/]/g, separator)}`;
+};
 
 /**
  * Répartit une liste brute de fichiers (contenu du dossier « Mes sources »)
@@ -48,7 +55,7 @@ export const splitSourceFiles = (
       images.push(file);
     }
   }
-  chapters.sort(sortNames);
-  images.sort(sortNames);
+  chapters.sort(compareSourcePaths);
+  images.sort(compareSourcePaths);
   return { chapters, images };
 };

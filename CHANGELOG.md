@@ -1,4 +1,13 @@
 # Registre des Évolutions — Aldus
+## [1.4.6] - 2026-10-19 — Sources récursives & journal pédagogique
+### Corrigé
+- Sidecar XTTS : collecte complète de `jamo` et vérification de `jamo/data/U+11xx.json` dans l'archive PyInstaller pour éviter le crash au chargement.
+- Organisation : lignes de structure contenues sans débordement (sélecteurs de source fluides, boutons-icônes Parcourir/Importer avec infobulle, titre borné) et marqueur d'ordre seul pour les pièces liminaires sans titre.
+
+### Amélioré
+- Journal des erreurs : miroir pédagogique `journal_erreurs_aldus.txt` alimenté en arrière-plan (alertes/erreurs, opérations en mode Diagnostic), explications des erreurs XTTS/PyInstaller, accès disque et quotas GitHub ; préférences globales enregistrées atomiquement, bouton d'ouverture et sélecteur natif raccordés. Une destination indisponible n'interrompt pas Aldus et reste signalée dans le journal technique.
+- Sources : indexation récursive de « Mes sources » (sous-dossiers de coffres Obsidian inclus) hors du thread de l'interface ; dossiers cachés (`.obsidian`, `.trash`, `.git`…), `node_modules`, `target` et `dist` ignorés, liens symboliques non suivis. Les sélecteurs affichent le chemin relatif, triés dans l'ordre naturel ; la Couverture propose ces images (plat 1 et logo du plat 4) en plus du sélecteur système.
+
 ## [1.4.5] - Modale de mise à jour & aura bronze
 ### Corrigé
 - Modale de mise à jour : fermeture effective par le bouton, Échap et clic sur le fond.

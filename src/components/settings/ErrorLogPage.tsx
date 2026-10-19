@@ -1,7 +1,9 @@
-import React from "react";
+import React, { useState } from "react";
+import { open } from "@tauri-apps/plugin-dialog";
 import { ChevronLeft, FileText, FolderOpen } from "lucide-react";
 import type { ErrorLogConfig, LogDiagnosticLevel } from "../../types";
 import { pickDirectory } from "../../utils/directory";
+import { invokeCommand, isInvokeAvailable } from "../../utils/tauri";
 import { PillButton } from "./controls";
 
 interface ErrorLogPageProps {
@@ -40,10 +42,24 @@ export const ErrorLogPage: React.FC<ErrorLogPageProps> = ({
   onOpenLog,
   onBack,
 }) => {
+  const [browseError, setBrowseError] = useState<string | null>(null);
   const handleBrowse = async () => {
-    const path = await pickDirectory();
-    if (path) {
-      onDirectoryChange(path);
+    setBrowseError(null);
+    try {
+      const path = isInvokeAvailable()
+        ? await open({ directory: true, multiple: false, title: "Choisir le dossier du journal" })
+        : await pickDirectory();
+      if (typeof path === "string") {
+        onDirectoryChange(path);
+      }
+    } catch (error) {
+      const message = `Sélection du dossier du journal impossible : ${String(error)}`;
+      setBrowseError(message);
+      if (isInvokeAvailable()) {
+        void invokeCommand("log_frontend", { level: "error", message }).catch((cause) => {
+          console.error("Transmission au journal Aldus impossible :", cause);
+        });
+      }
     }
   };
 
@@ -101,7 +117,7 @@ export const ErrorLogPage: React.FC<ErrorLogPageProps> = ({
 
         <div
           title={config.directory ?? undefined}
-          className="flex-1 rounded-sm border border-stone-400/40 bg-stone-500/10 px-3 py-2 shadow-[inset_0_2px_4px_rgba(0,0,0,0.08)]"
+          className="min-w-0 flex-1 rounded-sm border border-stone-400/40 bg-stone-500/10 px-3 py-2 shadow-[inset_0_2px_4px_rgba(0,0,0,0.08)]"
         >
           {config.directory ? (
             <span className="block truncate font-mono text-xs text-stone-700">
@@ -113,6 +129,7 @@ export const ErrorLogPage: React.FC<ErrorLogPageProps> = ({
             </span>
           )}
         </div>
+        {browseError && <p role="alert" className="mt-2 text-xs text-red-400">{browseError}</p>}
       </div>
 
       {/* Section 3 — Accès rapide */}

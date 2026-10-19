@@ -64,20 +64,20 @@ jobs:
           tagName: ${{ github.ref_name }}
           releaseName: 'Aldus ${{ github.ref_name }}'
           releaseBody: |
-            ## Aldus 1.4.5 — modale de mise à jour & aura bronze
+            ## Aldus 1.4.6 — sources récursives & journal pédagogique
 
-            - Modale de mise à jour fermable par bouton, Échap et clic hors panneau; téléchargement via le navigateur système.
-            - Plaque de bronze : aura dorée pulsante lorsque la vérification quotidienne détecte une release plus récente.
-            - Banc X : validation et écriture atomique des corrections du chapitre; confirmation avant abandon des changements non enregistrés.
-            - Banc V — Studio Audio unitaire, métriques dynamiques et suppression de piste MP3; assistant CPML immédiat et progression XTTS au pupitre supérieur.
-            - Windows : MSI WiX autonome avec sidecar PyInstaller, `gruut/VERSION` contrôlé et FFmpeg embarqué.
+            - XTTS : données Unicode jamo collectées et vérifiées dans le sidecar PyInstaller, avec gruut, inflect et typeguard.
+            - Organisation : lignes sans débordement horizontal, boutons-icônes compacts et pièces liminaires sans tirets résiduels.
+            - Sources : scan récursif des textes et images, chemins relatifs triés naturellement ; métadonnées Obsidian/Git et liens symboliques exclus.
+            - Journal pédagogique : miroir en arrière-plan vers le dossier choisi, diagnostics vulgarisés et ouverture dans l'éditeur par défaut.
+            - Windows : MSI WiX autonome avec Python/XTTS et FFmpeg embarqués. Les modèles sont téléchargés après consentement CPML au premier usage, puis conservés dans LocalAppData pour les usages hors ligne.
 
             ### Captures
-            - [Registre & sélecteur de chapitre](https://github.com/danoe78210/aldus/blob/v1.4.5/docs/assets/screenshots/studio-audio-chapter-selector.png)
-            - [Pupitre Audio & badge AUDIO](https://github.com/danoe78210/aldus/blob/v1.4.5/docs/assets/screenshots/studio-audio-player.png)
-            - [Progression supérieure](https://github.com/danoe78210/aldus/blob/v1.4.5/docs/assets/screenshots/studio-audio-progress.png)
+            - [Registre & sélecteur de chapitre](https://github.com/danoe78210/aldus/blob/v1.4.6/docs/assets/screenshots/studio-audio-chapter-selector.png)
+            - [Pupitre Audio & badge AUDIO](https://github.com/danoe78210/aldus/blob/v1.4.6/docs/assets/screenshots/studio-audio-player.png)
+            - [Progression supérieure](https://github.com/danoe78210/aldus/blob/v1.4.6/docs/assets/screenshots/studio-audio-progress.png)
 
-            Voir [CHANGELOG.md](https://github.com/danoe78210/aldus/blob/v1.4.5/CHANGELOG.md) et le [Manuel du Scribe Audio](https://github.com/danoe78210/aldus/blob/v1.4.5/docs/manuel-scribe-audio.md).
+            Voir [CHANGELOG.md](https://github.com/danoe78210/aldus/blob/v1.4.6/CHANGELOG.md) et le [Manuel du Scribe Audio](https://github.com/danoe78210/aldus/blob/v1.4.6/docs/manuel-scribe-audio.md).
           releaseDraft: false
           prerelease: false
           args: ${{ matrix.args }}

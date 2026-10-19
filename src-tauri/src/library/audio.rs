@@ -157,6 +157,8 @@ pub fn get_audio_consent(app: &tauri::AppHandle) -> Result<AudioConfig, String> 
 }
 
 fn write_audio_config(app: &tauri::AppHandle, audio: &AudioConfig) -> Result<(), String> {
+    let _guard = crate::updater::CONFIG_LOCK.lock()
+        .map_err(|error| format!("Verrou de configuration : {error}"))?;
     let path = audio_config_path(app)?;
     let mut root: serde_json::Value = if path.is_file() {
         let raw = std::fs::read_to_string(&path)

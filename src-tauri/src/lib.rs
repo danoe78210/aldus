@@ -6,11 +6,13 @@ pub mod cover;
 mod epub;
 mod export;
 mod library;
+mod logger;
 pub mod kdp;
 mod markdown;
 pub mod pdf;
 mod project;
 mod updater;
+mod workspace;
 
 use serde_json::Value;
 use tauri::Emitter;
@@ -272,39 +274,6 @@ fn free_destination(dir: &std::path::Path, name: &str) -> std::path::PathBuf {
     }
 }
 
-/// Liste les **fichiers** (et non les sous-dossiers) d'un dossier donné, et
-/// renvoie leurs **noms** triés (ordre alphabétique insensible à la casse).
-///
-/// En **Tauri v2**, le plugin `fs` n'est pas exposé sur `window.__TAURI__`
-/// (`withGlobalTauri` n'injecte que l'API cœur) : le frontend ne peut donc pas
-/// énumérer un dossier via `fs.readDir`. Cette commande comble ce manque
-/// (complément direct de `pick_directory`), afin de peupler la liste des
-/// chapitres/images de l'onglet « Organisation ».
-#[tauri::command]
-async fn list_directory_files(path: String) -> Result<Vec<String>, String> {
-    println!("──────── list_directory_files ────────");
-    println!("dossier : {path}");
-
-    let dir = std::path::Path::new(&path);
-    if !dir.is_dir() {
-        return Err(format!("Dossier introuvable : {path}"));
-    }
-
-    let entries = std::fs::read_dir(dir)
-        .map_err(|e| format!("Lecture du dossier impossible « {path} » : {e}"))?;
-
-    let mut names: Vec<String> = Vec::new();
-    for entry in entries.flatten() {
-        // Seuls les fichiers sont conservés (les sous-dossiers sont ignorés).
-        if entry.file_type().map(|t| t.is_file()).unwrap_or(false) {
-            names.push(entry.file_name().to_string_lossy().into_owned());
-        }
-    }
-    names.sort_by_key(|name| name.to_lowercase());
-    println!("{} fichier(s) détecté(s)", names.len());
-    Ok(names)
-}
-
 /// Supprime **récursivement** le contenu d'un dossier (sans supprimer le dossier
 /// lui-même). Les erreurs d'entrée sont journalisées et ignorées : la purge du
 /// cache ne doit jamais empêcher la fermeture de l'application.
@@ -413,7 +382,10 @@ pub fn run() {
                 .level(log::LevelFilter::Info)
                 .level_for("aldus_lib::updater", log::LevelFilter::Debug)
                 .targets([
-                    Target::new(TargetKind::Stdout),
+                    Target::new(TargetKind::Stdout).format(|out, message, record| {
+                        logger::mirror_record(record);
+                        out.finish(format_args!("[{}][{}] {}", record.target(), record.level(), message));
+                    }),
                     Target::new(TargetKind::LogDir {
                         file_name: Some("Aldus".into()),
                     }),
@@ -423,6 +395,9 @@ pub fn run() {
         .plugin(tauri_plugin_dialog::init())
         .setup(|app| {
             let app = app.handle().clone();
+            if let Err(error) = logger::start(&app) {
+                log::error!("Initialisation du journal miroir impossible : {error}");
+            }
             tauri::async_runtime::spawn(async move {
                 if let Err(error) = updater::check_update_status(&app, false).await {
                     log::debug!("Startup update check skipped: {error}");
@@ -460,6 +435,10 @@ pub fn run() {
             commands::finalize_exit,
             commands::open_proofs_directory,
             commands::open_author_website,
+            logger::get_log_config,
+            logger::set_log_config,
+            logger::open_log_file,
+            logger::log_frontend,
             cover::calculate_cover_geometry,
             cover::inspect_cover_images,
             cover::extract_spine_color,
@@ -467,7 +446,7 @@ pub fn run() {
             cover::pick_cover_image,
             cover::pick_cover_output_path,
             pick_directory,
-            list_directory_files,
+            workspace::scan_workspace_files,
             import_file_into_folder,
             read_project_data,
             write_project_data,
@@ -507,6 +486,7 @@ pub fn run() {
     app.run(|app_handle, event| {
         if let tauri::RunEvent::Exit = event {
             app_handle.state::<library::AudioEngine>().shutdown();
+            logger::flush();
             if let Some(volatile) = volatile_cache_dir(app_handle) {
                 if volatile.is_dir() {
                     println!(

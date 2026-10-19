@@ -443,33 +443,21 @@ fn normalize_markdown_filename(filename: &str) -> Result<String, String> {
     }
 }
 
+/// Chapitres de « Mes sources », sous-dossiers inclus (chemins relatifs).
 #[tauri::command]
-pub fn list_source_files(app: tauri::AppHandle) -> Result<Vec<String>, String> {
+pub async fn list_source_files(app: tauri::AppHandle) -> Result<Vec<String>, String> {
     let root = configured_sources_directory(&app)?;
-    let mut files = std::fs::read_dir(&root)
-        .map_err(|error| format!("Lecture du dossier source impossible : {error}"))?
-        .filter_map(Result::ok)
-        .filter_map(|entry| {
-            let path = entry.path();
-            let is_markdown = path.is_file()
-                && path
-                    .extension()
-                    .and_then(|extension| extension.to_str())
-                    .is_some_and(|extension| extension.eq_ignore_ascii_case("md"));
-            if is_markdown {
-                path.file_name()?.to_str().map(str::to_string)
-            } else {
-                None
-            }
-        })
-        .collect::<Vec<_>>();
-    files.sort_by_key(|name| name.to_lowercase());
-    Ok(files)
+    let files = crate::workspace::scan_workspace_async(root).await?;
+    Ok(files
+        .into_iter()
+        .filter(|file| file.file_type == "chapter")
+        .map(|file| file.relative_path)
+        .collect())
 }
 
 #[tauri::command]
-pub fn list_chapter_files(app: tauri::AppHandle) -> Result<Vec<String>, String> {
-    list_source_files(app)
+pub async fn list_chapter_files(app: tauri::AppHandle) -> Result<Vec<String>, String> {
+    list_source_files(app).await
 }
 
 #[tauri::command]

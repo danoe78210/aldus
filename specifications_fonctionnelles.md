@@ -149,6 +149,21 @@ fichier de projet (journalisation de l'opération).
 > page) est la page **impaire**. La pagination per-chapitre exacte sera
 > disponible lorsque le moteur Rust exposera les comptes de mots au frontend.
 
+Les contrôles des lignes restent dans leur carte, avec retour à la ligne si
+nécessaire, sélecteur de source fluide et boutons-icônes de parcours/import
+munis d'infobulles. Le titre respecte la largeur intérieure. Les dédicaces et
+épigraphes sans titrage n'affichent que le rang, sans tirets vides ; la poignée
+de glisser-déposer reste disponible.
+
+Le dossier « Mes sources » est exploré récursivement : textes `.md`, `.txt`,
+`.docx` et images `.png`, `.jpg`, `.jpeg`, `.webp`, `.tiff` sont découverts dans
+les sous-dossiers. Les fichiers/dossiers commençant par un point (dont `.git`,
+`.obsidian`, `.trash`, `.aldus`), `node_modules`, `target` et `dist` sont ignorés ;
+les liens symboliques ne sont pas suivis. Les listes présentent les chemins
+relatifs et un tri alphabétique naturel pour distinguer les homonymes.
+La Couverture propose les images compatibles du projet pour le plat 1 et le
+logo du plat 4 ; le sélecteur système reste disponible.
+
 ### 4.4 Feuillets III à X — Écritoire, Couverture & Correcteur
 
 | Onglet | Feuillet (gauche) | Feuillet (droite) |
@@ -190,7 +205,7 @@ DOCX fournissent leurs titres et chapitres; un PDF textuel constitue un seul
 segment. Les éléments structurels (couverture, titre, sommaire, mentions
 légales) et les parasites évidents sont écartés.
 
-Dans le MSI Windows 1.4.5, Aldus démarre automatiquement les sidecars XTTS v2 et
+Dans le MSI Windows 1.4.6, Aldus démarre automatiquement les sidecars XTTS v2 et
 FFmpeg; aucun Python, FFmpeg ni réglage du `PATH` système n'est requis. Au
 premier démarrage, l'assistant présente la CPML et exige une acceptation
 explicite avant de télécharger les poids du modèle. Dès le clic d'acceptation,
@@ -202,6 +217,10 @@ dans `%LOCALAPPDATA%\\net.danoe.aldus\\`. En mode
 développement ou avec un moteur tiers, l'assistant conserve la vérification d'un
 wrapper compatible déjà lancé sur localhost et les instructions de préparation
 du wrapper de référence.
+
+Les modèles ne sont pas inclus dans le MSI : une connexion est nécessaire au
+premier téléchargement après consentement CPML. Les utilisations suivantes
+fonctionnent hors ligne tant que les modèles sont conservés dans LocalAppData.
 
 Les chapitres sont découpés en segments de 240 caractères maximum et synthétisés
 séquentiellement. Les fragments temporaires restent sous
@@ -227,6 +246,23 @@ préférences de mouvement réduit conservent un halo fixe. La plaque dynamique
 reste ancrée au bas de la page gauche, sous le macaron Aldus.
 
 ---
+### 4.6 Réglages — Journal des erreurs pédagogique
+
+Le dossier choisi avec « Parcourir » reçoit `journal_erreurs_aldus.txt`.
+Les avertissements et erreurs sont dupliqués en arrière-plan, avec date,
+module source, trace brute et explication/action lorsqu'un motif est reconnu :
+ressource Python manquante, timeout audio, accès disque refusé ou quota GitHub.
+Le mode Diagnostic inclut aussi les opérations INFO. La trace technique
+complète reste dans `%LOCALAPPDATA%\net.danoe.aldus\logs\Aldus.log`.
+
+Le dossier et le niveau sont des préférences globales persistées atomiquement.
+« Ouvrir le fichier de bord » ouvre le texte dans l'éditeur par défaut ; en
+l'absence d'alertes, un en-tête de bienvenue est créé. Sans dossier personnalisé,
+le carnet est placé à côté d'Aldus.log. Un dossier externe indisponible ne fait
+pas planter Aldus : l'incident est signalé dans le journal technique et les
+entrées suivantes retentent l'écriture. Le journal personnalisé et les exports
+restent dans les emplacements choisis par l'utilisateur, jamais dans Program Files.
+
 ## 5. Évolutions livrées — v1.2.0
 
 ### 5.1 Navigation & Sas d'accueil
