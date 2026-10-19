@@ -6,6 +6,7 @@
   "version": "1.4.8",
   "type": "module",
   "scripts": {
+    "build:showcase": "node scripts/build_showcase_css.mjs",
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "eslint .",

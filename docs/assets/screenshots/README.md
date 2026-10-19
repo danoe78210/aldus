@@ -20,3 +20,35 @@ Déposez ici les images suivantes (PNG recommandé, ratio ~16/10, largeur ≥ 96
 
 > Tant qu'un fichier est absent, le cadre du banc affiche automatiquement un libellé
 > de remplacement (le nom du fichier attendu) : aucune image cassée n'est visible.
+
+## Galerie v1.4.8 — Atelier en Images
+
+La section `#nouveautes` réutilise les deux captures audio existantes et ajoute
+quatre captures prises dans le MSI v1.4.8 installé, avec un manuscrit de
+démonstration (aucun texte source personnel) :
+
+| Fichier | Contenu |
+|---|---|
+| `studio-audio-player.png` | Pupitre d'écoute intégré |
+| `studio-audio-chapter-selector.png` | Choix de voix et de chapitre |
+| `imposition-typst-spine.png` | 34 pages Typst mesurées, dos crème de 2,16 mm |
+| `banc-epreuve-history.png` | Historique horodaté d'un chapitre de démonstration |
+| `organisation-workspace.png` | Chemins relatifs dans le sous-dossier `Chapitres` |
+| `page-garde-bronze-plate.png` | Diptyque d'accueil et plaque v1.4.8 |
+
+Les images s'agrandissent dans une boîte de dialogue native, refermable avec
+Échap ou le bouton Fermer. Sans JavaScript, les liens ouvrent directement les PNG.
+
+## Styles autonomes de la vitrine
+
+La page charge uniquement une feuille CSS locale et des polices système.
+Après une modification des classes HTML ou de
+[`styles.input.css`](../../styles.input.css), exécuter à la racine :
+
+```sh
+npm run build:showcase
+```
+
+Versionner le résultat [`styles.css`](../../styles.css) avec les sources.
+La génération réutilise Tailwind/PostCSS déjà présents dans le projet ;
+aucune dépendance ni compilation n'est requise pour consulter ou héberger la page.

@@ -7,43 +7,12 @@
   <meta name="description" content="Environnement d'artisanat littéraire et d'ingénierie éditoriale aux normes Amazon KDP. Inspiré par les maîtres imprimeurs de la Renaissance vénitienne.">
   <link rel="icon" type="image/x-icon" href="favicon.ico">
 
-  <!-- Polices Humanistes Google Fonts -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
-
-  <!-- Tailwind CSS CDN -->
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script>
-    tailwind.config = {
-      theme: {
-        extend: {
-          fontFamily: {
-            serif: ['"Cormorant Garamond"', 'Georgia', 'serif'],
-            cinzel: ['"Cinzel"', 'serif'],
-          },
-          colors: {
-            atelier: {
-              ebony: '#0e0c0a',
-              card: '#161310',
-              border: '#382f22',
-              brass: '#8f6e2b',
-              gold: '#d4af37',
-              goldhover: '#f3e5ab',
-              ivory: '#f5efe4',
-              bistre: '#a89f91',
-              muted: '#786c59',
-            }
-          }
-        }
-      }
-    }
-  </script>
+  <link rel="stylesheet" href="styles.css">
   <style>
     body {
-      background-color: #0e0c0a;
+      background-color: #13110f;
       color: #f5efe4;
-      background-image: radial-gradient(circle at 50% 20%, #1e1913 0%, #0e0c0a 75%);
+      background-image: radial-gradient(circle at 50% 20%, #1e1913 0%, #13110f 75%);
     }
     .brass-border {
       border: 1px solid #382f22;
@@ -147,10 +116,11 @@
     /* Pupitre d'exposition à onglets — proportions équilibrées 40% texte / 60% visuel */
     .banc-showcase {
       display: grid;
-      grid-template-columns: 1fr;
+      grid-template-columns: minmax(0, 1fr);
       gap: 1.5rem;
       align-items: start;
     }
+    .banc-showcase > * { min-width: 0; }
     @media (min-width: 1024px) {
       .banc-showcase {
         grid-template-columns: 40fr 60fr;
@@ -465,6 +435,64 @@
       opacity: 1;
       transform: translateY(-50%) translateX(0);
     }
+    .showcase-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr));
+      gap: 1.5rem;
+    }
+    .showcase-shot {
+      margin: 0;
+      overflow: hidden;
+      border: 1px solid rgba(212, 175, 55, 0.3);
+      border-radius: 4px;
+      background: #161310;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
+      transition: transform 0.3s ease, border-color 0.3s ease;
+    }
+    .showcase-shot:hover, .showcase-shot:focus-within {
+      border-color: #d4af37;
+      transform: translateY(-3px);
+    }
+    .showcase-shot a { display: block; }
+    .showcase-shot img {
+      width: 100%;
+      aspect-ratio: 16 / 10;
+      object-fit: contain;
+      background: #13110f;
+      transition: transform 0.3s ease;
+    }
+    .showcase-shot a:hover img { transform: scale(1.025); }
+    .showcase-shot figcaption {
+      padding: 1rem;
+      color: #f3e5ab;
+      font-style: italic;
+    }
+    :focus-visible { outline: 2px solid #d4af37; outline-offset: 4px; }
+    #lightbox {
+      width: min(96vw, 1400px);
+      max-width: 96vw;
+      max-height: 96dvh;
+      margin: auto;
+      padding: 1rem;
+      border: 1px solid #8f6e2b;
+      border-radius: 4px;
+      color: #f5efe4;
+      background: #13110f;
+    }
+    #lightbox::backdrop { background: rgba(0, 0, 0, 0.92); }
+    #lightbox img { display: block; max-width: 100%; max-height: 78dvh; margin: auto; object-fit: contain; }
+    #lightbox-caption { margin-top: 0.75rem; text-align: center; color: #f3e5ab; font-style: italic; }
+    #lightbox-close {
+      display: block;
+      margin: 0 0 0.75rem auto;
+      padding: 0.5rem 1rem;
+      border: 1px solid #8f6e2b;
+      cursor: pointer;
+    }
+    html:has(#lightbox[open]) { overflow: hidden; }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { scroll-behavior: auto !important; transition: none !important; }
+    }
   </style>
 </head>
 <body class="font-serif antialiased selection:bg-[#8f6e2b]/30 selection:text-[#f3e5ab]">
@@ -522,8 +550,8 @@
 
     <!-- CTA Principal -->
     <div class="flex flex-col sm:flex-row items-center justify-center gap-4 mt-8">
-      <a href="#telechargement" class="w-full sm:w-auto px-8 py-3.5 bg-gradient-to-r from-[#221b14] via-[#2d241a] to-[#221b14] border border-atelier-brass text-atelier-ivory font-cinzel text-xs uppercase tracking-[0.2em] rounded-xs hover:border-atelier-gold hover:text-atelier-gold transition-all shadow-lg">
-        Obtenir Aldus v1.4.8 ›
+      <a href="https://github.com/danoe78210/aldus/releases/download/v1.4.8/Aldus_1.4.8_x64_en-US.msi" class="w-full sm:w-auto px-8 py-3.5 bg-gradient-to-r from-[#221b14] via-[#2d241a] to-[#221b14] border border-atelier-brass text-atelier-ivory font-cinzel text-xs uppercase tracking-[0.2em] rounded-xs hover:border-atelier-gold hover:text-atelier-gold transition-all shadow-lg">
+        Télécharger Aldus v1.4.8 (Windows x64)
       </a>
       <a href="https://github.com/danoe78210/aldus" target="_blank" rel="noopener noreferrer" class="w-full sm:w-auto px-8 py-3.5 border border-atelier-border text-atelier-bistre font-cinzel text-xs uppercase tracking-[0.2em] rounded-xs hover:border-atelier-brass hover:text-atelier-ivory transition-all">
         Code Source GitHub ↗
@@ -602,12 +630,11 @@
 </section>
 
 <!-- Modal Lightbox (Zoom Plein Écran) -->
-<div id="lightbox" class="fixed inset-0 z-50 bg-black/95 backdrop-blur-md hidden items-center justify-center p-4 cursor-zoom-out" onclick="closeLightbox()">
-  <div class="relative max-w-7xl max-h-[90vh] flex flex-col items-center">
-    <img id="lightbox-img" src="" alt="Agrandissement" class="max-w-full max-h-[85vh] object-contain rounded-xs border border-atelier-brass shadow-2xl" />
-    <p class="font-cinzel text-xs uppercase tracking-widest text-atelier-muted mt-3">Cliquez n'importe où pour refermer l'épreuve</p>
-  </div>
-</div>
+<dialog id="lightbox" aria-labelledby="lightbox-caption">
+  <button type="button" id="lightbox-close" onclick="closeLightbox()" autofocus>Fermer ×</button>
+  <img id="lightbox-img" alt="">
+  <p id="lightbox-caption"></p>
+</dialog>
 
 <!-- Sommaire Flottant des 7 Bancs (Navigation Rapide) -->
 <nav id="bancs-floating-nav" class="bancs-floating-nav" aria-label="Sommaire des bancs de l'atelier">
@@ -802,9 +829,9 @@
               </div>
 
               <div class="banc-viewer" id="banc-3-viewer">
-                <span class="banc-viewer-placeholder" data-banc-placeholder>Épreuve à venir — banc-3-architecture.png</span>
-                <img class="banc-viewer-img is-active" data-banc-img="architecture" src="assets/screenshots/banc-3-architecture.png" alt="Architecture narrative — actes, chapitres, pièces liminaires et illustrations" loading="lazy" onload="bancShotLoaded(this)" onerror="this.dataset.broken='1'; bancShotLoaded(this)">
-                <img class="banc-viewer-img" data-banc-img="calibrage" src="assets/screenshots/banc-3-calibrage.png" alt="Calibrage KDP — seuils de pagination et contraintes d'impression à la demande" loading="lazy" onload="bancShotLoaded(this)" onerror="this.dataset.broken='1'; bancShotLoaded(this)">
+                <span class="banc-viewer-placeholder" data-banc-placeholder>Organisation du workspace</span>
+                <img class="banc-viewer-img is-active" data-banc-img="architecture" src="assets/screenshots/organisation-workspace.png" alt="Architecture narrative — actes et chapitres classés en sous-dossiers" loading="lazy" onload="bancShotLoaded(this)" onerror="this.dataset.broken='1'; bancShotLoaded(this)">
+                <img class="banc-viewer-img" data-banc-img="calibrage" src="assets/screenshots/imposition-typst-spine.png" alt="Imposition — pagination Typst mesurée et calcul du dos" loading="lazy" onload="bancShotLoaded(this)" onerror="this.dataset.broken='1'; bancShotLoaded(this)">
               </div>
 
               <p class="banc-viewer-caption" id="banc-3-caption" data-banc-caption>Architecture &amp; pièces liminaires — actes, chapitres, dédicaces, épigraphes et illustrations</p>
@@ -952,82 +979,75 @@
     </section>
 
     <!-- Nouveautés v1.4.8 -->
-    <section id="nouveautes-v1-4" class="pt-32 text-left">
-      <div class="text-center mb-16">
-        <span class="text-atelier-gold text-xl">❦</span>
-        <h2 class="font-cinzel text-2xl sm:text-3xl tracking-[0.2em] uppercase text-atelier-ivory mt-2">Version 1.4.8 — Pagination &amp; sécurité du texte</h2>
-        <p class="text-atelier-muted text-sm mt-1 uppercase tracking-widest">Pages Typst mesurées, historique des chapitres et formats clarifiés</p>
-      </div>
-
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-6xl mx-auto">
-        <figure class="p-4 rounded-xs bg-atelier-card brass-border">
-          <img src="assets/screenshots/studio-audio-chapter-selector.png" alt="Registre du Livre : choix d'une voix française et sélection ciblée d'un chapitre" class="w-full aspect-video object-contain rounded-xs border border-atelier-border bg-[#0a0907]" loading="lazy">
-          <figcaption class="mt-3 font-cinzel text-sm text-atelier-gold">Choisir la voix et le chapitre</figcaption>
-          <p class="mt-1 text-sm text-atelier-bistre">Forgez le chapitre sélectionné, avec estimation des pages et de la durée.</p>
-        </figure>
-        <figure class="p-4 rounded-xs bg-atelier-card brass-border">
-          <img src="assets/screenshots/studio-audio-player.png" alt="Pupitre de lecture audio avec badge AUDIO et piste par chapitre" class="w-full aspect-video object-contain rounded-xs border border-atelier-border bg-[#0a0907]" loading="lazy">
-          <figcaption class="mt-3 font-cinzel text-sm text-atelier-gold">Écouter l'édition audio</figcaption>
-          <p class="mt-1 text-sm text-atelier-bistre">Le badge AUDIO signale l'édition; chaque piste se lit dans le Registre du Livre.</p>
-        </figure>
-        <figure class="p-4 rounded-xs bg-atelier-card brass-border">
-          <img src="assets/screenshots/studio-audio-progress.png" alt="Pupitre supérieur montrant la progression de la forge audio par segment" class="w-full aspect-video object-contain rounded-xs border border-atelier-border bg-[#0a0907]" loading="lazy">
-          <figcaption class="mt-3 font-cinzel text-sm text-atelier-gold">Suivre la forge</figcaption>
-          <p class="mt-1 text-sm text-atelier-bistre">Le pupitre supérieur centralise la progression et identifie le chapitre et le segment courant.</p>
-        </figure>
-      </div>
-
-      <p class="text-sm text-atelier-bistre mt-8 text-center">La pagination réelle du PDF Typst alimente le dos de couverture ; avant composition, elle est estimée au volume de mots. Quinze versions de chaque chapitre Markdown sont conservées avant modification et restaurables depuis le Banc X. Les libellés PDF Imprimeur (Haute Définition) et EPUB (Standard) indiquent leurs limites, sans certification normative. Le MSI conserve XTTS et FFmpeg ; les modèles sont téléchargés après consentement CPML, puis disponibles hors ligne. Le budget de génération audio est de 900 secondes par chapitre.</p>
-      <p class="text-sm text-center mt-3"><a href="manuel-scribe-audio.md" class="text-atelier-gold underline hover:text-atelier-goldhover">Lire le Manuel du Scribe Audio</a></p>
-      <p class="text-xs text-atelier-muted mt-5 text-center"><a href="https://github.com/danoe78210/aldus/blob/v1.4.8/CHANGELOG.md" class="text-atelier-gold underline hover:text-atelier-goldhover">Registre des évolutions 1.4.8</a></p>
-    </section>
-
-    <!-- Archive des nouveautés v1.3.0 -->
     <section id="nouveautes" class="pt-32 text-left">
+      <span id="nouveautes-v1-4"></span>
       <div class="text-center mb-16">
         <span class="text-atelier-gold text-xl">❦</span>
-        <h2 class="font-cinzel text-2xl sm:text-3xl tracking-[0.2em] uppercase text-atelier-ivory mt-2">Nouveautés de la version 1.3.0 — Banc III : L'Écritoire</h2>
-        <p class="text-atelier-muted text-sm mt-1 uppercase tracking-widest">Un studio Markdown natif au cœur du registre</p>
+        <h2 class="font-cinzel text-2xl sm:text-3xl tracking-[0.2em] uppercase text-atelier-ivory mt-2">Les grandes évolutions de l'atelier — de la v1.3 à la v1.4.8</h2>
+        <p class="text-atelier-bistre text-sm mt-3 uppercase tracking-widest">De la plume au livre audio : un écosystème complet d'édition autonome</p>
       </div>
 
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
-        <div class="p-8 rounded-xs bg-atelier-card brass-border flex flex-col gap-3">
-          <span class="text-xs font-cinzel uppercase tracking-widest text-atelier-gold">Création &amp; sélection</span>
-          <h3 class="font-cinzel text-lg text-atelier-ivory">Les chapitres à portée de plume</h3>
+      <div class="showcase-grid">
+        <article class="p-8 rounded-xs bg-atelier-card brass-border flex flex-col gap-3">
+          <h3 class="font-cinzel text-lg text-atelier-gold">Banc V — Le Studio Audio Intégré (XTTS v2)</h3>
+          <p class="italic text-atelier-ivory">La voix du texte sans quitter l'atelier</p>
           <p class="text-atelier-bistre text-base">
-            Sélectionnez un chapitre existant ou créez un nouveau fichier `.md` directement dans le dossier source du projet. L'Écritoire sauvegarde les modifications dans le manuscrit.
+            Synthèse vocale neuronale locale hors ligne avec un catalogue de 58 voix. Contrôle unitaire par chapitre, génération par segments et pupitre d'écoute intégré. Après téléchargement initial des modèles et acceptation de la licence CPML, les sessions suivantes fonctionnent sans connexion.
           </p>
-        </div>
-
-        <div class="p-8 rounded-xs bg-atelier-card brass-border flex flex-col gap-3">
-          <span class="text-xs font-cinzel uppercase tracking-widest text-atelier-gold">Feuillets III &amp; IV</span>
-          <h3 class="font-cinzel text-lg text-atelier-ivory">Le diptyque de rédaction</h3>
+        </article>
+        <article class="p-8 rounded-xs bg-atelier-card brass-border flex flex-col gap-3">
+          <h3 class="font-cinzel text-lg text-atelier-gold">Imposition Typst &amp; Dos de Couverture Réel</h3>
+          <p class="italic text-atelier-ivory">Calibrage millimétrique pour KDP &amp; IngramSpark</p>
           <p class="text-atelier-bistre text-base">
-            Le feuillet gauche accueille un éditeur Markdown aux tons ébène et or de la charte <em>Dark Atelier</em> ; le feuillet droit compose le texte en temps réel selon les réglages du manuscrit.
+            La pagination physique mesurée par le moteur Typst remplace l'estimation forfaitaire et alimente le calcul du dos de couverture. Avant la première composition, une estimation au volume de mots est clairement signalée. Premier et second plat se positionnent sur cette géométrie, sans promesse de certification imprimeur.
           </p>
-        </div>
-
-        <div class="p-8 rounded-xs bg-atelier-card brass-border flex flex-col gap-3">
-          <span class="text-xs font-cinzel uppercase tracking-widest text-atelier-gold">Réglet typographique</span>
-          <h3 class="font-cinzel text-lg text-atelier-ivory">Les signes au bout du doigt</h3>
+        </article>
+        <article class="p-8 rounded-xs bg-atelier-card brass-border flex flex-col gap-3">
+          <h3 class="font-cinzel text-lg text-atelier-gold">Sécurité du Manuscrit &amp; Historique des Versions</h3>
+          <p class="italic text-atelier-ivory">Instantanés automatiques (<code>.aldus/history</code>)</p>
           <p class="text-atelier-bistre text-base">
-            Insérez en un clic les guillemets français « », les espaces insécables, les tirets cadratins —, les apostrophes courbes ’ et les ligatures œ/Œ à l'emplacement du curseur.
+            Sauvegarde préventive horodatée avant chaque modification Markdown validée dans l'Écritoire, le Banc d'Épreuve ou par l'Usage Aldin. Les quinze dernières versions sont conservées par chapitre. Choisissez un instantané, puis confirmez sa restauration ; le texte remplacé est lui aussi sauvegardé.
           </p>
-        </div>
-
-        <div class="p-8 rounded-xs bg-atelier-card brass-border flex flex-col gap-3">
-          <span class="text-xs font-cinzel uppercase tracking-widest text-atelier-gold">Aide intégrée</span>
-          <h3 class="font-cinzel text-lg text-atelier-ivory">Le Manuel du Scribe</h3>
+        </article>
+        <article class="p-8 rounded-xs bg-atelier-card brass-border flex flex-col gap-3">
+          <h3 class="font-cinzel text-lg text-atelier-gold">Indexation Récursive &amp; Coffres Obsidian</h3>
+          <p class="italic text-atelier-ivory">Prise en charge native des arborescences complexes</p>
           <p class="text-atelier-bistre text-base">
-            Une page d'aide claire donne les repères Markdown de la narration romanesque : titres, dialogues, exergues, notes de bas de page et séparateurs de scène.
+            Découverte automatique des fichiers Markdown et banques d'images dans l'ensemble des sous-dossiers du workspace. Les chemins relatifs distinguent les fichiers homonymes. Les métadonnées système (<code>.obsidian</code>, <code>.git</code>), les dossiers cachés et les liens symboliques sont exclus du parcours.
           </p>
-        </div>
+        </article>
       </div>
 
-      <p class="text-xs text-atelier-muted mt-8 text-center">
-        Détail complet des évolutions dans le
-        <a href="https://github.com/danoe78210/aldus/blob/main/CHANGELOG.md" target="_blank" rel="noopener noreferrer" class="text-atelier-gold underline hover:text-atelier-goldhover">Registre des Évolutions</a>.
-      </p>
+      <h3 class="font-cinzel text-2xl text-atelier-ivory text-center mt-16 mb-4" id="galerie">Atelier en Images</h3>
+      <p class="text-center text-atelier-bistre mb-8">Sélectionnez une capture pour l'examiner en grand format. Fermez avec Échap ou le bouton Fermer.</p>
+      <div class="showcase-grid" aria-labelledby="galerie">
+        <figure class="showcase-shot">
+          <a href="assets/screenshots/studio-audio-player.png" data-gallery><img src="assets/screenshots/studio-audio-player.png" alt="Studio Audio : pupitre de lecture et piste audio par chapitre" loading="lazy" decoding="async"></a>
+          <figcaption>Studio Audio — le pupitre d'écoute intégré</figcaption>
+        </figure>
+        <figure class="showcase-shot">
+          <a href="assets/screenshots/studio-audio-chapter-selector.png" data-gallery><img src="assets/screenshots/studio-audio-chapter-selector.png" alt="Studio Audio : registre, choix de voix et sélecteur de chapitre à synthétiser" loading="lazy" decoding="async"></a>
+          <figcaption>Studio Audio — choisir une voix et un chapitre</figcaption>
+        </figure>
+        <figure class="showcase-shot">
+          <a href="assets/screenshots/imposition-typst-spine.png" data-gallery><img src="assets/screenshots/imposition-typst-spine.png" alt="Imposition v1.4.8 : pagination Typst et calcul de l'épaisseur du dos" loading="lazy" decoding="async"></a>
+          <figcaption>Imposition — pagination physique et dos de couverture</figcaption>
+        </figure>
+        <figure class="showcase-shot">
+          <a href="assets/screenshots/banc-epreuve-history.png" data-gallery><img src="assets/screenshots/banc-epreuve-history.png" alt="Banc d'Épreuve v1.4.8 : liste horodatée des versions d'un chapitre" loading="lazy" decoding="async"></a>
+          <figcaption>Banc d'Épreuve — retrouver une version du manuscrit</figcaption>
+        </figure>
+        <figure class="showcase-shot">
+          <a href="assets/screenshots/organisation-workspace.png" data-gallery><img src="assets/screenshots/organisation-workspace.png" alt="Organisation v1.4.8 : chapitres issus de sous-dossiers du workspace" loading="lazy" decoding="async"></a>
+          <figcaption>Organisation — une arborescence de sources lisible</figcaption>
+        </figure>
+        <figure class="showcase-shot">
+          <a href="assets/screenshots/page-garde-bronze-plate.png" data-gallery><img src="assets/screenshots/page-garde-bronze-plate.png" alt="Accueil d'Aldus et plaque de bronze affichant la version 1.4.8" loading="lazy" decoding="async"></a>
+          <figcaption>L'atelier — ébène, diptyque et bronze patiné</figcaption>
+        </figure>
+      </div>
+      <p class="text-sm text-center mt-8"><a href="manuel-scribe-audio.md" class="text-atelier-gold underline hover:text-atelier-goldhover">Lire le Manuel du Scribe Audio</a></p>
+      <p class="text-sm text-atelier-bistre mt-4 text-center">Exports PDF Imprimeur (Haute Définition) et EPUB (Standard), sans certification PDF/X ni validation EPUBCheck intégrée. Budget de génération audio : 900 secondes par chapitre.</p>
     </section>
 
     <!-- Section Téléchargement -->
@@ -1118,10 +1138,10 @@
       <p class="text-xs text-atelier-muted mt-2 italic">
         Conçu pour honorer les lettres et les livres. Distribué sous licence MIT.
       </p>
-      <div class="flex justify-center gap-6 mt-6 text-xs uppercase tracking-widest text-atelier-bistre">
+      <div class="flex flex-wrap justify-center gap-6 mt-6 text-xs uppercase tracking-widest text-atelier-bistre">
         <a href="https://github.com/danoe78210/aldus" class="hover:text-atelier-gold">Dépôt GitHub</a>
         <span>·</span>
-        <a href="https://github.com/danoe78210/aldus/releases" class="hover:text-atelier-gold">Notes de version</a>
+        <a href="https://github.com/danoe78210/aldus/blob/main/CHANGELOG.md" class="hover:text-atelier-gold">Journal des modifications</a>
         <span>·</span>
         <a href="https://github.com/danoe78210/aldus/blob/main/LICENSE" class="hover:text-atelier-gold">Licence</a>
       </div>
@@ -1190,22 +1210,38 @@
   }
 
   // Fonctions Lightbox Plein Écran
-  function openLightbox() {
+  function openLightbox(source = document.getElementById("plate-image")) {
     const box = document.getElementById("lightbox");
     const img = document.getElementById("lightbox-img");
-    img.src = document.getElementById("plate-image").src;
-    box.classList.remove("hidden");
-    box.classList.add("flex");
+    img.src = source.src;
+    img.alt = source.alt;
+    document.getElementById("lightbox-caption").textContent = source.alt;
+    box.showModal();
   }
 
   function closeLightbox() {
-    const box = document.getElementById("lightbox");
-    box.classList.add("hidden");
-    box.classList.remove("flex");
+    document.getElementById("lightbox").close();
   }
+
+  document.querySelectorAll("[data-gallery]").forEach((link) => {
+    link.addEventListener("click", (event) => {
+      event.preventDefault();
+      openLightbox(link.querySelector("img"));
+    });
+  });
+  document.getElementById("lightbox").addEventListener("click", (event) => {
+    if (event.target === event.currentTarget) closeLightbox();
+  });
 
   // Navigation pratique au clavier (flèches droite/gauche & Échap)
   document.addEventListener("keydown", (e) => {
+    if (document.getElementById("lightbox").open) {
+      if (e.key === "Escape") {
+        e.preventDefault();
+        closeLightbox();
+      }
+      return;
+    }
     if (e.key === "ArrowRight") {
       selectPlate((currentIndex + 1) % plates.length);
     } else if (e.key === "ArrowLeft") {
@@ -1247,12 +1283,12 @@
       default: "architecture",
       views: {
         architecture: {
-          src: "assets/screenshots/banc-3-architecture.png",
-          caption: "Architecture & pièces liminaires — actes, chapitres, dédicaces, épigraphes et illustrations",
+          src: "assets/screenshots/organisation-workspace.png",
+          caption: "Organisation — actes et chapitres issus des sous-dossiers du workspace",
         },
         calibrage: {
-          src: "assets/screenshots/banc-3-calibrage.png",
-          caption: "Calibrage & critères KDP — seuils de pagination et contraintes d'impression à la demande",
+          src: "assets/screenshots/imposition-typst-spine.png",
+          caption: "Imposition — pagination Typst mesurée et calcul du dos de couverture",
         },
       },
     },
@@ -1425,12 +1461,8 @@
     if (!config) return;
     const activeId = bancViewState[bancId] || config.default;
     const view = config.views[activeId] || config.views[config.default];
-    const box = document.getElementById("lightbox");
-    const img = document.getElementById("lightbox-img");
-    if (!box || !img || !view) return;
-    img.src = view.src;
-    box.classList.remove("hidden");
-    box.classList.add("flex");
+    if (!view) return;
+    openLightbox({ src: view.src, alt: view.caption });
   }
 
   // --- Sommaire flottant des 7 Bancs (Navigation rapide & Scroll Spy) ---

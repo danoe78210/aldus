@@ -1,0 +1,16 @@
+@import "tailwindcss" source(none);
+@source "./index.html";
+
+@theme {
+  --font-serif: "Palatino Linotype", "Book Antiqua", Palatino, Georgia, serif;
+  --font-cinzel: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+  --color-atelier-ebony: #13110f;
+  --color-atelier-card: #161310;
+  --color-atelier-border: #382f22;
+  --color-atelier-brass: #8f6e2b;
+  --color-atelier-gold: #d4af37;
+  --color-atelier-goldhover: #f3e5ab;
+  --color-atelier-ivory: #f5efe4;
+  --color-atelier-bistre: #a89f91;
+  --color-atelier-muted: #786c59;
+}
