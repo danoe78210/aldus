@@ -23,6 +23,7 @@ pub struct StylometryReport {
     pub chapter_id: String,
     pub ai_risk_percent: u8,
     pub burstiness_score: f32,
+    pub lexical_richness: f32,
     pub issues_count: usize,
     pub issues: Vec<StylometryIssue>,
 }
@@ -137,6 +138,163 @@ fn matching_spans(
         .collect())
 }
 
+fn capitalize_first(text: &str) -> String {
+    let mut characters = text.chars();
+    characters
+        .next()
+        .map(|first| first.to_uppercase().chain(characters).collect())
+        .unwrap_or_default()
+}
+
+/// « Proposition de la Forge » pour les motifs structurels sans suggestion fixe.
+fn forge_rewrite(pattern_type: &PatternType, original: &str) -> Option<String> {
+    let rewrite = match pattern_type {
+        PatternType::IsometryChain => {
+            if let Some(index) = original.find(", ") {
+                format!(
+                    "{}. {}",
+                    &original[..index],
+                    capitalize_first(&original[index + 2..])
+                )
+            } else {
+                let index = original.find(['.', '!', '?', '…'])?;
+                let terminator = original[index..].chars().next()?.len_utf8();
+                let mut rest = original[index + terminator..].trim_start().chars();
+                // shortcut: lowercases the next sentence's first letter, even for proper nouns; the author reviews before applying.
+                let joined: String = rest.next()?.to_lowercase().chain(rest).collect();
+                format!("{} ; {joined}", original[..index].trim_end())
+            }
+        }
+        PatternType::TriadPattern => {
+            let index = original.rfind(" et ")?;
+            format!("{}, {}", &original[..index], &original[index + 4..])
+        }
+        PatternType::MarkdownList => original.replace("**", ""),
+        PatternType::ChapterConclusion => {
+            let formula = Regex::new(r"(?i)^(?:en conclusion|pour conclure|en définitive|en somme|il est important de retenir que)\s*,?\s*").ok()?;
+            capitalize_first(&formula.replace(original, ""))
+        }
+        PatternType::LexicalPredictability | PatternType::EntropyUniform => {
+            forge_lexical(original)?
+        }
+        _ => return None,
+    };
+    (rewrite != original && !rewrite.trim().is_empty()).then_some(rewrite)
+}
+
+/// Forge des motifs lexicaux : retrait des intensifs parasites, sinon inversion
+/// syntaxique du complément final, sinon brisure de cadence.
+fn forge_lexical(original: &str) -> Option<String> {
+    let pruned = Regex::new(r"(?i)\b(?:très|vraiment|réellement|totalement|complètement|simplement|extrêmement|absolument)\s+")
+        .ok()?
+        .replace_all(original, "")
+        .into_owned();
+    if pruned != original && pruned.split_whitespace().count() >= 2 {
+        return Some(if original.starts_with(char::is_uppercase) {
+            capitalize_first(&pruned)
+        } else {
+            pruned
+        });
+    }
+    syntactic_inversion(original).or_else(|| forge_rewrite(&PatternType::IsometryChain, original))
+}
+
+/// « Il marchait lentement dans la forêt. » → « Dans la forêt, il marchait lentement. »
+fn syntactic_inversion(original: &str) -> Option<String> {
+    let trimmed = original.trim_end();
+    let body = trimmed.trim_end_matches(['.', '!', '?', '…']);
+    let terminator = &trimmed[body.len()..];
+    let index = [
+        " dans ",
+        " sous ",
+        " sur ",
+        " vers ",
+        " devant ",
+        " derrière ",
+        " avec ",
+        " sans ",
+        " parmi ",
+        " contre ",
+        " entre ",
+    ]
+    .iter()
+    .filter_map(|preposition| body.rfind(preposition))
+    .max()?;
+    let head = body[..index].trim();
+    let complement = body[index + 1..].trim();
+    if head.split_whitespace().count() < 2
+        || !(2..=6).contains(&complement.split_whitespace().count())
+        || complement.contains([',', ';', ':'])
+        || !head.ends_with(char::is_alphanumeric)
+    {
+        return None;
+    }
+    let first = head.split_whitespace().next()?.to_lowercase();
+    let elided = first.contains(['\'', '’'])
+        && matches!(
+            first.split(['\'', '’']).next(),
+            Some("l" | "d" | "j" | "c" | "n" | "s" | "m" | "t" | "qu")
+        );
+    // shortcut: only function words and elisions lose their capital; a capitalised common noun opening the sentence keeps it.
+    let head = if common_word(&first) || elided {
+        let mut characters = head.chars();
+        characters
+            .next()?
+            .to_lowercase()
+            .chain(characters)
+            .collect()
+    } else {
+        head.to_string()
+    };
+    Some(format!(
+        "{}, {head}{terminator}",
+        capitalize_first(complement)
+    ))
+}
+
+fn word_tokens(text: &str) -> Vec<String> {
+    text.split_whitespace()
+        .map(|word| {
+            word.chars()
+                .filter(|character| character.is_alphanumeric() || *character == '\'')
+                .flat_map(char::to_lowercase)
+                .collect::<String>()
+        })
+        .filter(|word| !word.is_empty())
+        .collect()
+}
+
+/// Phrase qui incarne le mieux une mesure globale (poids maximal), en privilégiant
+/// celles que la Forge sait reformuler, pour que l'alerte reste surlignable et applicable.
+fn representative_sentence(
+    text: &str,
+    sentences: &[Span],
+    weight: impl Fn(&[String]) -> f32,
+) -> (usize, usize) {
+    let long = sentences
+        .iter()
+        .filter(|sentence| sentence.words >= 4)
+        .collect::<Vec<_>>();
+    let candidates = if long.is_empty() {
+        sentences.iter().collect()
+    } else {
+        long
+    };
+    candidates
+        .into_iter()
+        .map(|sentence| {
+            let passage = text[sentence.start..sentence.end].trim();
+            let key = (
+                forge_lexical(passage).is_some(),
+                weight(&word_tokens(passage)),
+            );
+            (key, (sentence.start, sentence.end))
+        })
+        .max_by(|(left, _), (right, _)| left.0.cmp(&right.0).then(left.1.total_cmp(&right.1)))
+        .map(|(_, span)| span)
+        .unwrap_or((0, text.len()))
+}
+
 fn issue(
     text: &str,
     byte_to_char: &[usize],
@@ -149,22 +307,27 @@ fn issue(
 ) -> StylometryIssue {
     let original_text = text[start..end].to_string();
     let replacement = original_text.to_lowercase();
-    let suggestion = suggestion.as_ref().map(|value| {
-        value.replace("{text}", &original_text).replace(
-            "{connector}",
-            match replacement.as_str() {
-                "en effet" => "De fait",
-                "par ailleurs" => "Dans le même temps",
-                "il convient de" => "Il faut",
-                "force est de constater" => "Nous constatons",
-                "témoigne de" => "révèle",
-                "crucial" => "essentiel",
-                "paysage" => "horizon",
-                "au-delà de" => "plus loin que",
-                _ => &original_text,
-            },
-        )
-    });
+    let (RuleKind::Detection { pattern_type, .. } | RuleKind::Humanisation { pattern_type, .. }) =
+        &rule.kind;
+    let suggestion = suggestion
+        .as_ref()
+        .map(|value| {
+            value.replace("{text}", &original_text).replace(
+                "{connector}",
+                match replacement.as_str() {
+                    "en effet" => "De fait",
+                    "par ailleurs" => "Dans le même temps",
+                    "il convient de" => "Il faut",
+                    "force est de constater" => "Nous constatons",
+                    "témoigne de" => "révèle",
+                    "crucial" => "essentiel",
+                    "paysage" => "horizon",
+                    "au-delà de" => "plus loin que",
+                    _ => &original_text,
+                },
+            )
+        })
+        .or_else(|| forge_rewrite(pattern_type, &original_text));
     StylometryIssue {
         id: format!("{}-{}", rule.id, byte_to_char[start]),
         rule_id: rule.id.clone(),
@@ -200,6 +363,7 @@ fn add_structural_issues(
         else {
             continue;
         };
+        let mut measured: Option<String> = None;
         let targets = match pattern_type {
             PatternType::IsometryChain => {
                 let mut result = Vec::new();
@@ -257,15 +421,69 @@ fn add_structural_issues(
                 }
                 result
             }
-            PatternType::LexicalPredictability if lexical_predictability(words, exemptions) => {
-                vec![(0, text.len())]
+            PatternType::LexicalPredictability => {
+                let Some(ratio) = lexical_predictability(words, exemptions) else {
+                    continue;
+                };
+                measured = Some(format!(
+                    "Mesure du chapitre : {:.0} % de mots-outils très fréquents (seuil 62 %) ; voici la phrase la plus prévisible.",
+                    ratio * 100.0
+                ));
+                vec![representative_sentence(text, &sentences, |passage| {
+                    let eligible = passage.iter().filter(|word| !is_exempt(word, exemptions));
+                    let (common, total) = eligible.fold((0, 0), |(common, total), word| {
+                        (common + usize::from(common_word(word)), total + 1)
+                    });
+                    common as f32 / total.max(1) as f32
+                })]
             }
-            PatternType::EntropyUniform if lexical_uniformity(words) => {
-                vec![(0, text.len())]
+            PatternType::EntropyUniform => {
+                let Some(variation) = lexical_uniformity(words) else {
+                    continue;
+                };
+                measured = Some(format!(
+                    "Mesure du chapitre : la diversité lexicale ne varie que de {:.1} % d'une fenêtre de 100 mots à l'autre (seuil 8 %) ; voici la phrase la plus répétitive.",
+                    variation * 100.0
+                ));
+                vec![representative_sentence(text, &sentences, |passage| {
+                    let distinct = passage
+                        .iter()
+                        .collect::<std::collections::HashSet<_>>()
+                        .len();
+                    1.0 - distinct as f32 / passage.len().max(1) as f32
+                })]
             }
             _ => continue,
         };
         for (start, end) in targets {
+            let start = end - text[start..end].trim_start().len();
+            let end = if measured.is_some() {
+                start + text[start..end].trim_end().len()
+            } else {
+                end
+            };
+            let explanation = if matches!(pattern_type, PatternType::IsometryChain) {
+                let lengths = sentences
+                    .iter()
+                    .filter(|sentence| sentence.end > start && sentence.end <= end)
+                    .map(|sentence| sentence.words)
+                    .collect::<Vec<_>>();
+                let shortest = lengths.iter().min().copied().unwrap_or(0);
+                let longest = lengths.iter().max().copied().unwrap_or(0);
+                let range = if shortest == longest {
+                    format!("{shortest} mots")
+                } else {
+                    format!("{shortest} à {longest} mots")
+                };
+                format!(
+                    "{} phrases consécutives de longueur quasi identique ({range}). {explanation} Brisez la régularité.",
+                    lengths.len()
+                )
+            } else if let Some(measure) = &measured {
+                format!("{measure} {explanation}")
+            } else {
+                explanation.clone()
+            };
             *penalty += (*penalty_weight).max(0.0);
             issues.push(issue(
                 text,
@@ -274,7 +492,7 @@ fn add_structural_issues(
                 start,
                 end,
                 category,
-                explanation,
+                &explanation,
                 default_suggestion,
             ));
         }
@@ -414,21 +632,24 @@ fn is_exempt(word: &str, exemptions: &[Regex]) -> bool {
         .any(|expression| expression.is_match(word))
 }
 
-fn lexical_predictability(words: &[String], exemptions: &[Regex]) -> bool {
+/// Part de mots-outils quand elle dépasse le seuil de prévisibilité.
+fn lexical_predictability(words: &[String], exemptions: &[Regex]) -> Option<f32> {
     let eligible = words
         .iter()
         .filter(|word| !is_exempt(word, exemptions))
         .collect::<Vec<_>>();
     if eligible.len() < 100 {
-        return false;
+        return None;
     }
     let common = eligible.iter().filter(|word| common_word(word)).count();
-    common as f32 / eligible.len() as f32 >= 0.62
+    let ratio = common as f32 / eligible.len() as f32;
+    (ratio >= 0.62).then_some(ratio)
 }
 
-fn lexical_uniformity(words: &[String]) -> bool {
+/// Coefficient de variation de la diversité lexicale quand il est sous le seuil d'uniformité.
+fn lexical_uniformity(words: &[String]) -> Option<f32> {
     if words.len() < 300 {
-        return false;
+        return None;
     }
     let diversities = words
         .chunks(100)
@@ -442,7 +663,7 @@ fn lexical_uniformity(words: &[String]) -> bool {
         })
         .collect::<Vec<_>>();
     if diversities.len() < 3 {
-        return false;
+        return None;
     }
     let mean = diversities.iter().sum::<f32>() / diversities.len() as f32;
     let variance = diversities
@@ -450,7 +671,8 @@ fn lexical_uniformity(words: &[String]) -> bool {
         .map(|value| (value - mean).powi(2))
         .sum::<f32>()
         / diversities.len() as f32;
-    mean > 0.0 && variance.sqrt() / mean < 0.08
+    let variation = variance.sqrt() / mean.max(f32::EPSILON);
+    (mean > 0.0 && variation < 0.08).then_some(variation)
 }
 
 fn reduce_score_by_percent(score: &mut f32, weight: f32) {
@@ -468,23 +690,14 @@ pub fn analyze(
         byte_to_char[byte_index] = char_index;
     }
     byte_to_char[text.len()] = text.chars().count();
-    let tokens = text
-        .split_whitespace()
-        .map(|word| {
-            word.chars()
-                .filter(|character| character.is_alphanumeric() || *character == '\'')
-                .flat_map(char::to_lowercase)
-                .collect::<String>()
-        })
-        .filter(|word| !word.is_empty())
-        .collect::<Vec<_>>();
+    let tokens = word_tokens(&text);
     let sentence_lengths = spans(&text, |character| {
         matches!(character, '.' | '!' | '?' | '…')
     })
     .iter()
     .map(|sentence| sentence.words)
     .collect::<Vec<_>>();
-    let (mut score, burstiness_score) = base_risk(&sentence_lengths, &tokens);
+    let (mut score, burstiness_score, lexical_richness) = base_risk(&sentence_lengths, &tokens);
     let mut issues = Vec::new();
     let exemptions = lexical_exemptions(rules)?;
 
@@ -568,6 +781,7 @@ pub fn analyze(
         chapter_id: chapter_id.into(),
         ai_risk_percent: score.round().clamp(0.0, 100.0) as u8,
         burstiness_score,
+        lexical_richness,
         issues_count: issues.len(),
         issues,
     })
@@ -638,7 +852,107 @@ mod tests {
         )?;
         assert_eq!(report.issues_count, 1);
         assert_eq!(report.issues[0].rule_id, "isometry-chain");
-        assert!(report.issues[0].suggested_rewrite.is_none());
+        assert!(report.issues[0]
+            .explanation
+            .starts_with("3 phrases consécutives de longueur quasi identique (5 mots)."));
+        assert_eq!(
+            report.issues[0].suggested_rewrite.as_deref(),
+            Some(
+                "Un roi regarde les portes ; le roi ferme les portes. Son roi franchit les portes."
+            )
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn forge_breaks_cadence_triads_lists_and_conclusions() {
+        assert_eq!(
+            forge_rewrite(
+                &PatternType::IsometryChain,
+                "Un battement régulier, profond, traverse la gemme."
+            )
+            .as_deref(),
+            Some("Un battement régulier. Profond, traverse la gemme.")
+        );
+        assert_eq!(
+            forge_rewrite(&PatternType::TriadPattern, "rouge, vieux et sombre").as_deref(),
+            Some("rouge, vieux, sombre")
+        );
+        assert_eq!(
+            forge_rewrite(&PatternType::MarkdownList, "- **Indice :**").as_deref(),
+            Some("- Indice :")
+        );
+        assert_eq!(
+            forge_rewrite(
+                &PatternType::ChapterConclusion,
+                "En conclusion, la porte demeure fermée."
+            )
+            .as_deref(),
+            Some("La porte demeure fermée.")
+        );
+        assert!(forge_rewrite(&PatternType::EntropyUniform, "texte").is_none());
+    }
+
+    #[test]
+    fn forge_prunes_intensifiers_or_inverts_the_final_complement() {
+        assert_eq!(
+            forge_rewrite(
+                &PatternType::LexicalPredictability,
+                "Très vite, il est vraiment las."
+            )
+            .as_deref(),
+            Some("Vite, il est las.")
+        );
+        assert_eq!(
+            forge_rewrite(
+                &PatternType::EntropyUniform,
+                "Il marchait lentement dans la forêt."
+            )
+            .as_deref(),
+            Some("Dans la forêt, il marchait lentement.")
+        );
+        assert_eq!(
+            forge_rewrite(
+                &PatternType::EntropyUniform,
+                "Marie attendait sous le vieux porche."
+            )
+            .as_deref(),
+            Some("Sous le vieux porche, Marie attendait.")
+        );
+    }
+
+    #[test]
+    fn global_lexical_alerts_target_an_actionable_sentence() -> Result<(), String> {
+        let mut rules = default_rules();
+        rules.retain(|rule| rule.id == "r-det-zipf");
+        let text = format!(
+            "{} Il est dans la maison avec le chat.",
+            "Il y a le chat et le chien dans la cour de la maison. ".repeat(10)
+        );
+        let report = analyze("x.md", &text, &rules)?;
+        assert_eq!(report.issues_count, 1);
+        let found = &report.issues[0];
+        assert!(found.explanation.starts_with("Mesure du chapitre :"));
+        assert_eq!(
+            found.original_text,
+            &text[text.len() - found.original_text.len()..]
+        );
+        assert!(found.end_offset - found.start_offset < text.chars().count());
+        assert!(found.suggested_rewrite.is_some());
+        Ok(())
+    }
+
+    #[test]
+    fn report_exposes_lexical_richness_and_trims_mid_text_spans() -> Result<(), String> {
+        let mut rules = default_rules();
+        rules.retain(|rule| rule.id == "isometry-chain");
+        let report = analyze(
+            "x.md",
+            "Il pleut fort depuis ce matin sur la vieille ville endormie. Un roi regarde les portes. Le roi ferme les portes. Son roi franchit les portes.",
+            &rules,
+        )?;
+        assert!(report.lexical_richness > 0.0 && report.lexical_richness <= 100.0);
+        assert!(report.issues[0].original_text.starts_with("Un roi"));
         Ok(())
     }
 

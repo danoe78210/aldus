@@ -1,6 +1,7 @@
-pub(crate) fn base_risk(sentences: &[usize], words: &[String]) -> (f32, f32) {
+/// Returns `(risk, burstiness, lexical_richness)`, the last two on a 0–100 scale.
+pub(crate) fn base_risk(sentences: &[usize], words: &[String]) -> (f32, f32, f32) {
     if words.is_empty() {
-        return (0.0, 0.0);
+        return (0.0, 0.0, 0.0);
     }
 
     let mean = sentences.iter().sum::<usize>() as f32 / sentences.len().max(1) as f32;
@@ -38,5 +39,5 @@ pub(crate) fn base_risk(sentences: &[usize], words: &[String]) -> (f32, f32) {
     }
     let mattr = mattr_sum / windows.max(1) as f32;
     let risk = (100.0 - burstiness) * 0.55 + (100.0 * (1.0 - mattr)) * 0.45;
-    (risk.clamp(0.0, 100.0), burstiness)
+    (risk.clamp(0.0, 100.0), burstiness, mattr * 100.0)
 }

@@ -5,6 +5,7 @@ import { LeftPage } from "./components/LeftPage";
 import { MenuPage } from "./components/MenuPage";
 import { PreviewFlipbook } from "./components/PreviewFlipbook";
 import { StudioProvider, type ProofTab, type StudioContextValue } from "./components/StudioContext";
+import { PlumeProvider } from "./components/epreuve-plume/PlumeContext";
 import { Toast, type ToastMessage } from "./components/Toast";
 import type { ActiveMenu, AudioGenerationProgress, AudioInitProgressPayload, BookInfoConfig, CoverStudioState, ErrorLogConfig, ImageColorMode, LogDiagnosticLevel, LogEntry, LogLevel, ManuscriptLayoutConfig, SourcesConfig, SpecialPageRole, StructureItem } from "./types";
 import { findTrimPreset } from "./data/trimSizes";
@@ -1567,6 +1568,7 @@ const App: React.FC = () => {
   return (
     <>
       <StudioProvider value={studioValue}>
+        <PlumeProvider enabled={activeMenu === "epreuve-plume"}>
         <Layout
           leftContent={
             <LeftPage
@@ -1586,6 +1588,7 @@ const App: React.FC = () => {
           saveState={saveState}
           closing={isClosing}
         />
+        </PlumeProvider>
       </StudioProvider>
       {toast && <Toast toast={toast} onClose={() => setToast(null)} />}
       {previewPayload !== null && (

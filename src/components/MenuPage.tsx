@@ -9,6 +9,7 @@ import { ProofWorkbench } from "./ProofWorkbench";
 import { PressWorkshop } from "./PressWorkshop";
 import { WritingPreview } from "./WritingStudio";
 import { LibraryView } from "./LibraryView";
+import { IssuesList } from "./epreuve-plume/IssuesList";
 
 /**
  * Page du livre virtuel : rend la **vue correspondant au menu** en lisant l'état
@@ -55,7 +56,7 @@ export const MenuPage: React.FC<{ menu: ActiveMenu }> = ({ menu }) => {
     case "correcteur":
       return <ProofWorkbench />;
     case "epreuve-plume":
-      return <ProofWorkbench />;
+      return <IssuesList />;
     case "export":
       /* Feuillet XII (droite) : marbre de pressage — l'inspection pré-presse est
          composée sur la page de gauche (Feuillet XI). */

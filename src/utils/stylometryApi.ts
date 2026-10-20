@@ -56,6 +56,7 @@ export interface StylometryReport {
   chapterId: string;
   aiRiskPercent: number;
   burstinessScore: number;
+  lexicalRichness: number;
   issuesCount: number;
   issues: StylometryIssue[];
 }
