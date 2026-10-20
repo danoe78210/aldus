@@ -5,15 +5,17 @@ mod corrector;
 pub mod cover;
 mod epub;
 mod export;
+pub mod kdp;
 mod library;
 mod logger;
-pub mod kdp;
 mod markdown;
+mod pagination;
 pub mod pdf;
 mod project;
-mod pagination;
 mod storage;
+mod stylometry;
 mod updater;
+mod user_data;
 mod workspace;
 
 use serde_json::Value;
@@ -309,20 +311,10 @@ fn volatile_cache_dir(app: &tauri::AppHandle) -> Option<std::path::PathBuf> {
 
 /// Chemin du fichier de projet **persistant** (données utilisateur).
 ///
-/// Stocké dans `app_data_dir()` (`%APPDATA%\<identifiant>` sous Windows, en
-/// roaming) : il **survit aux mises à jour** de l'exécutable et n'est **jamais**
-/// touché par une purge de cache.
+/// Stocké dans `app_local_data_dir()` (`%LOCALAPPDATA%\<identifiant>` sous
+/// Windows). Les anciens fichiers `app_data_dir()` sont migrés atomiquement.
 fn project_data_path(app: &tauri::AppHandle) -> Result<std::path::PathBuf, String> {
-    let dir = app
-        .path()
-        .app_data_dir()
-        .map_err(|e| format!("Dossier de données utilisateur introuvable : {e}"))?;
-    std::fs::create_dir_all(&dir).map_err(|e| {
-        format!(
-            "Création du dossier de données impossible « {} » : {e}",
-            dir.display()
-        )
-    })?;
+    let dir = user_data::persistent_data_dir(app)?;
     Ok(dir.join("project.danoe"))
 }
 
@@ -345,15 +337,18 @@ async fn read_project_data(app: tauri::AppHandle) -> Result<Option<String>, Stri
 async fn write_project_data(app: tauri::AppHandle, contents: String) -> Result<(), String> {
     let result = tauri::async_runtime::spawn_blocking(move || {
         crate::pagination::write_project(&project_data_path(&app)?, &contents)
-    }).await.map_err(|error| format!("Sauvegarde du projet interrompue : {error}")).and_then(|result| result);
+    })
+    .await
+    .map_err(|error| format!("Sauvegarde du projet interrompue : {error}"))
+    .and_then(|result| result);
     result.inspect_err(|error| log::error!("Sauvegarde du projet : {error}"))
 }
 
 /// Purge le **cache volatile** (fichiers temporaires) puis ferme proprement
 /// l'application (`exit(0)`).
 ///
-/// ⚠️ **Aucune donnée utilisateur n'est touchée** : ni `app_data_dir()`
-/// (projet persistant), ni `app_local_data_dir()` / le profil WebView
+/// ⚠️ **Aucune donnée utilisateur n'est touchée** : ni le projet et les
+/// préférences dans `app_local_data_dir()`, ni le profil WebView
 /// (qui contient `localStorage`). Seul le sous-dossier `volatile` est vidé.
 #[tauri::command]
 async fn clear_cache_and_exit(app: tauri::AppHandle) -> Result<(), String> {
@@ -387,7 +382,12 @@ pub fn run() {
                 .targets([
                     Target::new(TargetKind::Stdout).format(|out, message, record| {
                         logger::mirror_record(record);
-                        out.finish(format_args!("[{}][{}] {}", record.target(), record.level(), message));
+                        out.finish(format_args!(
+                            "[{}][{}] {}",
+                            record.target(),
+                            record.level(),
+                            message
+                        ));
                     }),
                     Target::new(TargetKind::LogDir {
                         file_name: Some("Aldus".into()),
@@ -437,6 +437,11 @@ pub fn run() {
             commands::write_chapter_file,
             commands::list_source_files,
             commands::list_chapter_files,
+            commands::stylometry::audit_chapter_stylometry,
+            commands::stylometry::get_stylometry_rules,
+            commands::stylometry::save_stylometry_rules,
+            commands::stylometry::apply_stylometry_suggestion,
+            commands::aldin_typography::apply_aldin_typography_to_project,
             commands::create_chapter_file,
             commands::finalize_exit,
             commands::open_proofs_directory,

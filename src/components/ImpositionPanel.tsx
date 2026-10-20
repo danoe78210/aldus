@@ -20,7 +20,7 @@ const Panel: React.FC<{ title: string; icon: React.ReactNode; children: React.Re
   icon,
   children,
 }) => (
-  <section className="mb-7 border border-[#3a3022]/70 bg-[#13110f]/60 p-4">
+  <section className="atelier-card mb-7">
     <h3 className="mb-3 flex items-center gap-2 border-b border-[#3a3022] pb-2 font-serif text-[11px] tracking-widest text-[#d4af37] uppercase">
       {icon}
       {title}
@@ -69,7 +69,7 @@ export const ImpositionPanel: React.FC = () => {
       <h2 className="mb-6 text-center text-lg tracking-[0.25em] text-[#d4af37] uppercase">
         VI. Imposition &amp; Calibrage KDP
       </h2>
-      {paginationError ? <p role="alert" className="text-[#c25454]">{paginationError}</p>
+      {paginationError ? <p role="alert" className="text-[#f0a59a]">{paginationError}</p>
         : <p>Pagination en attente du calcul natif du manuscrit.</p>}
     </div>;
   }
@@ -90,7 +90,7 @@ export const ImpositionPanel: React.FC = () => {
             {bookPagination.isMeasured ? "" : "~"}{totalPages} pages ({bookPagination.isMeasured ? "mesurées" : "estimées"})
           </span> : "Pagination indisponible"
         } />
-        {paginationError && <p role="alert" className="text-xs text-[#c25454]">{paginationError}</p>}
+        {paginationError && <p role="alert" className="text-xs text-[#f0a59a]">{paginationError}</p>}
         {!bookPagination?.isMeasured && <p className="mt-2 font-serif text-xs text-[#9e9587]">
           Estimation à 250 mots par page, arrondie au pair. Composez l'aperçu PDF pour mesurer la pagination.
         </p>}
@@ -101,7 +101,7 @@ export const ImpositionPanel: React.FC = () => {
 
       <Panel title="Répartition en cahiers" icon={<Scissors size={13} />}>
         {totalPages < KDP_MIN_PAGES && (
-          <p className="mb-2 font-serif text-xs text-[#a83232] italic">
+          <p className="mb-2 font-serif text-xs text-[#f0a59a] italic">
             Sous le minimum KDP de {KDP_MIN_PAGES} pages : impression non éligible.
           </p>
         )}
@@ -175,7 +175,7 @@ export const ImpositionPanel: React.FC = () => {
           </p>
         ) : (
           <>
-            <p className="mb-2 font-serif text-xs text-[#a83232]">
+            <p className="mb-2 font-serif text-xs text-[#f0a59a]">
               {misplaced.length} chapitre{misplaced.length > 1 ? "s" : ""} débute
               {misplaced.length > 1 ? "nt" : ""} sur un feuillet pair (page de gauche) au lieu
               d'une belle page impaire.

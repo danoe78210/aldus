@@ -1,11 +1,8 @@
 //! Dictionnaire local (**mots ignorés** + **toponymes / noms propres**) —
-//! persistance JSON sécurisée dans le répertoire de données de l'application
-//! (`app_data_dir`, survit aux mises à jour et n'est jamais purgé).
+//! persistance JSON sécurisée dans `%LOCALAPPDATA%\net.danoe.aldus`.
 
 use std::collections::BTreeSet;
 use std::path::PathBuf;
-
-use tauri::Manager;
 
 /// Nom du fichier de mots ignorés (données utilisateur).
 const DICTIONARY_FILE: &str = "ignored_words.json";
@@ -14,16 +11,7 @@ const PLACES_FILE: &str = "places.json";
 
 /// Chemin d'un fichier de dictionnaire ; le dossier de données est créé si nécessaire.
 fn dictionary_path(app: &tauri::AppHandle, file: &str) -> Result<PathBuf, String> {
-    let dir = app
-        .path()
-        .app_data_dir()
-        .map_err(|e| format!("Dossier de données utilisateur introuvable : {e}"))?;
-    std::fs::create_dir_all(&dir).map_err(|e| {
-        format!(
-            "Création du dossier de données impossible « {} » : {e}",
-            dir.display()
-        )
-    })?;
+    let dir = crate::user_data::persistent_data_dir(app)?;
     Ok(dir.join(file))
 }
 
@@ -33,8 +21,12 @@ fn load_set(app: &tauri::AppHandle, file: &str) -> Result<BTreeSet<String>, Stri
     if !path.is_file() {
         return Ok(BTreeSet::new());
     }
-    let raw = std::fs::read_to_string(&path)
-        .map_err(|e| format!("Lecture du dictionnaire impossible « {} » : {e}", path.display()))?;
+    let raw = std::fs::read_to_string(&path).map_err(|e| {
+        format!(
+            "Lecture du dictionnaire impossible « {} » : {e}",
+            path.display()
+        )
+    })?;
     serde_json::from_str(&raw)
         .map_err(|e| format!("Dictionnaire local illisible « {} » : {e}", path.display()))
 }

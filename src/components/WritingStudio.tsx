@@ -201,7 +201,7 @@ export const WritingEditor: React.FC = () => {
             aria-label={item.title}
             onMouseDown={(event) => event.preventDefault()}
             onClick={() => insertAtSelection(item.before, item.after)}
-            className="min-w-8 rounded-xs border border-[#3a3022] px-2 py-1 font-serif text-sm text-[#e6c878] transition-colors hover:border-[#c5a059] hover:bg-[#c5a059]/10"
+            className="badge-transform min-w-8 transition-colors hover:bg-[#c5a059]/10"
           >
             {item.label}
           </button>

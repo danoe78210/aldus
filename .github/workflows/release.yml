@@ -69,26 +69,21 @@ jobs:
           tagName: ${{ github.ref_name }}
           releaseName: 'Aldus ${{ github.ref_name }}'
           releaseBody: |
-            ## Aldus 1.4.8 — pagination mesurée & sécurité du manuscrit
+            ## Aldus 1.4.9 — Épreuve de Plume & Usage Aldin
 
-            - Pagination Typst réelle à chaque aperçu/export PDF, mémorisée dans le projet ; estimation au volume de mots avant composition et invalidation après changement de sources ou de mise en page.
-            - Dos KDP et vues de couverture alimentés par la mesure, avec parité du bloc relié explicitée.
-            - Historique Markdown : 15 instantanés par chapitre dans `.aldus/history`, confirmation avant restauration et rechargement des éditeurs.
-            - Libellés honnêtes : PDF Imprimeur (Haute Définition) et EPUB (Standard), sans certification normative ni garantie d'acceptation.
-            - Budget audio de 900 s partagé par chapitre (segments et assemblage), distinct des 15 minutes d'initialisation XTTS.
+            - Épreuve de Plume : audit stylométrique local et déterministe, score heuristique de risque, détection contextualisée, suggestions de remaniement et règles d'auteur personnalisées.
+            - Règles natives consolidées : cadence et paragraphes, tics de liaison, triades, listes Markdown préformatées, diversité lexicale et indices de texture humaine. Le score reste indicatif ; aucun test de watermarking non fondé n'est annoncé.
+            - Usage Aldin : aperçu puis normalisation en une passe des fichiers Markdown du workspace, avec confirmation, rapport, sauvegarde par chapitre et écriture atomique.
+            - Dark Atelier : tokens de couleur centralisés, cartes et classes typographiques partagées, contraste renforcé dans les panneaux ciblés.
 
-            - XTTS : données Unicode jamo collectées et vérifiées dans le sidecar PyInstaller, avec gruut, inflect et typeguard.
-            - Organisation : lignes sans débordement horizontal, boutons-icônes compacts et pièces liminaires sans tirets résiduels.
-            - Sources : scan récursif des textes et images, chemins relatifs triés naturellement ; métadonnées Obsidian/Git et liens symboliques exclus.
-            - Journal pédagogique : miroir en arrière-plan vers le dossier choisi, diagnostics vulgarisés et ouverture dans l'éditeur par défaut.
-            - Windows : MSI WiX autonome avec Python/XTTS et FFmpeg embarqués. Les modèles sont téléchargés après consentement CPML au premier usage, puis conservés dans LocalAppData pour les usages hors ligne.
+            - Les ligatures ne sont appliquées qu'à des mots français reconnus ; le traitement exclut les dossiers cachés et `.aldus`.
+            - Les instantanés avant normalisation sont visibles et restaurables dans l'historique du chapitre.
+            - Les anciennes données d'application dans APPDATA sont migrées vers LocalAppData ; les conflits sont archivés localement sans remplacer silencieusement les données actives.
 
             ### Captures
-            - [Registre & sélecteur de chapitre](https://github.com/danoe78210/aldus/blob/v1.4.8/docs/assets/screenshots/studio-audio-chapter-selector.png)
-            - [Pupitre Audio & badge AUDIO](https://github.com/danoe78210/aldus/blob/v1.4.8/docs/assets/screenshots/studio-audio-player.png)
-            - [Progression supérieure](https://github.com/danoe78210/aldus/blob/v1.4.8/docs/assets/screenshots/studio-audio-progress.png)
+            - [Gestionnaire de règles de l'Épreuve de Plume](https://github.com/danoe78210/aldus/blob/v1.4.9/docs/assets/screenshots/epreuve-de-plume-v1.4.9.png)
 
-            Voir [CHANGELOG.md](https://github.com/danoe78210/aldus/blob/v1.4.8/CHANGELOG.md) et le [Manuel du Scribe Audio](https://github.com/danoe78210/aldus/blob/v1.4.8/docs/manuel-scribe-audio.md).
+            Voir [CHANGELOG.md](https://github.com/danoe78210/aldus/blob/v1.4.9/CHANGELOG.md).
           releaseDraft: false
           prerelease: false
           args: ${{ matrix.args }}

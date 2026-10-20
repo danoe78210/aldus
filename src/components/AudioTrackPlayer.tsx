@@ -34,7 +34,7 @@ export const AudioTrackPlayer = ({ src, title, onDelete }: AudioTrackPlayerProps
   };
 
   return (
-    <div className="flex min-w-0 items-center gap-3 rounded-sm border border-[#3a3228] bg-[#141210] px-3 py-2.5">
+    <div className="atelier-card flex min-w-0 items-center gap-3 px-3 py-2.5">
       <audio
         ref={audioRef}
         src={src}

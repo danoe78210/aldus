@@ -39,6 +39,16 @@ démonstration (aucun texte source personnel) :
 Les images s'agrandissent dans une boîte de dialogue native, refermable avec
 Échap ou le bouton Fermer. Sans JavaScript, les liens ouvrent directement les PNG.
 
+## Galerie v1.4.9 — Épreuve de Plume
+
+| Fichier | Contenu |
+|---|---|
+| `epreuve-de-plume-v1.4.9.png` | Modale de gestion des règles : onglets de détection/humanisation et formulaire d'ajout |
+
+La capture montre l'interface réelle de gestion des règles dans l'atelier Dark
+Atelier, en mode aperçu navigateur. Les commandes Tauri d'audit et de
+persistance nécessitent l'application de bureau.
+
 ## Styles autonomes de la vitrine
 
 La page charge uniquement une feuille CSS locale et des polices système.

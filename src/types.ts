@@ -6,6 +6,7 @@ export type ActiveMenu =
   | 'organisation'
   | 'couverture'
   | 'correcteur'
+  | 'epreuve-plume'
   | 'export';
 
 export type ShelfId = string;

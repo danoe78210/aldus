@@ -27,6 +27,34 @@ pub(crate) fn atomic_write(path: &Path, bytes: &[u8]) -> Result<(), String> {
     })
 }
 
+pub(crate) fn save_chapter_with_marker(
+    root: &Path,
+    chapter: &str,
+    expected: &str,
+    content: &str,
+    marker: &str,
+) -> Result<(), String> {
+    if marker.is_empty()
+        || !marker
+            .chars()
+            .all(|character| character.is_ascii_alphanumeric() || character == '_')
+    {
+        return Err("Marqueur d'instantané invalide.".into());
+    }
+    let _guard = CHAPTER_LOCK
+        .lock()
+        .map_err(|_| "Verrou des chapitres indisponible.")?;
+    let path = resolve_chapter(root, chapter)?;
+    let current = std::fs::read_to_string(&path)
+        .map_err(|error| format!("Lecture avant normalisation impossible : {error}"))?;
+    if current != expected {
+        return Err(format!(
+            "Le fichier {chapter} a changé pendant la normalisation ; aucune version concurrente n'a été écrasée."
+        ));
+    }
+    snapshot_and_write_with_marker(root, &path, content.as_bytes(), Some(marker))
+}
+
 pub(crate) fn resolve_chapter(root: &Path, chapter: &str) -> Result<PathBuf, String> {
     let relative = Path::new(chapter);
     if relative.as_os_str().is_empty()
@@ -122,10 +150,11 @@ fn entries(directory: &Path, key: &str) -> Result<Vec<SnapshotEntry>, String> {
     {
         let entry = entry.map_err(|error| format!("Lecture d'un instantané : {error}"))?;
         let filename = entry.file_name().to_string_lossy().into_owned();
-        let Some(timestamp) = filename
+        let timestamp = filename
             .strip_prefix(&prefix)
-            .and_then(|s| s.strip_suffix(".bak.md"))
-        else {
+            .and_then(|value| value.strip_prefix("before_global_aldin_").or(Some(value)))
+            .and_then(|s| s.strip_suffix(".bak.md"));
+        let Some(timestamp) = timestamp else {
             continue;
         };
         let date = NaiveDateTime::parse_from_str(timestamp, "%Y%m%d_%H%M%S_%f")
@@ -141,11 +170,20 @@ fn entries(directory: &Path, key: &str) -> Result<Vec<SnapshotEntry>, String> {
             size_bytes: metadata.len(),
         });
     }
-    snapshots.sort_by(|a, b| b.filename.cmp(&a.filename));
+    snapshots.sort_by(|a, b| b.created_at.cmp(&a.created_at));
     Ok(snapshots)
 }
 
 fn snapshot_and_write(root: &Path, path: &Path, content: &[u8]) -> Result<(), String> {
+    snapshot_and_write_with_marker(root, path, content, None)
+}
+
+fn snapshot_and_write_with_marker(
+    root: &Path,
+    path: &Path,
+    content: &[u8],
+    marker: Option<&str>,
+) -> Result<(), String> {
     let previous =
         std::fs::read(path).map_err(|error| format!("Lecture avant sauvegarde : {error}"))?;
     if previous == content {
@@ -153,7 +191,11 @@ fn snapshot_and_write(root: &Path, path: &Path, content: &[u8]) -> Result<(), St
     }
     let directory = history_directory(root)?;
     let key = chapter_key(root, path)?;
-    let filename = format!("{key}_{}.bak.md", Utc::now().format("%Y%m%d_%H%M%S_%f"));
+    let marker = marker.map(|value| format!("_{value}")).unwrap_or_default();
+    let filename = format!(
+        "{key}{marker}_{}.bak.md",
+        Utc::now().format("%Y%m%d_%H%M%S_%f")
+    );
     atomic_write(&directory.join(filename), &previous)?;
     for snapshot in entries(&directory, &key)?.into_iter().skip(15) {
         std::fs::remove_file(directory.join(snapshot.filename))
@@ -168,6 +210,42 @@ pub(crate) fn save_chapter(root: &Path, chapter: &str, content: &str) -> Result<
         .map_err(|_| "Verrou des chapitres indisponible.")?;
     let path = resolve_chapter(root, chapter)?;
     snapshot_and_write(root, &path, content.as_bytes())
+}
+
+pub(crate) fn replace_chapter_text(
+    root: &Path,
+    chapter: &str,
+    start_offset: usize,
+    end_offset: usize,
+    expected: &str,
+    replacement: &str,
+) -> Result<(), String> {
+    let _guard = CHAPTER_LOCK
+        .lock()
+        .map_err(|_| "Verrou des chapitres indisponible.")?;
+    let path = resolve_chapter(root, chapter)?;
+    let content = std::fs::read_to_string(&path)
+        .map_err(|error| format!("Lecture du chapitre impossible : {error}"))?;
+    let start = content
+        .char_indices()
+        .nth(start_offset)
+        .map(|(index, _)| index)
+        .or_else(|| (start_offset == content.chars().count()).then_some(content.len()))
+        .ok_or("Position de début hors du chapitre.")?;
+    let end = content
+        .char_indices()
+        .nth(end_offset)
+        .map(|(index, _)| index)
+        .or_else(|| (end_offset == content.chars().count()).then_some(content.len()))
+        .ok_or("Position de fin hors du chapitre.")?;
+    if start > end || content.get(start..end) != Some(expected) {
+        return Err("Le passage a changé depuis l'audit ; relancez l'analyse.".into());
+    }
+    let mut updated = String::with_capacity(content.len() + replacement.len());
+    updated.push_str(&content[..start]);
+    updated.push_str(replacement);
+    updated.push_str(&content[end..]);
+    snapshot_and_write(root, &path, updated.as_bytes())
 }
 
 pub(crate) fn list_history(root: &Path, chapter: &str) -> Result<Vec<SnapshotEntry>, String> {
@@ -268,5 +346,34 @@ mod tests {
         );
         std::fs::remove_dir_all(root).map_err(|e| e.to_string())?;
         Ok(())
+    }
+
+    #[test]
+    fn replace_chapter_text_checks_unicode_offsets_and_snapshots_first() -> Result<(), String> {
+        let root = std::env::temp_dir().join(format!(
+            "aldus-stylometry-{}",
+            Utc::now().timestamp_nanos_opt().ok_or("Date invalide")?
+        ));
+        std::fs::create_dir_all(&root).map_err(|error| error.to_string())?;
+        let chapter = root.join("chapter.md");
+        std::fs::write(&chapter, "Épée — En effet, la nuit.").map_err(|error| error.to_string())?;
+        let result = (|| {
+            replace_chapter_text(&root, "chapter.md", 7, 15, "En effet", "Pourtant")?;
+            assert_eq!(
+                std::fs::read_to_string(&chapter).map_err(|error| error.to_string())?,
+                "Épée — Pourtant, la nuit."
+            );
+            let snapshots = list_history(&root, "chapter.md")?;
+            assert_eq!(snapshots.len(), 1);
+            assert_eq!(
+                std::fs::read_to_string(history_directory(&root)?.join(&snapshots[0].filename))
+                    .map_err(|error| error.to_string())?,
+                "Épée — En effet, la nuit."
+            );
+            assert!(replace_chapter_text(&root, "chapter.md", 7, 15, "En effet", "Autre").is_err());
+            Ok(())
+        })();
+        std::fs::remove_dir_all(root).map_err(|error| error.to_string())?;
+        result
     }
 }

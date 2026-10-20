@@ -7,6 +7,7 @@ import {
   LibraryBig,
   Share2,
   SpellCheck,
+  Sparkles,
   LogOut,
   Feather,
 } from "lucide-react";
@@ -16,6 +17,7 @@ import { OrganizationView } from "./OrganizationView";
 import { CoverPlate } from "./cover/CoverPlate";
 import { PressInspection } from "./PressInspection";
 import { ProofExaminer } from "./ProofExaminer";
+import { EpreuvePlumeView } from "./epreuve-plume/EpreuvePlumeView";
 import { ExLibrisBadge } from "./navigation/ExLibrisBadge";
 import { BronzeVersionPlate } from "./navigation/BronzeVersionPlate";
 import { WritingEditor } from "./WritingStudio";
@@ -51,6 +53,7 @@ const tabs: TabItem[] = [
   { id: "ecritoire", label: "L'Écritoire", icon: Feather, color: "bg-linear-to-r from-[#183027] to-[#0d1b15]", text: "text-[#d0e5d6]" },
   { id: "organisation", label: "Organisation", icon: ListTree, color: "bg-linear-to-r from-[#122117] to-[#0a140e]", text: "text-[#d0e5d6]" },
   { id: "correcteur", label: "Correcteur", icon: SpellCheck, color: "bg-linear-to-r from-[#332408] to-[#1f1604]", text: "text-[#f2e2be]" },
+  { id: "epreuve-plume", label: "Épreuve de Plume", icon: Sparkles, color: "bg-linear-to-r from-[#332408] to-[#1f1604]", text: "text-[#f2e2be]" },
   { id: "couverture", label: "Couverture", icon: BookMarked, color: "bg-linear-to-r from-[#300d0d] to-[#1f0808]", text: "text-[#eed0d0]" },
   { id: "export", label: "Export", icon: Share2, color: "bg-linear-to-r from-[#1c1421] to-[#110c14]", text: "text-[#e0d2e8]" },
   { id: "bibliotheque", label: "Bibliothèque", icon: LibraryBig, color: "bg-linear-to-r from-[#2a1d17] to-[#17100c]", text: "text-[#e5d0b1]" },
@@ -226,6 +229,8 @@ export const LeftPage: React.FC<LeftPageProps> = ({
       ) : activeMenu === "correcteur" ? (
         /* Feuillet IX — l'Examen Aldin (le banc d'épreuve est à droite). */
         <ProofExaminer />
+      ) : activeMenu === "epreuve-plume" ? (
+        <EpreuvePlumeView />
       ) : activeMenu === "export" ? (
         /* Feuillet XI — inspection pré-presse (le tirage est à droite). */
         <PressInspection />

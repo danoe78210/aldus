@@ -19,6 +19,14 @@ import type { TypographyAnomaly, TypographyRuleId } from "../utils/typographyEng
 /** Feuillet du Correcteur déployé par la bascule d'en-tête (VII / VIII). */
 export type ProofTab = "purete" | "banc";
 
+export interface TypoBatchSummary {
+  chaptersModified: number;
+  apostrophesCount: number;
+  spacesCount: number;
+  dashesCount: number;
+  ligaturesCount: number;
+}
+
 /**
  * État applicatif exposé aux **pages du livre virtuel** (vue de droite).
  *

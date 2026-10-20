@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#13110f">
+  <title>Registre des versions antérieures — Aldus</title>
+  <link rel="stylesheet" href="../styles.css">
+</head>
+<body class="min-h-screen bg-atelier-ebony text-atelier-ivory">
+  <main class="mx-auto max-w-5xl px-6 py-16 sm:px-10">
+    <a href="index.html" class="text-sm text-atelier-gold underline underline-offset-4">← Retour à l'atelier</a>
+    <header class="my-12 text-center">
+      <span class="text-atelier-gold text-xl" aria-hidden="true">❦</span>
+      <h1 class="mt-3 font-cinzel text-3xl uppercase tracking-[0.18em]">Registre des versions antérieures</h1>
+      <p class="mt-4 text-atelier-muted">Historique des nouveautés et des captures d'Aldus.</p>
+    </header>
+    <section class="mb-8 rounded-sm border border-atelier-border bg-atelier-card p-6 sm:p-8">
+      <p class="font-cinzel text-xs uppercase tracking-widest text-atelier-gold">Version 1.4.8 · 19 octobre 2026</p>
+      <h2 class="mt-2 font-serif text-2xl">Pagination mesurée &amp; sécurité du manuscrit</h2>
+      <ul class="mt-5 list-disc space-y-2 pl-5 text-sm leading-relaxed text-atelier-bistre">
+        <li>Pagination physique mesurée par Typst à la composition PDF, conservée dans le projet et invalidée après changement des sources ou des réglages.</li>
+        <li>Épaisseur du dos basée sur la mesure, avec estimation avant composition et parité du bloc relié explicitée.</li>
+        <li>Historique de 15 snapshots par chapitre sous <code>.aldus/history</code>, restauration confirmée et rechargement des éditeurs.</li>
+        <li>Libellés d'export clarifiés pour le PDF haute définition et l'EPUB standard, sans revendiquer de certification normative.</li>
+        <li>Budget de 900 secondes partagé par chapitre pour la synthèse audio et l'assemblage, distinct du délai d'initialisation XTTS.</li>
+      </ul>
+      <h3 class="mt-8 font-cinzel text-sm uppercase tracking-widest text-atelier-gold">Captures de la version</h3>
+      <div class="mt-4 grid grid-cols-1 gap-5 sm:grid-cols-2">
+        <figure class="overflow-hidden rounded-sm border border-atelier-border bg-atelier-ebony">
+          <a href="assets/screenshots/imposition-typst-spine.png" data-gallery><img class="w-full" src="assets/screenshots/imposition-typst-spine.png" alt="Imposition de la version 1.4.8 : pagination Typst mesurée et calcul du dos." loading="lazy" decoding="async"></a>
+          <figcaption>Pagination mesurée et calcul du dos.</figcaption>
+        </figure>
+        <figure class="overflow-hidden rounded-sm border border-atelier-border bg-atelier-ebony">
+          <a href="assets/screenshots/banc-epreuve-history.png" data-gallery><img class="w-full" src="assets/screenshots/banc-epreuve-history.png" alt="Historique de chapitre avec instantanés restaurables." loading="lazy" decoding="async"></a>
+          <figcaption>Historique de chapitre et restauration.</figcaption>
+        </figure>
+        <figure class="overflow-hidden rounded-sm border border-atelier-border bg-atelier-ebony">
+          <a href="assets/screenshots/organisation-workspace.png" data-gallery><img class="w-full" src="assets/screenshots/organisation-workspace.png" alt="Organisation des sources en sous-dossiers." loading="lazy" decoding="async"></a>
+          <figcaption>Sources récursives dans le workspace.</figcaption>
+        </figure>
+        <figure class="overflow-hidden rounded-sm border border-atelier-border bg-atelier-ebony">
+          <a href="assets/screenshots/studio-audio-player.png" data-gallery><img class="w-full" src="assets/screenshots/studio-audio-player.png" alt="Lecteur audio intégré d'Aldus." loading="lazy" decoding="async"></a>
+          <figcaption>Studio Audio XTTS v2.</figcaption>
+        </figure>
+      </div>
+      <p class="mt-6 text-sm">
+        <a class="text-atelier-gold underline" href="https://github.com/danoe78210/aldus/releases/tag/v1.4.8">Notes de version v1.4.8</a>
+        <span class="px-2 text-atelier-muted">·</span>
+        <a class="text-atelier-gold underline" href="../CHANGELOG.md">Journal complet</a>
+      </p>
+    </section>
+  </main>
+  <dialog id="lightbox" class="m-auto max-h-[92vh] max-w-[92vw] rounded-sm border border-atelier-brass bg-atelier-card p-3 text-atelier-ivory shadow-2xl backdrop:bg-black/80">
+    <button type="button" class="mb-2 block ml-auto text-xs text-atelier-gold" onclick="document.getElementById('lightbox').close()">Fermer ×</button>
+    <img id="lightbox-image" class="max-h-[82vh] max-w-[88vw] object-contain" alt="">
+    <p id="lightbox-caption" class="mt-2 text-center text-sm text-atelier-muted"></p>
+  </dialog>
+  <script>
+    const lightbox = document.getElementById("lightbox");
+    document.querySelectorAll("[data-gallery]").forEach((link) => {
+      link.addEventListener("click", (event) => {
+        event.preventDefault();
+        const image = link.querySelector("img");
+        document.getElementById("lightbox-image").src = image.src;
+        document.getElementById("lightbox-image").alt = image.alt;
+        document.getElementById("lightbox-caption").textContent = image.alt;
+        lightbox.showModal();
+      });
+    });
+    lightbox.addEventListener("click", (event) => {
+      if (event.target === lightbox) lightbox.close();
+    });
+  </script>
+</body>
+</html>

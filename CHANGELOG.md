@@ -1,4 +1,23 @@
 # Registre des Évolutions — Aldus
+## [1.4.9] - 2026-10-20 — Épreuve de Plume & Usage Aldin
+### Ajouté
+- Épreuve de Plume : audit stylométrique déterministe et local, score de risque heuristique, anomalies contextualisées et suggestions, règles de détection/humanisation natives et personnalisées persistées.
+- Gestion des règles : activation, désactivation, suppression des règles personnelles et rétablissement des règles d'usine ; connecteurs regroupés pour éviter le double comptage.
+- Banc d'Épreuve : aperçu puis normalisation globale de l'Usage Aldin dans les fichiers Markdown du workspace, avec dialogue de confirmation et rapport des substitutions.
+- Sécurité du manuscrit : instantanés par chapitre avant normalisation, écriture atomique et restauration par l'historique existant.
+- Données applicatives : migration des anciens projets, bibliothèques et préférences depuis APPDATA vers LocalAppData ; les conflits sont archivés localement avant retrait de l'ancienne copie.
+- Design System Dark Atelier : tokens couleur partagés, cartes, textes parchemin/or et badge de transformation.
+
+### Amélioré
+- Les règles stylométriques signalent notamment les connecteurs stéréotypés, triades rhétoriques, listes préformatées, régularités de cadence et densité lexicale uniforme ; les marqueurs sensoriels et expressifs abaissent le score heuristique.
+- L'Usage Aldin normalise les apostrophes, espaces typographiques, tirets de dialogue et ligatures françaises reconnues ; l'aperçu n'écrit aucun fichier.
+- Contraste renforcé pour le texte global de l'atelier, le Studio Audio, l'Imposition et les conseils du Banc d'Épreuve.
+
+### Limites connues
+- Le score de risque est un indicateur heuristique, non une preuve d'origine ou un détecteur fiable de texte généré.
+- Aucun test de watermarking n'est prétendu : sans procédé de génération ni clé connue, une corrélation générique de n-grammes serait trompeuse.
+- La normalisation des ligatures est volontairement limitée à des mots français répertoriés pour éviter les substitutions linguistiquement incorrectes.
+
 ## [1.4.8] - 2026-10-19 — Pagination mesurée & sécurité du manuscrit
 ### Amélioré
 - Pagination : comptage des pages physiques du document Typst à chaque aperçu/export PDF, persistance dans le projet et actualisation de l'Imposition et de la Couverture. Le dos utilise la mesure en priorité, avec une page blanche de parité si nécessaire ; avant composition, estimation à 250 mots/page arrondie au pair.

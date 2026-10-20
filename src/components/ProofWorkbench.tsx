@@ -224,7 +224,7 @@ export const ProofWorkbench: React.FC = () => {
             {anomaliesOfPage.map((anomaly) => (
               <li key={anomaly.id}>
                 <div
-                  className="rounded-xs border border-[#2c2414]/70 bg-[#0f0c0a] p-2"
+                  className="atelier-card rounded-xs p-2"
                   style={{ borderLeft: `3px solid ${SEVERITY_COLOR[anomaly.severity]}` }}
                 >
                   <p className="flex items-baseline gap-2">

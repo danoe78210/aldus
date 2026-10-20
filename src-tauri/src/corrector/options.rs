@@ -1,12 +1,9 @@
-//! Options du correcteur LanguageTool — persistance JSON dans `app_data_dir`
-//! (données utilisateur, jamais purgées).
+//! Options du correcteur LanguageTool — persistance JSON dans LocalAppData.
 
 use std::collections::BTreeSet;
 use std::path::PathBuf;
 
 use serde::{Deserialize, Serialize};
-use tauri::Manager;
-
 /// Nom du fichier d'options (données utilisateur).
 const OPTIONS_FILE: &str = "corrector_options.json";
 
@@ -33,16 +30,7 @@ impl Default for LtOptions {
 
 /// Chemin du fichier d'options ; le dossier de données est créé si nécessaire.
 fn options_path(app: &tauri::AppHandle) -> Result<PathBuf, String> {
-    let dir = app
-        .path()
-        .app_data_dir()
-        .map_err(|e| format!("Dossier de données utilisateur introuvable : {e}"))?;
-    std::fs::create_dir_all(&dir).map_err(|e| {
-        format!(
-            "Création du dossier de données impossible « {} » : {e}",
-            dir.display()
-        )
-    })?;
+    let dir = crate::user_data::persistent_data_dir(app)?;
     Ok(dir.join(OPTIONS_FILE))
 }
 

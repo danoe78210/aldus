@@ -16,10 +16,11 @@ use crate::markdown::{
     extract_definitions, number_refs, parse_blocks, strip_frontmatter, strip_refs, Block,
     NoteDefinition,
 };
-use crate::pdf::{
-    self, generate, GlossaryChapter, GlossaryEntry, PdfDoc, Typography,
-};
+use crate::pdf::{self, generate, GlossaryChapter, GlossaryEntry, PdfDoc, Typography};
 use crate::project::{estimate_page_count, OrganizationNode, ProjectPayload};
+
+pub mod aldin_typography;
+pub mod stylometry;
 
 /// Nom de fichier de sortie proposé (slug du titre, extension `.pdf`).
 pub fn default_pdf_name(payload: &ProjectPayload) -> String {
@@ -314,7 +315,10 @@ async fn compile_project(app: tauri::AppHandle, payload: Value) -> Result<Vec<u8
         }
         crate::pagination::record_compilation(&app, &payload, &signature, output.page_count)?;
         Ok(output.bytes)
-    }).await.map_err(|error| format!("Composition PDF interrompue : {error}")).and_then(|result| result);
+    })
+    .await
+    .map_err(|error| format!("Composition PDF interrompue : {error}"))
+    .and_then(|result| result);
     result.inspect_err(|error| log::error!("Composition PDF : {error}"))
 }
 
@@ -322,8 +326,8 @@ async fn compile_project(app: tauri::AppHandle, payload: Value) -> Result<Vec<u8
 #[tauri::command]
 pub async fn export_pdf(app: tauri::AppHandle, payload: Value) -> Result<String, String> {
     println!("──────── export_pdf ────────");
-    let parsed: ProjectPayload =
-        serde_json::from_value(payload.clone()).map_err(|e| format!("Payload de projet invalide : {e}"))?;
+    let parsed: ProjectPayload = serde_json::from_value(payload.clone())
+        .map_err(|e| format!("Payload de projet invalide : {e}"))?;
 
     crate::emit_progress(&app, "Structuration du manuscrit…", 10);
     let bytes = compile_project(app.clone(), payload).await?;
@@ -370,7 +374,10 @@ pub async fn export_pdf(app: tauri::AppHandle, payload: Value) -> Result<String,
 /// frontend reçoit un `ArrayBuffer` brut, sans passer par une sérialisation JSON
 /// (coût prohibitif pour un manuscrit complet).
 #[tauri::command]
-pub async fn render_pdf(app: tauri::AppHandle, payload: Value) -> Result<tauri::ipc::Response, String> {
+pub async fn render_pdf(
+    app: tauri::AppHandle,
+    payload: Value,
+) -> Result<tauri::ipc::Response, String> {
     println!("──────── render_pdf (aperçu mémoire) ────────");
     let bytes = compile_project(app, payload).await?;
     println!("PDF aperçu généré : {} octets", bytes.len());
@@ -392,10 +399,7 @@ fn resolve_source_file(root: &std::path::Path, filename: &str) -> Option<std::pa
 }
 
 /// Recherche récursive d'un fichier par son **nom** (insensible à la casse).
-fn find_file_case_insensitive(
-    dir: &std::path::Path,
-    filename: &str,
-) -> Option<std::path::PathBuf> {
+fn find_file_case_insensitive(dir: &std::path::Path, filename: &str) -> Option<std::path::PathBuf> {
     for entry in std::fs::read_dir(dir).ok()?.flatten() {
         let path = entry.path();
         if path.is_dir() {
@@ -413,7 +417,7 @@ fn find_file_case_insensitive(
     None
 }
 
-/// Charge le payload du **projet persistant** (`app_data_dir/project.danoe`).
+/// Charge le payload du projet persistant dans LocalAppData.
 pub(crate) fn load_persisted_payload(app: &tauri::AppHandle) -> Result<ProjectPayload, String> {
     let path = crate::project_data_path(app)?;
     if !path.is_file() {
@@ -566,15 +570,28 @@ fn write_source_chapter(
         .map(str::trim)
         .filter(|value| !value.is_empty())
         .ok_or_else(|| "Dossier des sources non configuré (onglet Réglages).".to_string())?;
-    if std::path::Path::new(filename).extension().is_some_and(|ext| ext.eq_ignore_ascii_case("txt")) {
-        return crate::storage::atomic_write(&crate::pagination::source_path(&payload, filename)?, content.as_bytes());
+    if std::path::Path::new(filename)
+        .extension()
+        .is_some_and(|ext| ext.eq_ignore_ascii_case("txt"))
+    {
+        return crate::storage::atomic_write(
+            &crate::pagination::source_path(&payload, filename)?,
+            content.as_bytes(),
+        );
     }
     crate::storage::save_chapter(std::path::Path::new(root), filename, content)
 }
 
-fn history_workspace(app: &tauri::AppHandle, workspace: &str) -> Result<std::path::PathBuf, String> {
-    let configured = configured_sources_directory(app)?.canonicalize().map_err(|error| error.to_string())?;
-    let requested = std::path::Path::new(workspace).canonicalize().map_err(|error| error.to_string())?;
+fn history_workspace(
+    app: &tauri::AppHandle,
+    workspace: &str,
+) -> Result<std::path::PathBuf, String> {
+    let configured = configured_sources_directory(app)?
+        .canonicalize()
+        .map_err(|error| error.to_string())?;
+    let requested = std::path::Path::new(workspace)
+        .canonicalize()
+        .map_err(|error| error.to_string())?;
     if requested != configured {
         return Err("L'historique doit appartenir au workspace du projet courant.".into());
     }
@@ -582,18 +599,37 @@ fn history_workspace(app: &tauri::AppHandle, workspace: &str) -> Result<std::pat
 }
 
 #[tauri::command]
-pub async fn list_chapter_history(app: tauri::AppHandle, workspace: String, chapter_id: String) -> Result<Vec<crate::storage::SnapshotEntry>, String> {
+pub async fn list_chapter_history(
+    app: tauri::AppHandle,
+    workspace: String,
+    chapter_id: String,
+) -> Result<Vec<crate::storage::SnapshotEntry>, String> {
     let result = tauri::async_runtime::spawn_blocking(move || {
         crate::storage::list_history(&history_workspace(&app, &workspace)?, &chapter_id)
-    }).await.map_err(|error| format!("Lecture de l'historique interrompue : {error}")).and_then(|result| result);
+    })
+    .await
+    .map_err(|error| format!("Lecture de l'historique interrompue : {error}"))
+    .and_then(|result| result);
     result.inspect_err(|error| log::error!("Historique du chapitre : {error}"))
 }
 
 #[tauri::command]
-pub async fn restore_chapter_snapshot(app: tauri::AppHandle, workspace: String, chapter_id: String, snapshot_filename: String) -> Result<(), String> {
+pub async fn restore_chapter_snapshot(
+    app: tauri::AppHandle,
+    workspace: String,
+    chapter_id: String,
+    snapshot_filename: String,
+) -> Result<(), String> {
     let result = tauri::async_runtime::spawn_blocking(move || {
-        crate::storage::restore_snapshot(&history_workspace(&app, &workspace)?, &chapter_id, &snapshot_filename)
-    }).await.map_err(|error| format!("Restauration interrompue : {error}")).and_then(|result| result);
+        crate::storage::restore_snapshot(
+            &history_workspace(&app, &workspace)?,
+            &chapter_id,
+            &snapshot_filename,
+        )
+    })
+    .await
+    .map_err(|error| format!("Restauration interrompue : {error}"))
+    .and_then(|result| result);
     result.inspect_err(|error| log::error!("Restauration du chapitre : {error}"))
 }
 
@@ -608,7 +644,10 @@ pub async fn save_chapter_file(
         let app = app.clone();
         let filename = filename.clone();
         move || write_source_chapter(&app, &filename, &content)
-    }).await.map_err(|error| format!("Sauvegarde interrompue : {error}")).and_then(|result| result);
+    })
+    .await
+    .map_err(|error| format!("Sauvegarde interrompue : {error}"))
+    .and_then(|result| result);
     match result {
         Ok(()) => {
             log::info!("Chapitre écrit atomiquement pour {filename}");
@@ -632,7 +671,10 @@ pub async fn save_chapter_content(
         let app = app.clone();
         let chapter_file = chapter_file.clone();
         move || write_source_chapter(&app, &chapter_file, &content)
-    }).await.map_err(|error| format!("Validation interrompue : {error}")).and_then(|result| result);
+    })
+    .await
+    .map_err(|error| format!("Validation interrompue : {error}"))
+    .and_then(|result| result);
     match result {
         Ok(()) => {
             log::info!("Corrections validées et écrites pour {chapter_file}");
@@ -720,9 +762,7 @@ pub fn open_proofs_directory(app: tauri::AppHandle, path: Option<String>) -> Res
         None => app
             .path()
             .document_dir()
-            .map_err(|e| {
-                format!("Dossier des documents introuvable : {e}")
-            })?
+            .map_err(|e| format!("Dossier des documents introuvable : {e}"))?
             .join("Aldus")
             .join("Export"),
     };
@@ -971,7 +1011,11 @@ mod tests {
         .unwrap();
 
         // ── Pipeline PDF : source Typst générée depuis l'AST post-traité ──
-        let spec = KdpPageSpec::resolve("6x9", estimate_page_count(&payload).expect("pagination"), false);
+        let spec = KdpPageSpec::resolve(
+            "6x9",
+            estimate_page_count(&payload).expect("pagination"),
+            false,
+        );
         let mut glossary: Vec<GlossaryChapter> = Vec::new();
         let blocks = build_blocks(&payload, true, &mut glossary).unwrap();
         let layout = &payload.layout_config;
@@ -997,7 +1041,10 @@ mod tests {
         let src = generate(&spec, &doc);
 
         // Appels de notes en exposant (jamais en texte brut).
-        assert!(src.contains("#super["), "appels de notes en exposant :\n{src}");
+        assert!(
+            src.contains("#super["),
+            "appels de notes en exposant :\n{src}"
+        );
         // Terme en gras + « : » ; numérotation stricte par chapitre.
         assert!(
             src.contains("#super[1] #text(\"Nahe\", weight: \"bold\") : "),
@@ -1018,8 +1065,8 @@ mod tests {
         );
 
         // ── Pipeline Word : XML du document ──
-        let bytes = crate::export::build_docx(&payload, None, false, &|_, _| {})
-            .expect("génération DOCX");
+        let bytes =
+            crate::export::build_docx(&payload, None, false, &|_, _| {}).expect("génération DOCX");
         let document = read_docx_part(&bytes, "word/document.xml");
 
         assert!(document.contains("Nahe :"), "terme « Nahe : » DOCX");
@@ -1093,7 +1140,11 @@ mod tests {
         .unwrap();
 
         // ── PDF (Typst) ──
-        let spec = KdpPageSpec::resolve("6x9", estimate_page_count(&payload).expect("pagination"), false);
+        let spec = KdpPageSpec::resolve(
+            "6x9",
+            estimate_page_count(&payload).expect("pagination"),
+            false,
+        );
         let mut glossary: Vec<GlossaryChapter> = Vec::new();
         let blocks = build_blocks(&payload, false, &mut glossary).unwrap();
         let layout = &payload.layout_config;
@@ -1134,13 +1185,15 @@ mod tests {
             "PDF — Image isolée & centrée :\n{src}"
         );
         assert!(
-            src.contains("let structural =") && src.contains("query(figure)") && src.contains("if not structural"),
+            src.contains("let structural =")
+                && src.contains("query(figure)")
+                && src.contains("if not structural"),
             "PDF — en-tête masqué sur les pages structurelles (titres & illustrations) :\n{src}"
         );
 
         // ── DOCX ──
-        let docx = crate::export::build_docx(&payload, None, false, &|_, _| {})
-            .expect("génération DOCX");
+        let docx =
+            crate::export::build_docx(&payload, None, false, &|_, _| {}).expect("génération DOCX");
         let document = read_docx_part(&docx, "word/document.xml");
         assert!(
             document.contains("oddPage"),

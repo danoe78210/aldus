@@ -2,10 +2,10 @@ use serde::{Deserialize, Serialize};
 use std::collections::{BTreeMap, BTreeSet};
 use std::path::{Path, PathBuf};
 use std::time::{SystemTime, UNIX_EPOCH};
-use tauri::Manager;
 
-mod deletion;
+
 mod audio;
+mod deletion;
 mod metadata;
 pub use audio::AudioEngine;
 
@@ -274,8 +274,21 @@ pub async fn open_library_resource(
             .and_then(|file| Path::new(&file.path).parent())
             .and_then(Path::to_str)
             .ok_or("Dossier d'export non renseigné.")?
-    } else if book.audio.as_ref().is_some_and(|audio| audio.chapters.iter().any(|chapter| chapter.path == resource)) {
-        &book.audio.as_ref().unwrap().chapters.iter().find(|chapter| chapter.path == resource).unwrap().path
+    } else if book.audio.as_ref().is_some_and(|audio| {
+        audio
+            .chapters
+            .iter()
+            .any(|chapter| chapter.path == resource)
+    }) {
+        &book
+            .audio
+            .as_ref()
+            .unwrap()
+            .chapters
+            .iter()
+            .find(|chapter| chapter.path == resource)
+            .unwrap()
+            .path
     } else {
         &book
             .files
@@ -447,12 +460,7 @@ impl LibraryConfig {
 }
 
 fn config_path(app: &tauri::AppHandle) -> Result<std::path::PathBuf, String> {
-    let dir = app
-        .path()
-        .app_data_dir()
-        .map_err(|e| format!("Dossier de données utilisateur introuvable : {e}"))?;
-    std::fs::create_dir_all(&dir)
-        .map_err(|e| format!("Création du dossier de données impossible : {e}"))?;
+    let dir = crate::user_data::persistent_data_dir(app)?;
     Ok(dir.join("library.json"))
 }
 
@@ -487,7 +495,9 @@ fn write_config(app: &tauri::AppHandle, config: &LibraryConfig) -> Result<(), St
                 log::warn!("Library config temp cleanup failed: {cleanup_error}");
             }
         }
-        return Err(format!("Écriture temporaire de la bibliothèque impossible : {error}"));
+        return Err(format!(
+            "Écriture temporaire de la bibliothèque impossible : {error}"
+        ));
     }
     if let Err(error) = std::fs::rename(&temporary, &path) {
         if let Err(cleanup_error) = std::fs::remove_file(&temporary) {
@@ -495,7 +505,9 @@ fn write_config(app: &tauri::AppHandle, config: &LibraryConfig) -> Result<(), St
                 log::warn!("Library config temp cleanup failed: {cleanup_error}");
             }
         }
-        return Err(format!("Enregistrement atomique de la bibliothèque impossible : {error}"));
+        return Err(format!(
+            "Enregistrement atomique de la bibliothèque impossible : {error}"
+        ));
     }
     Ok(())
 }
@@ -550,7 +562,12 @@ pub async fn delete_audio_track(
     let chapter = config.books[book_index]
         .audio
         .as_ref()
-        .and_then(|audio| audio.chapters.iter().find(|chapter| chapter.index == chapter_index))
+        .and_then(|audio| {
+            audio
+                .chapters
+                .iter()
+                .find(|chapter| chapter.index == chapter_index)
+        })
         .ok_or("Piste audio introuvable pour cet ouvrage.")?;
     let requested_path = PathBuf::from(&chapter.path);
     if !requested_path.is_absolute()
@@ -575,7 +592,9 @@ pub async fn delete_audio_track(
     let track_path = parent.join(filename);
     let track_exists = match std::fs::symlink_metadata(&track_path) {
         Ok(metadata) if metadata.is_file() && !metadata.file_type().is_symlink() => true,
-        Ok(_) => return Err("Suppression refusée : la piste n'est pas un fichier régulier.".into()),
+        Ok(_) => {
+            return Err("Suppression refusée : la piste n'est pas un fichier régulier.".into())
+        }
         Err(error) if error.kind() == std::io::ErrorKind::NotFound => false,
         Err(error) => return Err(format!("Accès à la piste audio impossible : {error}")),
     };
@@ -601,7 +620,9 @@ pub async fn delete_audio_track(
                 Ok(_) => {}
                 Err(error) if error.kind() == std::io::ErrorKind::NotFound => {}
                 Err(error) => {
-                    return Err(format!("Vérification des pistes partagées impossible : {error}"));
+                    return Err(format!(
+                        "Vérification des pistes partagées impossible : {error}"
+                    ));
                 }
             }
         }
@@ -631,7 +652,9 @@ pub async fn delete_audio_track(
         .audio
         .as_mut()
         .ok_or("Édition audio introuvable.")?;
-    edition.chapters.retain(|chapter| chapter.index != chapter_index);
+    edition
+        .chapters
+        .retain(|chapter| chapter.index != chapter_index);
     if edition.chapters.is_empty() {
         config.books[book_index].audio = None;
     }
@@ -666,9 +689,7 @@ pub async fn delete_audio_track(
     Ok(config)
 }
 
-async fn initialize_audio_engine(
-    app: &tauri::AppHandle,
-) -> Result<Vec<audio::AudioVoice>, String> {
+async fn initialize_audio_engine(app: &tauri::AppHandle) -> Result<Vec<audio::AudioVoice>, String> {
     audio::emit_audio_init_progress(&app, 10, "Spawn du process aldus-audio-server.exe");
     let initialization = async {
         audio::ensure_bundled_engine(app).await?;
@@ -728,16 +749,12 @@ pub async fn save_audio_consent(
 }
 
 #[tauri::command]
-pub async fn start_audio_engine(
-    app: tauri::AppHandle,
-) -> Result<Vec<audio::AudioVoice>, String> {
+pub async fn start_audio_engine(app: tauri::AppHandle) -> Result<Vec<audio::AudioVoice>, String> {
     initialize_audio_engine(&app).await
 }
 
 #[tauri::command]
-pub async fn list_audio_voices(
-    app: tauri::AppHandle,
-) -> Result<Vec<audio::AudioVoice>, String> {
+pub async fn list_audio_voices(app: tauri::AppHandle) -> Result<Vec<audio::AudioVoice>, String> {
     initialize_audio_engine(&app).await
 }
 

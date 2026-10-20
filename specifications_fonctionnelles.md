@@ -456,3 +456,15 @@ EPUBCheck n'est pas intégré. Les infobulles rendent ces limites explicites.
 - **Cahier KDP** : `specifications_roman_kdp.md`
 - **Documents historiques** (univers « Danoë Studio », conservés pour traçabilité) :
   `archive/specifications_danoe_studio_v0.md`, `archive/specifications_v0_light.md`
+
+## 11. Épreuve de Plume & Usage Aldin (v1.4.9)
+
+- **Épreuve de Plume** : menu dédié à l'audit hors ligne d'un chapitre Markdown. La vue présente un score de risque indicatif, les motifs repérés avec contexte, leurs explications et les suggestions disponibles.
+- L'analyse heuristique tient compte de la cadence et de la symétrie des paragraphes, des tics de liaison, triades, listes préformatées et régularités lexicales ; des marqueurs narratifs et typographiques peuvent réduire le score.
+- L'auteur peut consulter les règles de détection et d'humanisation, créer et activer/désactiver ses règles, supprimer ses règles personnelles ou rétablir les règles natives. Les règles sont persistées dans la configuration locale de l'application.
+- Le score n'établit pas l'origine d'un texte. Aucun détecteur générique de watermarking n'est activé sans procédé et clé connus.
+- **Usage Aldin** : depuis le Banc d'Épreuve, l'auteur demande un aperçu du nombre de fichiers Markdown et de substitutions avant de confirmer la normalisation du workspace. La commande traite les fichiers Markdown visibles du workspace configuré, sans suivre les liens symboliques et hors dossiers cachés, `.aldus`, `node_modules`, `target` et `dist`.
+- Chaque chapitre modifié est sauvegardé dans l'historique avant écriture atomique. Les instantanés restent disponibles dans l'historique du chapitre et leur restauration conserve la version courante.
+- À la première utilisation de v1.4.9, l'état interne migré depuis APPDATA vers `%LOCALAPPDATA%\net.danoe.aldus` est vérifié avant suppression de l'ancienne copie ; en cas de conflit, la copie historique est archivée dans LocalAppData et l'état local existant reste actif.
+- Les règles de normalisation incluent apostrophes typographiques, espaces fines insécables, tirets en tête de dialogue et ligatures françaises répertoriées. La limitation lexicale évite de transformer à l'aveugle les mots étrangers ou termes de saga.
+- Le traitement global est bloqué si des corrections non consignées sont présentes dans le Banc d'Épreuve ; le chapitre actif est rechargé après l'opération.

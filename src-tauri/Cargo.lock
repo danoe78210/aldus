@@ -53,7 +53,7 @@ dependencies = [
 
 [[package]]
 name = "aldus"
-version = "1.4.8"
+version = "1.4.9"
 dependencies = [
  "chrono",
  "docx-rs",
@@ -62,6 +62,7 @@ dependencies = [
  "image",
  "log",
  "lopdf",
+ "regex",
  "reqwest 0.12.28",
  "roxmltree",
  "semver",

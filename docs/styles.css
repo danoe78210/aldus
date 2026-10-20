@@ -9,6 +9,7 @@
     --font-serif: "Palatino Linotype", "Book Antiqua", Palatino, Georgia, serif;
     --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
       "Courier New", monospace;
+    --color-black: #000;
     --spacing: 0.25rem;
     --container-2xl: 42rem;
     --container-4xl: 56rem;
@@ -38,6 +39,7 @@
     --tracking-widest: 0.1em;
     --leading-relaxed: 1.625;
     --radius-xs: 0.125rem;
+    --radius-sm: 0.25rem;
     --ease-out: cubic-bezier(0, 0, 0.2, 1);
     --blur-md: 12px;
     --default-transition-duration: 150ms;
@@ -232,6 +234,9 @@
   .z-50 {
     z-index: 50;
   }
+  .m-auto {
+    margin: auto;
+  }
   .mx-auto {
     margin-inline: auto;
   }
@@ -265,9 +270,6 @@
   .mt-16 {
     margin-top: calc(var(--spacing) * 16);
   }
-  .mt-20 {
-    margin-top: calc(var(--spacing) * 20);
-  }
   .mt-32 {
     margin-top: calc(var(--spacing) * 32);
   }
@@ -294,6 +296,9 @@
   }
   .mb-16 {
     margin-bottom: calc(var(--spacing) * 16);
+  }
+  .ml-auto {
+    margin-left: auto;
   }
   .block {
     display: block;
@@ -322,6 +327,15 @@
   .h-px {
     height: 1px;
   }
+  .max-h-\[82vh\] {
+    max-height: 82vh;
+  }
+  .max-h-\[92vh\] {
+    max-height: 92vh;
+  }
+  .min-h-screen {
+    min-height: 100vh;
+  }
   .w-24 {
     width: calc(var(--spacing) * 24);
   }
@@ -346,6 +360,12 @@
   .max-w-6xl {
     max-width: var(--container-6xl);
   }
+  .max-w-\[88vw\] {
+    max-width: 88vw;
+  }
+  .max-w-\[92vw\] {
+    max-width: 92vw;
+  }
   .-translate-x-1\/2 {
     --tw-translate-x: calc(calc(1 / 2 * 100%) * -1);
     translate: var(--tw-translate-x) var(--tw-translate-y);
@@ -358,6 +378,9 @@
   }
   .cursor-zoom-in {
     cursor: zoom-in;
+  }
+  .list-disc {
+    list-style-type: disc;
   }
   .grid-cols-1 {
     grid-template-columns: repeat(1, minmax(0, 1fr));
@@ -392,6 +415,9 @@
   .gap-4 {
     gap: calc(var(--spacing) * 4);
   }
+  .gap-5 {
+    gap: calc(var(--spacing) * 5);
+  }
   .gap-6 {
     gap: calc(var(--spacing) * 6);
   }
@@ -422,6 +448,9 @@
   }
   .rounded-full {
     border-radius: calc(infinity * 1px);
+  }
+  .rounded-sm {
+    border-radius: var(--radius-sm);
   }
   .rounded-xs {
     border-radius: var(--radius-xs);
@@ -557,6 +586,9 @@
   .p-2 {
     padding: calc(var(--spacing) * 2);
   }
+  .p-3 {
+    padding: calc(var(--spacing) * 3);
+  }
   .p-4 {
     padding: calc(var(--spacing) * 4);
   }
@@ -565,6 +597,9 @@
   }
   .p-6 {
     padding: calc(var(--spacing) * 6);
+  }
+  .px-2 {
+    padding-inline: calc(var(--spacing) * 2);
   }
   .px-3 {
     padding-inline: calc(var(--spacing) * 3);
@@ -599,6 +634,9 @@
   .py-12 {
     padding-block: calc(var(--spacing) * 12);
   }
+  .py-16 {
+    padding-block: calc(var(--spacing) * 16);
+  }
   .pt-3 {
     padding-top: calc(var(--spacing) * 3);
   }
@@ -622,6 +660,9 @@
   }
   .pl-3 {
     padding-left: calc(var(--spacing) * 3);
+  }
+  .pl-5 {
+    padding-left: calc(var(--spacing) * 5);
   }
   .text-center {
     text-align: center;
@@ -690,6 +731,10 @@
     --tw-tracking: 0.15em;
     letter-spacing: 0.15em;
   }
+  .tracking-\[0\.18em\] {
+    --tw-tracking: 0.18em;
+    letter-spacing: 0.18em;
+  }
   .tracking-\[0\.25em\] {
     --tw-tracking: 0.25em;
     letter-spacing: 0.25em;
@@ -754,12 +799,19 @@
   .underline {
     text-decoration-line: underline;
   }
+  .underline-offset-4 {
+    text-underline-offset: 4px;
+  }
   .antialiased {
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
   .opacity-0 {
     opacity: 0%;
+  }
+  .shadow-2xl {
+    --tw-shadow: 0 25px 50px -12px var(--tw-shadow-color, rgb(0 0 0 / 0.25));
+    box-shadow: var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow);
   }
   .shadow-\[0_0_20px_rgba\(212\,175\,55\,0\.18\)\] {
     --tw-shadow: 0 0 20px var(--tw-shadow-color, rgba(212,175,55,0.18));
@@ -862,6 +914,12 @@
   .selection\:text-\[\#f3e5ab\]::selection {
     color: #f3e5ab;
   }
+  .backdrop\:bg-black\/80::backdrop {
+    background-color: color-mix(in srgb, #000 80%, transparent);
+    @supports (color: color-mix(in lab, red, red)) {
+      background-color: color-mix(in oklab, var(--color-black) 80%, transparent);
+    }
+  }
   @media (hover: hover) {
     .hover\:border-atelier-brass:hover {
       border-color: var(--color-atelier-brass);
@@ -927,6 +985,9 @@
     }
     .sm\:p-8 {
       padding: calc(var(--spacing) * 8);
+    }
+    .sm\:px-10 {
+      padding-inline: calc(var(--spacing) * 10);
     }
     .sm\:text-2xl {
       font-size: var(--text-2xl);

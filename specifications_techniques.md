@@ -718,3 +718,25 @@ d'information) et respecte `prefers-reduced-motion`.
 - **Module Couverture** : `SPECIFICATIONS_COVER_STUDIO_v1.2.0.md`
 - **Cahier KDP** : `specifications_roman_kdp.md`
 - **Historique** : `archive/` (univers « Danoë Studio », v0)
+
+## 13. Épreuve de Plume & Usage Aldin (v1.4.9)
+
+### 13.1 Audit stylométrique
+
+- Le module Rust `stylometry` analyse les chapitres Markdown localement, sans appel réseau ni modèle neuronal. La commande Tauri `audit_chapter_stylometry(workspace, chapter_id)` valide le workspace configuré, charge les règles persistées, puis renvoie `StylometryReport` avec score heuristique, burstiness et anomalies en offsets Unicode.
+- Les règles natives et les règles auteur sont sérialisées dans `stylometry_rules.json` sous le répertoire de configuration Tauri. La validation des règles borne les identifiants, motifs, explications et poids ; une regex invalide est rejetée.
+- Les suggestions sont appliquées après vérification que l'extrait et ses offsets correspondent encore au fichier. Le stockage crée un snapshot avant écriture atomique.
+- Le rapport est un indicateur éditorial, pas un classifieur fiable d'origine. Les détections non fondées de watermarking sont exclues.
+
+### 13.2 Normalisation batch
+
+- Commande Tauri : `apply_aldin_typography_to_project(workspace, dry_run) -> Result<TypoBatchSummary, String>`. `dry_run` calcule les nombres de fichiers et remplacements sans écrire.
+- L'exécution est sérialisée par le verrou de projet, parcourt récursivement les seuls fichiers `.md` ordinaires, ne suit pas les liens symboliques et exclut `.aldus`, les dossiers cachés, `node_modules`, `target` et `dist`.
+- Le backend prépare les résultats avant d'écrire. Chaque chapitre est relu sous verrou, sauvegardé via l'historique compatible du chapitre avec suffixe `before_global_aldin`, puis remplacé par `atomic_write`. Un conflit de contenu est remonté au lieu d'écraser une modification concurrente.
+- Les quatre compteurs IPC sont `apostrophesCount`, `spacesCount`, `dashesCount` et `ligaturesCount`; `chaptersModified` indique le nombre de fichiers touchés. L'historique trie les snapshots par date analysée pour intégrer le suffixe de sauvegarde ajouté.
+
+### 13.3 Design system
+
+- Tailwind/CSS centralise les couleurs Dark Atelier et les utilitaires `.atelier-card`, `.text-parchment`, `.text-gold` et `.badge-transform`.
+- La plaque de version reste dynamique : elle utilise le manifeste npm en aperçu et la version native Tauri en application empaquetée.
+- Les données persistantes application (`project.danoe`, `library.json`, dictionnaires, options du correcteur et règles stylométriques) sont résolues dans `app_local_data_dir()`. `user_data::persistent_data_dir` migre ces fichiers depuis `app_data_dir()` et `app_config_dir()` par copie atomique vérifiée ; les versions concurrentes sont archivées localement, puis les anciennes copies sont supprimées seulement après vérification.

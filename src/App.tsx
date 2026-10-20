@@ -162,6 +162,7 @@ const MENU_ORDER: ActiveMenu[] = [
   'ecritoire',
   'organisation',
   'correcteur',
+  'epreuve-plume',
   'couverture',
   'export',
   'bibliotheque',

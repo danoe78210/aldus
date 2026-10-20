@@ -1,6 +1,9 @@
 import React, { useMemo, useState } from "react";
+import { createPortal } from "react-dom";
 import { ChevronLeft, ChevronRight, Feather, Loader2, RefreshCw, ScrollText, Stamp } from "lucide-react";
 import { useStudio } from "./StudioContext";
+import type { TypoBatchSummary } from "./StudioContext";
+import { invokeCommand, isInvokeAvailable } from "../utils/tauri";
 import { ProofTabToggle } from "./proof/ProofTabToggle";
 import { ProofReader } from "./proof/ProofReader";
 import { ChapterHistoryDialog } from "./proof/ChapterHistoryDialog";
@@ -56,6 +59,7 @@ export const ProofExaminer: React.FC = () => {
     activeAnomalyId,
     sourceConfig,
     restoreProofSnapshot,
+    onNotify,
   } = useStudio();
 
   const report = useMemo(
@@ -70,6 +74,56 @@ export const ProofExaminer: React.FC = () => {
   // Survol : voile doré discret sur les anomalies du grand feuillet de lecture.
   const [hovered, setHovered] = useState<string | null>(null);
   const [historyOpen, setHistoryOpen] = useState(false);
+  const [normalizing, setNormalizing] = useState(false);
+  const [pendingBatch, setPendingBatch] = useState<TypoBatchSummary | null>(null);
+
+  const applyGlobalAldin = async () => {
+    if (!sourceConfig.directory || !isInvokeAvailable()) {
+      onNotify("error", "La normalisation globale exige l'application de bureau et un dossier de sources configuré.");
+      return;
+    }
+    if (proofDirty) {
+      onNotify("warning", "Consignez d'abord les corrections en attente avant de normaliser l'ouvrage.");
+      return;
+    }
+    setNormalizing(true);
+    try {
+      const preview = await invokeCommand<TypoBatchSummary>("apply_aldin_typography_to_project", {
+        workspace: sourceConfig.directory,
+        dryRun: true,
+      });
+      if (preview.chaptersModified === 0) {
+        onNotify("info", "Aucune modification typographique à appliquer.");
+        return;
+      }
+      setPendingBatch(preview);
+    } catch (error) {
+      onNotify("error", `Échec de la normalisation aldin : ${String(error)}`);
+    } finally {
+      setNormalizing(false);
+    }
+  };
+
+  const confirmGlobalAldin = async () => {
+    if (!pendingBatch || !sourceConfig.directory) return;
+    setNormalizing(true);
+    setPendingBatch(null);
+    try {
+      const result = await invokeCommand<TypoBatchSummary>("apply_aldin_typography_to_project", {
+        workspace: sourceConfig.directory,
+        dryRun: false,
+      });
+      const message = `${result.chaptersModified} fichier(s) Markdown mis à niveau : ${result.apostrophesCount} apostrophes, ${result.spacesCount} espaces, ${result.dashesCount} tirets et ${result.ligaturesCount} ligatures.`;
+      onNotify("success", message);
+      if (proofChapter.toLowerCase().endsWith(".md")) {
+        await loadProofChapter(proofChapter);
+      }
+    } catch (error) {
+      onNotify("error", `Échec de la normalisation aldin : ${String(error)}`);
+    } finally {
+      setNormalizing(false);
+    }
+  };
 
   const severityOf = report.bySeverity;
 
@@ -91,6 +145,51 @@ export const ProofExaminer: React.FC = () => {
       {historyOpen && sourceConfig.directory && (
         <ChapterHistoryDialog key={`${sourceConfig.directory}/${proofChapter}`} workspace={sourceConfig.directory}
           chapter={proofChapter} onRestore={restoreProofSnapshot} onClose={() => setHistoryOpen(false)} />
+      )}
+      {pendingBatch && createPortal(
+        <div
+          className="fixed inset-0 z-[10000] flex items-center justify-center bg-black/80 p-4"
+          onMouseDown={(event) => {
+            if (event.target === event.currentTarget) setPendingBatch(null);
+          }}
+        >
+          <section
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="aldin-confirm-title"
+            className="w-full max-w-lg rounded-sm border border-[#806b3e] bg-[#171411] p-6 text-atelier-parchment shadow-2xl"
+          >
+            <h2 id="aldin-confirm-title" className="font-cinzel text-base tracking-widest text-atelier-gold uppercase">
+              Imposer l’Usage Aldin à l’ouvrage
+            </h2>
+            <p className="mt-3 font-serif text-sm leading-relaxed text-atelier-parchment-muted">
+              {pendingBatch.chaptersModified} fichier(s) Markdown seront normalisés. Des instantanés de sécurité seront créés avant chaque écriture.
+            </p>
+            <dl className="mt-4 grid grid-cols-2 gap-x-4 gap-y-2 border-y border-atelier-border py-3 font-mono text-xs">
+              <dt>Apostrophes</dt><dd className="text-right">{pendingBatch.apostrophesCount}</dd>
+              <dt>Espaces typographiques</dt><dd className="text-right">{pendingBatch.spacesCount}</dd>
+              <dt>Tirets de dialogue</dt><dd className="text-right">{pendingBatch.dashesCount}</dd>
+              <dt>Ligatures</dt><dd className="text-right">{pendingBatch.ligaturesCount}</dd>
+            </dl>
+            <div className="mt-5 flex justify-end gap-3">
+              <button
+                type="button"
+                onClick={() => setPendingBatch(null)}
+                className="rounded-sm border border-[#3a3022] px-3 py-2 font-serif text-xs text-[#c5bfb2] hover:border-atelier-border-active hover:text-atelier-parchment"
+              >
+                Annuler
+              </button>
+              <button
+                type="button"
+                onClick={() => void confirmGlobalAldin()}
+                className="rounded-sm border border-atelier-border-active bg-atelier-card px-3 py-2 font-cinzel text-xs tracking-wider text-atelier-gold hover:bg-atelier-card-hover"
+              >
+                Confirmer et normaliser
+              </button>
+            </div>
+          </section>
+        </div>,
+        document.body,
       )}
 
       {proofTab === "purete" ? (
@@ -257,6 +356,14 @@ export const ProofExaminer: React.FC = () => {
             >
               <RefreshCw size={12} className="mr-1 inline" />
               Recharger
+            </button>
+            <button
+              type="button"
+              onClick={() => void applyGlobalAldin()}
+              disabled={!sourceConfig?.directory || proofDirty || proofLoading || normalizing || Boolean(pendingBatch)}
+              className="rounded-xs border border-atelier-border-active bg-atelier-card px-2.5 py-1.5 font-cinzel text-[10px] tracking-wider text-atelier-gold uppercase transition-colors hover:bg-atelier-card-hover disabled:cursor-not-allowed disabled:opacity-40"
+            >
+              {normalizing ? "Normalisation…" : "Imposer l'Usage Aldin à l'ouvrage"}
             </button>
             <button
               type="button"

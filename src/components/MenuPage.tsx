@@ -54,6 +54,8 @@ export const MenuPage: React.FC<{ menu: ActiveMenu }> = ({ menu }) => {
       return <CoverCalibration />;
     case "correcteur":
       return <ProofWorkbench />;
+    case "epreuve-plume":
+      return <ProofWorkbench />;
     case "export":
       /* Feuillet XII (droite) : marbre de pressage — l'inspection pré-presse est
          composée sur la page de gauche (Feuillet XI). */

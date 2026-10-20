@@ -1,6 +1,16 @@
 @import "tailwindcss";
 
 @theme {
+  --color-atelier-bg: #121110;
+  --color-atelier-card: #1c1a17;
+  --color-atelier-card-hover: #25231f;
+  --color-atelier-border: rgb(212 175 55 / 20%);
+  --color-atelier-border-active: rgb(212 175 55 / 60%);
+  --color-atelier-parchment: #f0ece1;
+  --color-atelier-parchment-muted: #c5bfb2;
+  --color-atelier-gold: #d4af37;
+  --color-atelier-gold-dark: #8c7322;
+  --color-atelier-alert-red: #8f2d2d;
   /* Bureau sombre et feutré */
   --color-desk: #12161f;
   --color-desk-light: #1b212e;
@@ -35,6 +45,22 @@
   --font-mono: "SFMono-Regular", "Consolas", "Liberation Mono", monospace;
 }
 
+.atelier-card {
+  @apply rounded border border-atelier-border bg-atelier-card p-4 shadow-md transition-colors;
+}
+
+.text-parchment {
+  @apply font-normal text-atelier-parchment;
+}
+
+.text-gold {
+  @apply font-medium text-atelier-gold;
+}
+
+.badge-transform {
+  @apply inline-flex items-center gap-1 rounded border border-atelier-border-active bg-atelier-bg px-2 py-1 font-mono text-[15px] leading-tight text-atelier-gold;
+}
+
 html,
 body,
 #root {
@@ -46,7 +72,7 @@ body {
   /* v1.2.0 : l'interface applicative utilise une sans-serif humaniste neutre ;
      les titres conservent la serif éditoriale via la classe `font-serif`. */
   font-family: var(--font-sans);
-  color: var(--color-ink);
+  color: var(--color-atelier-parchment);
   /* Texture feutrée évoquant le mobilier de bureau vintage des années 50 */
   background-image:
     radial-gradient(circle at 20% 15%, rgba(255, 255, 255, 0.035), transparent 45%),
@@ -503,4 +529,3 @@ body.is-resizing *,
   transition: none !important;
   animation: none !important;
 }
-
