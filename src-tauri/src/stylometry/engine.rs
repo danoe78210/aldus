@@ -57,6 +57,23 @@ fn masked_frontmatter(text: &str) -> String {
         .collect()
 }
 
+fn masked_headings(text: String) -> String {
+    let mut result = String::with_capacity(text.len());
+    for line in text.split_inclusive('\n') {
+        let body = line.trim_start();
+        let level = body.chars().take_while(|character| *character == '#').count();
+        if (1..=6).contains(&level) && body[level..].starts_with(char::is_whitespace) {
+            result.extend(line.chars().map(|character| match character {
+                '\n' | '\r' => character,
+                _ => ' ',
+            }));
+        } else {
+            result.push_str(line);
+        }
+    }
+    result
+}
+
 fn spans(text: &str, split: impl Fn(char) -> bool) -> Vec<Span> {
     let mut result = Vec::new();
     let mut start = 0;
@@ -684,7 +701,7 @@ pub fn analyze(
     original: &str,
     rules: &[StylometryRule],
 ) -> Result<StylometryReport, String> {
-    let text = masked_frontmatter(original);
+    let text = masked_headings(masked_frontmatter(original));
     let mut byte_to_char = vec![0; text.len() + 1];
     for (char_index, (byte_index, _)) in text.char_indices().enumerate() {
         byte_to_char[byte_index] = char_index;
@@ -838,6 +855,19 @@ mod tests {
         )?;
         assert_eq!(report.issues_count, 1);
         assert_eq!(report.issues[0].rule_id, "paragraph-symmetry");
+        Ok(())
+    }
+
+    #[test]
+    fn markdown_headings_are_not_merged_into_the_first_sentence() -> Result<(), String> {
+        let mut rules = default_rules();
+        rules.retain(|rule| rule.id == "isometry-chain");
+        let heading = "# Le Phare\n\n## I. La tempête\n\n";
+        let prose = "Un roi regarde les portes. Le roi ferme les portes. Son roi franchit les portes.";
+        let report = analyze("chapitre.md", &format!("{heading}{prose}"), &rules)?;
+        assert_eq!(report.issues_count, 1);
+        assert_eq!(report.issues[0].original_text, prose);
+        assert_eq!(report.issues[0].start_offset, heading.chars().count());
         Ok(())
     }
 

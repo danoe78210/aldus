@@ -42,6 +42,8 @@
     "Helvetica Neue", Arial, sans-serif;
   --font-serif: "Cormorant Garamond", "Cinzel", "Libertinus Serif", Georgia,
     "Times New Roman", serif;
+  /* Corps de lecture des manuscrits à l'écran (Épreuve de Plume). */
+  --font-reading: "Literata", "EB Garamond", Georgia, serif;
   --font-mono: "SFMono-Regular", "Consolas", "Liberation Mono", monospace;
 }
 

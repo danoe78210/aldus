@@ -121,13 +121,13 @@ fn save_system_config(path: &Path, system: &SystemConfig) -> Result<(), String> 
     write_config(path, &root)
 }
 
-fn checked_within_last_day(system: &SystemConfig, now: DateTime<Utc>) -> bool {
+fn cache_is_fresh(system: &SystemConfig, now: DateTime<Utc>) -> bool {
     system
         .last_update_check
         .as_deref()
         .and_then(|last| DateTime::parse_from_rfc3339(last).ok())
         .map(|last| now.signed_duration_since(last.with_timezone(&Utc)))
-        .is_some_and(|age| age >= ChronoDuration::zero() && age < ChronoDuration::hours(24))
+        .is_some_and(|age| age >= ChronoDuration::zero() && age < ChronoDuration::hours(2))
 }
 
 fn is_newer_version(latest: &str, current: &str) -> bool {
@@ -180,18 +180,15 @@ pub async fn check_update_status(app: &AppHandle, force: bool) -> Result<UpdateS
     let current_version = app.package_info().version.to_string();
     let now = Utc::now();
 
-    if !force && checked_within_last_day(&system, now) {
+    if !force && cache_is_fresh(&system, now) {
         return Ok(status_from_cache(&system, &current_version));
     }
 
-    system.last_update_check = Some(now.to_rfc3339_opts(SecondsFormat::Secs, true));
     let release = match fetch_latest_release().await {
         Ok(release) => release,
         Err(error) => {
             log::warn!("GitHub release check unavailable: {error}");
-            system.available = false;
-            save_system_config(&path, &system)?;
-            return Ok(status_from_cache(&system, &current_version));
+            return Err(format!("Vérification des mises à jour impossible : {error}"));
         }
     };
 
@@ -199,6 +196,7 @@ pub async fn check_update_status(app: &AppHandle, force: bool) -> Result<UpdateS
     system.latest_known_version = release.tag_name;
     system.update_url = release.html_url;
     system.release_notes = release.body.unwrap_or_default();
+    system.last_update_check = Some(Utc::now().to_rfc3339_opts(SecondsFormat::Secs, true));
     save_system_config(&path, &system)?;
     Ok(status_from_cache(&system, &current_version))
 }
@@ -253,7 +251,7 @@ pub fn open_external(url: String) -> Result<(), String> {
 #[cfg(test)]
 mod tests {
     use super::{
-        checked_within_last_day, is_newer_version, load_system_config, status_from_cache,
+        cache_is_fresh, is_newer_version, load_system_config, status_from_cache,
         store_system_config, validate_release_url, SystemConfig,
     };
     use chrono::{Duration, Utc};
@@ -288,19 +286,32 @@ mod tests {
     }
 
     #[test]
-    fn caches_checks_for_less_than_twenty_four_hours() {
+    fn caches_successful_checks_for_less_than_two_hours() {
         let now = Utc::now();
         let system = SystemConfig {
-            last_update_check: Some((now - Duration::hours(23)).to_rfc3339()),
+            last_update_check: Some((now - Duration::seconds(7199)).to_rfc3339()),
             ..SystemConfig::default()
         };
-        assert!(checked_within_last_day(&system, now));
+        assert!(cache_is_fresh(&system, now));
 
         let expired = SystemConfig {
-            last_update_check: Some((now - Duration::hours(24)).to_rfc3339()),
+            last_update_check: Some((now - Duration::hours(2)).to_rfc3339()),
             ..SystemConfig::default()
         };
-        assert!(!checked_within_last_day(&expired, now));
+        assert!(!cache_is_fresh(&expired, now));
+        for timestamp in [
+            None,
+            Some("invalid".into()),
+            Some((now + Duration::minutes(1)).to_rfc3339()),
+        ] {
+            assert!(!cache_is_fresh(
+                &SystemConfig {
+                    last_update_check: timestamp,
+                    ..SystemConfig::default()
+                },
+                now
+            ));
+        }
     }
 
     #[test]

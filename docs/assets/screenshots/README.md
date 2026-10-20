@@ -49,6 +49,15 @@ La capture montre l'interface réelle de gestion des règles dans l'atelier Dark
 Atelier, en mode aperçu navigateur. Les commandes Tauri d'audit et de
 persistance nécessitent l'application de bureau.
 
+## Galerie v1.4.10 — Registre des Remaniements
+
+| Fichier | Contenu |
+|---|---|
+| `epreuve-de-plume-v1.4.10.png` | Jauge de risque, manuscrit justifié surligné et cartes d'alerte avec proposition de la Forge |
+
+La capture provient de l'application de bureau (`npm run tauri dev`) avec un
+chapitre de démonstration ; la v1.4.9 est archivée dans `history.html`.
+
 ## Styles autonomes de la vitrine
 
 La page charge uniquement une feuille CSS locale et des polices système.

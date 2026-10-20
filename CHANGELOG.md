@@ -1,4 +1,18 @@
 # Registre des Évolutions — Aldus
+## [1.4.10] - 2026-10-20 — Épreuve de Plume, pupitre de remaniement
+### Amélioré
+- Épreuve de Plume : l'écran ne reprend plus les règles d'orthotypographie du Banc d'Épreuve et se consacre aux métriques stylistiques (cadence, tics de transition, triades, entropie, distribution de Zipf).
+- Registre des Remaniements : flux défilant de cartes d'alerte (ligne, motif, texte original, diagnostic, proposition de la Forge) remplaçant la liste paginée à cases à cocher.
+- « Appliquer la reformation » crée un instantané dans `.aldus/history/`, remplace le passage de façon atomique après vérification du texte d'origine et recalcule le score ; « Ignorer » masque l'alerte pour la session sans toucher au fichier.
+- Les alertes d'entropie et de Zipf désignent une phrase représentative, indiquent la mesure dans le diagnostic et proposent une substitution lexicale ou une inversion syntaxique.
+- Les titres Markdown (`#`, `##`) sont exclus de l'analyse : ils ne fusionnent plus avec la première phrase d'une alerte de cadence.
+- Manuscrit annoté : surlignage translucide rouille, interaction bidirectionnelle carte ↔ passage, texte justifié avec césures françaises en Literata, titres Markdown mis en forme sans dièses.
+- Lisibilité : jauge colorée par niveau de risque, micro-métriques Rythme & Souffle et Empreinte syntaxique, cartes et boutons contrastés en police d'interface.
+- Plaque de version : vérification des mises à jour mise en cache deux heures, bouton « Vérifier maintenant » et erreurs affichées dans la modale.
+
+### Limites connues
+- Les extraits et propositions des cartes conservent le balisage Markdown éventuel du passage (`*`, guillemets).
+- Le score reste un indicateur heuristique, non une preuve d'origine.
 ## [1.4.9] - 2026-10-20 — Épreuve de Plume & Usage Aldin
 ### Ajouté
 - Épreuve de Plume : audit stylométrique déterministe et local, score de risque heuristique, anomalies contextualisées et suggestions, règles de détection/humanisation natives et personnalisées persistées.

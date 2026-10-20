@@ -14,6 +14,7 @@ beforeAll(() => {
 });
 
 beforeEach(() => {
+  vi.clearAllMocks();
   vi.mocked(getVersion).mockResolvedValue(packageVersion);
   vi.mocked(checkForUpdates).mockResolvedValue({ available: false, latestVersion: packageVersion, releaseUrl: null, notes: null });
   vi.mocked(openExternalUrl).mockResolvedValue(undefined);
@@ -65,13 +66,49 @@ it("illuminates the plate and opens release notes and the release page when an u
   await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());
 });
 
-it("keeps the plate quiet when the update service is unavailable", async () => {
+it("keeps the halo quiet but exposes network errors and retry in the modal", async () => {
   vi.mocked(checkForUpdates).mockRejectedValueOnce(new Error("offline"));
   render(<BronzeVersionPlate />);
 
   const plate = await screen.findByRole("button", { name: `Aldus · v${packageVersion}` });
-  expect((plate as HTMLButtonElement).disabled).toBe(true);
+  expect((plate as HTMLButtonElement).disabled).toBe(false);
   expect(plate.className).not.toContain("plaque-update-active");
   expect(screen.queryByRole("alert")).toBeNull();
   expect(screen.queryByRole("dialog")).toBeNull();
+  fireEvent.click(plate);
+  expect(await screen.findByRole("alert")).toHaveProperty("textContent", "offline");
+  fireEvent.click(await screen.findByRole("button", { name: "Vérifier maintenant" }));
+  await waitFor(() => expect(checkForUpdates).toHaveBeenCalledWith(true));
+  await waitFor(() => expect(screen.queryByRole("alert")).toBeNull());
+  expect(screen.getByText("Aucune mise à jour disponible lors de la dernière vérification.")).toBeTruthy();
+});
+
+it("forces a fresh check from the quiet plate and illuminates it without reopening the modal", async () => {
+  render(<BronzeVersionPlate />);
+  fireEvent.click(screen.getByRole("button", { name: `Aldus · v${packageVersion}` }));
+  await waitFor(() => expect((screen.getByRole("button", { name: "Vérifier maintenant" }) as HTMLButtonElement).disabled).toBe(false));
+  let resolveCheck!: (status: Awaited<ReturnType<typeof checkForUpdates>>) => void;
+  vi.mocked(checkForUpdates).mockImplementationOnce(() => new Promise((resolve) => { resolveCheck = resolve; }));
+  fireEvent.click(screen.getByRole("button", { name: "Vérifier maintenant" }));
+  expect(checkForUpdates).toHaveBeenLastCalledWith(true);
+  expect((screen.getByRole("button", { name: "Vérification en cours…" }) as HTMLButtonElement).disabled).toBe(true);
+  resolveCheck({ available: true, latestVersion: "9.9.9", releaseUrl: null, notes: "Nouvelle version." });
+  expect(await screen.findByRole("dialog", { name: "Version 9.9.9 disponible" })).toBeTruthy();
+  expect(screen.getByRole("button", { name: `Aldus · v${packageVersion}` }).className).toContain("plaque-update-active");
+  expect(screen.getByText("Nouvelle version.")).toBeTruthy();
+});
+
+it("preserves a known update when a forced request fails and allows another attempt", async () => {
+  vi.mocked(checkForUpdates).mockResolvedValueOnce({
+    available: true, latestVersion: "9.9.9", releaseUrl: null, notes: "Notes conservées.",
+  });
+  render(<BronzeVersionPlate />);
+  await waitFor(() => expect(screen.getByRole("button", { name: `Aldus · v${packageVersion}` }).className).toContain("plaque-update-active"));
+  fireEvent.click(screen.getByRole("button", { name: `Aldus · v${packageVersion}` }));
+  vi.mocked(checkForUpdates).mockRejectedValueOnce(new Error("timeout"));
+  fireEvent.click(screen.getByRole("button", { name: "Vérifier maintenant" }));
+  expect(await screen.findByRole("alert")).toHaveProperty("textContent", "timeout");
+  expect(screen.getByText("Notes conservées.")).toBeTruthy();
+  expect(screen.getByRole("button", { name: `Aldus · v${packageVersion}` }).className).toContain("plaque-update-active");
+  expect((screen.getByRole("button", { name: "Vérifier maintenant" }) as HTMLButtonElement).disabled).toBe(false);
 });

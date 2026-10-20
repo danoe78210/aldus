@@ -5,12 +5,12 @@ const MicroMetric: React.FC<{ label: string; value: number | null }> = ({ label,
   const percent = Math.round(Math.min(100, Math.max(0, value ?? 0)));
   return (
     <div>
-      <div className="flex justify-between font-serif text-[11px] text-[#a89f91]">
+      <div className="flex justify-between font-sans text-xs text-[#f0ece1]">
         <span>{label}</span>
         <span className="tabular-nums">{value === null ? "—" : `${percent} %`}</span>
       </div>
-      <div role="progressbar" aria-label={label} aria-valuemin={0} aria-valuemax={100} aria-valuenow={percent} className="mt-1 h-1 overflow-hidden bg-[#29231a]">
-        <div className="h-full bg-[#8f6e2b] transition-[width] duration-500" style={{ width: `${percent}%` }} />
+      <div role="progressbar" aria-label={label} aria-valuemin={0} aria-valuemax={100} aria-valuenow={percent}       className="mt-1 h-1.5 overflow-hidden rounded-full bg-[#2a2622]">
+              <div className="h-full rounded-full bg-[#d99b32] transition-[width] duration-500" style={{ width: `${percent}%` }} />
       </div>
     </div>
   );
@@ -42,7 +42,7 @@ export const GaugeWidget: React.FC<GaugeWidgetProps> = ({ risk, burstiness, lexi
       <div className="min-w-0 flex-1 space-y-2">
         <div>
           <p className="font-cinzel text-xs tracking-widest text-[#d4af37] uppercase">Risque de détection IA</p>
-          <p className="mt-0.5 font-serif text-sm" style={{ color: risk === null ? "#e2dbce" : tone.color }}>
+          <p className="mt-0.5 font-sans text-sm" style={{ color: risk === null ? "#e2dbce" : tone.color }}>
             {risk === null ? placeholder : `${tone.label} · ${alertCount} alerte${alertCount > 1 ? "s" : ""} active${alertCount > 1 ? "s" : ""}`}
           </p>
         </div>

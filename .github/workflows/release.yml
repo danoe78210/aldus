@@ -69,21 +69,21 @@ jobs:
           tagName: ${{ github.ref_name }}
           releaseName: 'Aldus ${{ github.ref_name }}'
           releaseBody: |
-            ## Aldus 1.4.9 — Épreuve de Plume & Usage Aldin
+            ## Aldus 1.4.10 — Épreuve de Plume, pupitre de remaniement
 
-            - Épreuve de Plume : audit stylométrique local et déterministe, score heuristique de risque, détection contextualisée, suggestions de remaniement et règles d'auteur personnalisées.
-            - Règles natives consolidées : cadence et paragraphes, tics de liaison, triades, listes Markdown préformatées, diversité lexicale et indices de texture humaine. Le score reste indicatif ; aucun test de watermarking non fondé n'est annoncé.
-            - Usage Aldin : aperçu puis normalisation en une passe des fichiers Markdown du workspace, avec confirmation, rapport, sauvegarde par chapitre et écriture atomique.
-            - Dark Atelier : tokens de couleur centralisés, cartes et classes typographiques partagées, contraste renforcé dans les panneaux ciblés.
+            - Épreuve de Plume recentrée sur la stylométrie : cadence, tics de transition, triades, entropie et distribution de Zipf ; aucune règle d'orthotypographie du Banc d'Épreuve.
+            - Registre des Remaniements : cartes d'alerte défilantes avec texte original, diagnostic et proposition de la Forge.
+            - « Appliquer la reformation » : instantané `.aldus/history/`, écriture atomique vérifiée et recalcul immédiat du score ; « Ignorer » masque l'alerte pour la session.
+            - Manuscrit annoté : surlignage bidirectionnel carte ↔ passage, texte justifié avec césures françaises (Literata), titres Markdown mis en forme.
+            - Contrastes Dark Atelier renforcés sur la jauge, les cartes et les boutons.
+            - Plaque de version : cache de vérification de deux heures et bouton « Vérifier maintenant ».
 
-            - Les ligatures ne sont appliquées qu'à des mots français reconnus ; le traitement exclut les dossiers cachés et `.aldus`.
-            - Les instantanés avant normalisation sont visibles et restaurables dans l'historique du chapitre.
-            - Les anciennes données d'application dans APPDATA sont migrées vers LocalAppData ; les conflits sont archivés localement sans remplacer silencieusement les données actives.
+            Le score reste un indicateur heuristique, non une preuve d'origine.
 
             ### Captures
-            - [Gestionnaire de règles de l'Épreuve de Plume](https://github.com/danoe78210/aldus/blob/v1.4.9/docs/assets/screenshots/epreuve-de-plume-v1.4.9.png)
+            - [Épreuve de Plume — Registre des Remaniements](https://github.com/danoe78210/aldus/blob/v1.4.10/docs/assets/screenshots/epreuve-de-plume-v1.4.10.png)
 
-            Voir [CHANGELOG.md](https://github.com/danoe78210/aldus/blob/v1.4.9/CHANGELOG.md).
+            Voir [CHANGELOG.md](https://github.com/danoe78210/aldus/blob/v1.4.10/CHANGELOG.md).
           releaseDraft: false
           prerelease: false
           args: ${{ matrix.args }}

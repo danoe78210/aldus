@@ -45,25 +45,24 @@ const AlertCard: React.FC<AlertCardProps> = ({ issue, location, label, focused, 
       onMouseLeave={() => onHover(false)}
       onFocus={() => onHover(true)}
       onBlur={() => onHover(false)}
-      className={`rounded-xs border bg-[#171410] p-4 transition-all duration-300 focus:outline-none ${
-        focused ? "border-[#d4af37] shadow-[0_0_14px_rgba(212,175,55,0.2)]" : "border-[#3a3022] hover:border-[#8f6e2b]"
+      className={`rounded-xs border bg-[#1c1a17] p-4 transition-all duration-300 focus:outline-none ${
+        focused ? "border-[#d4af37] shadow-[0_0_16px_rgba(212,175,55,0.25)]" : "border-[#d4af37]/25 shadow-[0_4px_16px_rgba(0,0,0,0.5)] hover:border-[#d4af37]/50"
       } ${leaving ? "pointer-events-none -translate-x-3 opacity-0" : "opacity-100"}`}
     >
-      <h3 className="font-cinzel text-xs tracking-wider uppercase">
-        <span className="text-[#d4af37]">{location}</span>
-        <span className="text-[#c9bea9]"> · {label}</span>
+      <h3 className="text-left font-serif text-[15px] font-bold tracking-wide text-[#d4af37] uppercase">
+        {location} · {label}
       </h3>
-      <p className="mt-3 font-cinzel text-[10px] tracking-widest text-[#8f8373] uppercase">Texte original</p>
-      <p className="mt-1 line-clamp-4 border-l-2 border-[#c24b2a] bg-[#100e0c] px-3 py-2 font-serif text-sm leading-relaxed text-[#eee5d5]">
+      <p className="mt-3 text-left font-sans text-[11px] font-medium tracking-wider text-[#c5a059] uppercase">Texte original</p>
+      <p className="mt-1 line-clamp-4 border-l-2 border-[#c24b2a] bg-[#121110] px-3 py-2 text-left font-reading text-sm leading-relaxed text-[#f0ece1]">
         « {issue.originalText.trim()} »
       </p>
-      <p className="mt-3 font-cinzel text-[10px] tracking-widest text-[#8f8373] uppercase">Diagnostic</p>
-      <p className="mt-1 font-serif text-xs leading-relaxed text-[#bdb3a3]">{issue.explanation}</p>
-      <p className="mt-3 font-cinzel text-[10px] tracking-widest text-[#8f8373] uppercase">Proposition de la Forge</p>
+      <p className="mt-3 text-left font-sans text-[11px] font-medium tracking-wider text-[#c5a059] uppercase">Diagnostic</p>
+      <p className="mt-1 text-left font-sans text-[13px] leading-normal text-[#ded8cc]">{issue.explanation}</p>
+      <p className="mt-3 text-left font-sans text-[11px] font-medium tracking-wider text-[#c5a059] uppercase">Proposition de la Forge</p>
       {issue.suggestedRewrite !== null ? (
-        <p className="mt-1 border-l-2 border-[#8f6e2b] px-3 py-1 font-serif text-sm italic leading-relaxed text-[#d8c7a2]">« {issue.suggestedRewrite} »</p>
+        <p className="mt-1 border-l-2 border-[#d4af37] bg-[#23201b] px-3 py-2 text-left font-reading text-sm italic leading-relaxed text-[#f0ece1]">« {issue.suggestedRewrite} »</p>
       ) : (
-        <p className="mt-1 font-serif text-xs italic text-[#8f8373]">Aucune reformation automatique : remaniez ce passage à la main.</p>
+        <p className="mt-1 text-left font-sans text-[13px] italic text-[#a8a29e]">Aucune reformation automatique : remaniez ce passage à la main.</p>
       )}
       <div className="mt-4 flex flex-wrap justify-between gap-2">
         {issue.suggestedRewrite !== null ? (
@@ -71,7 +70,7 @@ const AlertCard: React.FC<AlertCardProps> = ({ issue, location, label, focused, 
             type="button"
             onClick={onApply}
             disabled={disableApply}
-            className="inline-flex items-center gap-1.5 border border-[#8f6e2b] px-3 py-1.5 font-cinzel text-[10px] tracking-wider text-[#e6c96f] uppercase hover:border-[#d4af37] disabled:opacity-50"
+            className="inline-flex cursor-pointer items-center gap-1.5 border border-[#d4af37] bg-[#2a2318] px-3 py-1.5 font-sans text-xs font-medium tracking-wide text-[#d4af37] uppercase transition-colors hover:bg-[#382f20] hover:text-[#f0ece1] disabled:cursor-not-allowed disabled:opacity-50"
           >
             <Check size={12} aria-hidden /> {applying ? "Application…" : "Appliquer la reformation"}
           </button>
@@ -80,7 +79,7 @@ const AlertCard: React.FC<AlertCardProps> = ({ issue, location, label, focused, 
           type="button"
           onClick={onIgnore}
           disabled={applying}
-          className="inline-flex items-center gap-1.5 border border-[#3a3022] px-3 py-1.5 font-cinzel text-[10px] tracking-wider text-[#a89f91] uppercase hover:text-[#d4af37] disabled:opacity-50"
+          className="inline-flex cursor-pointer items-center gap-1.5 border border-zinc-700 px-3 py-1.5 font-sans text-xs font-medium tracking-wide text-[#a8a29e] uppercase transition-colors hover:border-zinc-500 hover:text-white disabled:cursor-not-allowed disabled:opacity-50"
         >
           <EyeOff size={12} aria-hidden /> Ignorer
         </button>
@@ -98,7 +97,7 @@ export const IssuesList: React.FC = () => {
     <div className="animate-ink-reveal flex h-full min-h-0 flex-col overflow-hidden">
       <header className="mb-4 shrink-0 border-b border-[#382f22] pb-3 text-center">
         <h2 className="font-cinzel text-base tracking-[0.22em] text-[#d4af37] uppercase">Registre des Remaniements</h2>
-        <p className="mt-1 font-serif text-xs text-[#a89f91]" aria-live="polite">
+        <p className="mt-1 font-sans text-xs text-[#ded8cc]" aria-live="polite">
           {report ? `${activeIssues.length} alerte${activeIssues.length > 1 ? "s" : ""} active${activeIssues.length > 1 ? "s" : ""}` : "Aucun audit en cours"}
         </p>
       </header>

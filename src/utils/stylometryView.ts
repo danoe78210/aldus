@@ -38,3 +38,32 @@ export const highlightSegments = (text: string, issues: StylometryIssue[]): High
   }
   return segments;
 };
+
+export interface ManuscriptBlock {
+  kind: "title" | "subtitle" | "paragraph";
+  /** Bornes visibles en points de code Unicode (dièses Markdown exclus). */
+  start: number;
+  end: number;
+}
+
+/** Découpe le manuscrit en titres Markdown (`#`, `##`…) et paragraphes séparés par une ligne vide. */
+export const manuscriptBlocks = (text: string): ManuscriptBlock[] => {
+  const blocks: ManuscriptBlock[] = [];
+  let paragraph: ManuscriptBlock | null = null;
+  let offset = 0;
+  for (const line of text.split("\n")) {
+    const length = Array.from(line).length;
+    const heading = /^(#{1,6})[ \t]+/.exec(line);
+    if (!line.trim() || heading) {
+      paragraph = null;
+      if (heading) blocks.push({ kind: heading[1].length === 1 ? "title" : "subtitle", start: offset + heading[0].length, end: offset + length });
+    } else if (paragraph) {
+      paragraph.end = offset + length;
+    } else {
+      paragraph = { kind: "paragraph", start: offset, end: offset + length };
+      blocks.push(paragraph);
+    }
+    offset += length + 1;
+  }
+  return blocks;
+};

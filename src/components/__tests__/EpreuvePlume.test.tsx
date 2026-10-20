@@ -4,7 +4,7 @@ import { useStudio, type StudioContextValue } from "../StudioContext";
 import { PlumeProvider } from "../epreuve-plume/PlumeContext";
 import { EpreuvePlumeView } from "../epreuve-plume/EpreuvePlumeView";
 import { IssuesList } from "../epreuve-plume/IssuesList";
-import { highlightSegments, riskTone } from "../../utils/stylometryView";
+import { highlightSegments, manuscriptBlocks, riskTone } from "../../utils/stylometryView";
 import {
   applyStylometrySuggestion,
   auditChapterStylometry,
@@ -116,7 +116,7 @@ it("makes chapter-level lexical alerts located, highlighted and applicable", asy
   fireEvent.mouseEnter(zipf);
   const zipfMarks = Array.from(screen.getByLabelText("Feuillet annoté").querySelectorAll<HTMLElement>("mark[data-issue-id='r-det-zipf-34']"));
   expect(zipfMarks).toHaveLength(2);
-  zipfMarks.forEach((mark) => expect(mark.className).toContain("bg-[#c24b2a]/50"));
+  zipfMarks.forEach((mark) => expect(mark.className).toContain("bg-[#c24b2a]/45"));
   await act(async () => {
     fireEvent.click(within(zipf).getByRole("button", { name: "Appliquer la reformation" }));
   });
@@ -128,9 +128,9 @@ it("links highlighted passages and cards in both directions", async () => {
   const triad = await screen.findByRole("article", { name: "L.4 · Triade rhétorique" });
   const mark = screen.getByRole("button", { name: "rouge, vieux et sombre" });
   fireEvent.mouseEnter(triad);
-  expect(mark.className).toContain("bg-[#c24b2a]/50");
+  expect(mark.className).toContain("bg-[#c24b2a]/45");
   fireEvent.mouseLeave(triad);
-  expect(mark.className).toContain("bg-[#c24b2a]/20");
+  expect(mark.className).toContain("bg-[#c24b2a]/25");
   fireEvent.click(mark);
   await waitFor(() => expect(document.activeElement).toBe(triad));
   expect(triad.className).toContain("border-[#d4af37]");
@@ -159,4 +159,28 @@ it("applies the Forge rewrite through the snapshotting backend and re-audits", a
   view.rerender(tree());
   expect(await screen.findByText("2 alertes actives")).toBeTruthy();
   expect(screen.getByRole("img", { name: "Risque IA : 20 pour cent" })).toBeTruthy();
+});
+
+it("maps Markdown headings and paragraphs while keeping source offsets", () => {
+  const source = "# Chapitre\n\n## I. L'ombre\n\nLa flamme.\nElle tremble.\n\n« Je suis là. »";
+  expect(manuscriptBlocks(source).map((block) => [block.kind, Array.from(source).slice(block.start, block.end).join("")])).toEqual([
+    ["title", "Chapitre"],
+    ["subtitle", "I. L'ombre"],
+    ["paragraph", "La flamme.\nElle tremble."],
+    ["paragraph", "« Je suis là. »"],
+  ]);
+});
+
+it("renders the manuscript justified in French, without Markdown hashes", async () => {
+  vi.mocked(useStudio).mockReturnValue({ ...vi.mocked(useStudio)(), proofText: `# Tit${TEXT.slice(5)}` } as StudioContextValue);
+  renderPlume();
+  await screen.findByRole("article", { name: "L.3 · Tic de transition RLHF" });
+  const sheet = screen.getByLabelText("Feuillet annoté");
+  expect(sheet.getAttribute("lang")).toBe("fr");
+  expect(within(sheet).getByRole("heading", { name: "Tit" }).className).toContain("text-center");
+  expect(sheet.textContent).not.toContain("#");
+  const paragraph = sheet.querySelector("p");
+  expect(paragraph?.className).toContain("text-justify");
+  expect(paragraph?.className).toContain("hyphens-auto");
+  expect(within(sheet).getByRole("button", { name: "En effet" })).toBeTruthy();
 });

@@ -297,10 +297,13 @@ détachée. `UpdateChecker` sérialise ce contrôle avec la commande frontend
 `check_for_updates`; `config.json.system` conserve `last_update_check`,
 `latest_known_version`, `update_url`, les notes et l'état de disponibilité. Le
 GET `/repos/danoe78210/aldus/releases/latest` porte `User-Agent: Aldus-App`,
-utilise des timeouts bornés et est ignoré pendant 24 heures après un contrôle.
+utilise des timeouts bornés et est ignoré pendant deux heures après un contrôle
+réussi, sauf avec `force: true` depuis le bouton « Vérifier maintenant ».
 Le bloc `system` est fusionné aux autres clés puis persisté par `.tmp` et
-`rename`. Les erreurs réseau ne remontent pas à l'UI et sont consignées en
-WARN. La commande `open_external` n'accepte que les pages HTTPS des releases
+`rename`. Les erreurs réseau sont consignées en WARN et retournées à l'UI,
+qui les affiche dans la modale sans effacer le statut déjà reçu. Elles ne
+modifient ni la date du dernier succès ni le cache sur disque : le prochain
+contrôle reste possible sans délai supplémentaire. La commande `open_external` n'accepte que les pages HTTPS des releases
 du dépôt Aldus et lance le navigateur par défaut (`cmd.exe start` sans fenêtre
 sur Windows, `open` sur macOS, `xdg-open` sur Linux). La modale React ferme son
 élément `<dialog>` à la demande explicite, sur `cancel` (Échap) et au clic
@@ -727,6 +730,7 @@ d'information) et respecte `prefers-reduced-motion`.
 - Les motifs structurels sans suggestion fixe reçoivent une « Proposition de la Forge » calculée : brisure de cadence (isométrie), asyndète (triade), retrait du gras (liste à amorces), suppression de la formule (conclusion). Les mesures globales (Zipf, entropie) restent calculées sur tout le chapitre, mais l'alerte cible la phrase la plus représentative (part de mots-outils maximale pour Zipf, répétition interne maximale pour l'entropie), de préférence reformable. Le diagnostic cite la valeur mesurée et la Forge propose, dans l'ordre : retrait des intensifs (« très », « vraiment »…), inversion syntaxique du complément final (« Dans la forêt, il marchait. »), brisure à la virgule.
 - Surlignage : un passage imbriqué dans une phrase signalée (tic, triade) revient à l'alerte la plus courte ; l'alerte englobante reste surlignée autour.
 - Interface (v1.4.10) : la page gauche (`EpreuvePlumeView`) porte la jauge colorée par gravité (≤ 25 % or `#d4af37`, ≤ 50 % ambre `#d99b32`, au-delà rouille `#c24b2a`), deux micro-métriques et le feuillet annoté (`TextHighlightViewer`) ; la page droite (`IssuesList`) est le registre défilant des cartes d'alerte. Les deux pages partagent l'état via `PlumeProvider` (survol carte ↔ surlignage, clic passage → carte). Aucune règle typographique du Banc d'Épreuve n'y figure.
+- Lecture (v1.4.10) : l'analyse remplace les lignes de titre ATX (`#` à `######` suivis d'un espace) par des espaces, comme le front matter, afin que les offsets en caractères restent identiques et qu'aucun titre ne soit compté comme phrase. `manuscriptBlocks` découpe le chapitre en titres `#`/`##` (dièses masqués, offsets source conservés) et paragraphes ; le feuillet est justifié (`lang="fr"`, `hyphens: auto`, retrait 1,5 rem) en `--font-reading` (Literata, repli EB Garamond/Georgia), ivoire `#f0ece1`. Surlignage : fond `#c24b2a` à 25 %, 45 % au survol/focus, liseré inférieur 2 px. Cartes et pupitre en police d'interface sans-serif (`#1c1a17`, libellés `#c5a059`, diagnostic `#ded8cc`, Forge sur `#23201b`).
 - Les règles natives et les règles auteur sont sérialisées dans `stylometry_rules.json` sous le répertoire de configuration Tauri. La validation des règles borne les identifiants, motifs, explications et poids ; une regex invalide est rejetée.
 - Les suggestions sont appliquées après vérification que l'extrait et ses offsets correspondent encore au fichier. Le stockage crée un snapshot avant écriture atomique.
 - Le rapport est un indicateur éditorial, pas un classifieur fiable d'origine. Les détections non fondées de watermarking sont exclues.

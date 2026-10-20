@@ -260,9 +260,11 @@ temporaires Python et journaux restent dans LocalAppData, jamais dans
 `C:\Program Files\Aldus`.
 
 La plaque de bronze affiche la version du binaire, vérifie une release GitHub
-au plus une fois par jour et ne signale une mise à jour qu'après une réponse
-valide. En cas de nouvelle version, elle ouvre un détail des notes et propose
-d'ouvrir la page officielle de release; une erreur réseau reste silencieuse.
+avec un cache de deux heures après une réponse valide. La plaque ouvre toujours
+la modale, dont le bouton « Vérifier maintenant » force un nouveau contrôle.
+En cas de nouvelle version, elle affiche les notes et propose d'ouvrir la page
+officielle de release. Une erreur réseau est affichée dans la modale, sans
+renouveler le cache ni effacer une mise à jour déjà connue.
 La modale se ferme par son bouton, la touche Échap ou un clic hors du panneau.
 Une release disponible déclenche une aura dorée pulsante sur la plaque; les
 préférences de mouvement réduit conservent un halo fixe. La plaque dynamique
@@ -463,6 +465,7 @@ EPUBCheck n'est pas intégré. Les infobulles rendent ces limites explicites.
 - L'analyse heuristique tient compte de la cadence et de la symétrie des paragraphes, des tics de liaison, triades, listes préformatées et régularités lexicales ; des marqueurs narratifs et typographiques peuvent réduire le score.
 - L'auteur peut consulter les règles de détection et d'humanisation, créer et activer/désactiver ses règles, supprimer ses règles personnelles ou rétablir les règles natives. Les règles sont persistées dans la configuration locale de l'application.
 - Le score n'établit pas l'origine d'un texte. Aucun détecteur générique de watermarking n'est activé sans procédé et clé connus.
+- **v1.4.10 — Pupitre de remaniement** : la page gauche affiche la jauge de risque, deux micro-métriques (Rythme & Souffle, Empreinte syntaxique) et le manuscrit justifié, titres mis en forme, passages signalés surlignés. La page droite liste en continu les cartes d'alerte (ligne, motif, texte original, diagnostic, proposition de la Forge). Cliquer un passage fait défiler sa carte ; survoler une carte éclaire le passage. « Appliquer la reformation » sauvegarde le chapitre dans l'historique, remplace le passage et recalcule le score ; « Ignorer » masque l'alerte pour la session sans modifier le fichier. Aucune règle d'orthotypographie n'y figure.
 - **Usage Aldin** : depuis le Banc d'Épreuve, l'auteur demande un aperçu du nombre de fichiers Markdown et de substitutions avant de confirmer la normalisation du workspace. La commande traite les fichiers Markdown visibles du workspace configuré, sans suivre les liens symboliques et hors dossiers cachés, `.aldus`, `node_modules`, `target` et `dist`.
 - Chaque chapitre modifié est sauvegardé dans l'historique avant écriture atomique. Les instantanés restent disponibles dans l'historique du chapitre et leur restauration conserve la version courante.
 - À la première utilisation de v1.4.9, l'état interne migré depuis APPDATA vers `%LOCALAPPDATA%\net.danoe.aldus` est vérifié avant suppression de l'ancienne copie ; en cas de conflit, la copie historique est archivée dans LocalAppData et l'état local existant reste actif.
