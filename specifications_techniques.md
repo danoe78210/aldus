@@ -104,17 +104,20 @@ Fichiers : `src/index.css` (tokens `@theme`), `index.html` (webfonts).
 | `components/MenuFlipBook.tsx` / `MenuPage.tsx` | Livre virtuel des onglets, routage des vues |
 | `components/StudioContext.tsx` | Contexte applicatif consommé par les pages |
 | `components/LibraryView.tsx`, `Bookshelf.tsx`, `BookSpine.tsx` | Bibliothèque pleine largeur, rayons, badges de format et accès au Registre |
-| `components/LibraryBookDetail.tsx` | Registre du Livre, sélection de format, lecture audio et Studio Audio |
+| `components/LibraryBookDetail.tsx` | Registre du Livre, sélection de format, ouverture du Lecteur d'Atelier |
+| `components/reader/*` | Lecteur d'Atelier : `WorkshopReaderView` (coque plein écran en portail), `TextReader` (EPUB/DOCX), `PdfReader` (pdf.js, chargé en `React.lazy`), `ReaderDrawer`, `readerSettings`, `useSilenceMode`, `useReaderBookmarks` |
+| `components/audio/*` | Ruban Studio Audio : `StudioAudioView`, `SidecarConsole`, `ChapterSynthesisTable`, hook `useAudioEngine` |
 | `components/AudioSetupDialog.tsx` / `AudioTrackPlayer.tsx` | Assistant XTTS de premier lancement et pupitre HTMLAudioElement par chapitre |
+| `utils/readerApi.ts` | Ponts `read_book_content`, `load_reader_bookmarks`, `save_reader_bookmarks` |
 | `components/LibraryDeleteDialog.tsx` | Confirmation de suppression physique des exports associés |
 | `components/cover/*`, `CoverPlate.tsx`, `CoverCalibration.tsx` | Cover Studio v1.2.0 (marbre 2D/3D, calibrage, inspection, pré-export) |
 | `components/WritingStudio.tsx` | Banc III L’Écritoire : édition Markdown et épreuve de lecture synchronisées |
 | `utils/*` | Ponts Tauri, projet (`.danoe`), sources, correcteur, arrêt propre |
 
 `MenuPage` est créé une fois (référence stable) : le contenu reste vivant via le
-contexte, sans réinitialiser le flipbook. L'onglet Bibliothèque est rendu dans
-`Layout.fullWidthContent`; la page gauche ne conserve que le ruban latéral et le
-flipbook est démonté pour ce parcours. Les autres onglets gardent le diptyque.
+contexte, sans réinitialiser le flipbook. Les onglets Bibliothèque et Studio Audio sont rendus dans
+`Layout.fullWidthContent` (`fullWidthLabel` fournit l'`aria-label` de la section) ; la page gauche ne conserve que le ruban latéral et le
+flipbook est démonté pour ces parcours. `studio-audio` appartient à `ActiveMenu` mais **pas** à `MENU_ORDER` : aucune instance cachée de `StudioAudioView` ne démarre XTTS, le moteur ne se lance qu'à l'ouverture du ruban. Les autres onglets gardent le diptyque.
 
 ### 4.2 Backend `src-tauri/src/`
 
@@ -130,6 +133,7 @@ flipbook est démonté pour ce parcours. Les autres onglets gardent le diptyque.
 | `cover/*` | Cover Studio côté natif (géométrie, inspection, couleurs, Typst) |
 | `corrector/*` | Client LanguageTool, options, dictionnaires |
 | `library.rs` / `library/metadata.rs` | Scan/agrégation EPUB-PDF-DOCX, statistiques et persistance `library.json` |
+| `library/reader.rs` | Lecteur d'Atelier : extraction EPUB/DOCX en blocs typés, signets (§4.7) ; réutilise `epub_spine_entries` de `audio.rs` |
 | `library/audio.rs` | Extraction narrative, lancement lazy du moteur embarqué Windows et orchestration séquentielle des pistes |
 | `tauri.sidecar.conf.json` / `scripts/build_windows_audio_sidecars.ps1` | Overlay WiX MSI Windows et préparation des sidecars PyInstaller/FFmpeg en CI |
 | `library/deletion.rs` | Suppression bornée au dossier d'export, restauration si persistance en échec |
@@ -138,7 +142,9 @@ flipbook est démonté pour ce parcours. Les autres onglets gardent le diptyque.
 atomiques (`.tmp` + `rename`), « tolérance zéro » (toute erreur remontée en
 `Result::Err`), chemins résolus via le projet persistant.
 
-### 4.3 Banc V — Studio Audio (extension de la Bibliothèque)
+### 4.3 Banc V — Studio Audio (ruban dédié)
+
+L'interface vit dans `components/audio/` (ruban `studio-audio`) ; les commandes ci-dessous sont inchangées. `useAudioEngine` porte la séquence de montage : écoute de `audio:init-progress`, lecture du consentement, barrière CPML, puis `start_audio_engine` (mode intégré) ou `list_audio_voices` (mode externe).
 
 #### Modèle et commandes Tauri
 
@@ -311,6 +317,20 @@ direct sur le fond, sans propager les clics venant du panneau. `bronzeGlowPulse`
 anime en CSS uniquement la plaque quand une mise à jour est disponible; la règle
 `prefers-reduced-motion` remplace l'animation par un halo statique.
 ---
+
+### 4.7 Lecteur d'Atelier
+
+| Commande | Contrat |
+|---|---|
+| `read_book_content(book_id, resource)` | Ne lit qu'un fichier EPUB ou DOCX référencé par le livre (chemin canonicalisé, existence vérifiée). Renvoie `{ format, chapters: [{ title, blocks: [{ kind, level, runs: [{ text, italic?, bold? }] }] }] }` ; `kind` ∈ heading, paragraph, dialogue, quote, rule. EPUB : un chapitre par document du dos (`epub_spine_entries`) ; DOCX : découpage sur les titres. |
+| `load_reader_bookmarks(book_id)` | Renvoie les signets du livre ; fichier absent = liste vide. |
+| `save_reader_bookmarks(book_id, bookmarks)` | Remplace les signets du livre ; maximum 500, extrait ≤ 240 caractères, titre ≤ 160. |
+
+Les signets sont stockés dans `<dossier de sources ou données persistantes>/.aldus/bookmarks.json`, forme `{ "bookmarks": [...] }`, sous verrou, par écriture atomique `.tmp` + renommage ; un `.aldus` lien symbolique ou non-dossier est refusé. Toute erreur est renvoyée en `Result::Err` et journalisée dans `Aldus.log`. Un signet porte `{ id, bookId, format, chapter, chapterTitle, position (0–1), excerpt, createdAt }` ; pour un PDF, `chapter` est l'index de page.
+
+Frontend : le PDF est servi par `convertFileSrc` (protocole `asset`) et rendu par `pdfjs-dist` (worker via import `?url`), `React.lazy` gardant pdf.js hors du bundle initial et des tests jsdom. `TextReader` pagine par colonnes CSS et manipule le DOM impérativement (`useImperativeHandle` : `next`, `prev`, `goTo`, `locate`) pour respecter les règles React Compiler d'`eslint-plugin-react-hooks` v7 ; `document.fonts` et `ResizeObserver` sont gardés pour jsdom. `useSilenceMode` (3 s) pilote `chromeClass` (`opacity-0 transition-opacity duration-700`). `useReaderBookmarks` mémoïse la liste filtrée : une nouvelle référence à chaque rendu relancerait l'effet de rapport de vue en boucle. Réglages en `localStorage` (`aldus-reader-settings`), assainis par `sanitizeReaderSettings`. Polices chargées dans `index.html` (Literata, EB Garamond, Merriweather).
+
+Limites : pas de table des matières PDF, images EPUB ignorées, défilement continu chapitre par chapitre.
 
 ### 4.4 Indexation récursive des sources
 

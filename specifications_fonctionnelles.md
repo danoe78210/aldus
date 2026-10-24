@@ -85,16 +85,18 @@ s'affiche avec son décroché `-translate-x-1.5` et sa bordure or.
 
 ## 3. Navigation du registre
 
-Huit onglets de répertoire, **ordre imposé** :
+Dix onglets de répertoire, **ordre imposé** :
 
-`Réglages → Informations → Écritoire → Organisation → Correcteur → Couverture → Export → Bibliothèque`
+`Réglages → Informations → Écritoire → Organisation → Correcteur → Épreuve de Plume → Couverture → Export → Studio Audio → Bibliothèque`
 
 - Onglets latéraux en **cuir patiné et or**, débordant sur la tranche gauche.
 - **Ruban permanent « Quitter l'atelier »** sous les onglets (fermeture
   cinématique du livre, disponible depuis tout écran).
-- Le passage entre les sept premiers onglets **tourne la page** du volet droit
-  (navigation séquentielle, `react-pageflip`). Bibliothèque conserve le ruban
-  latéral, mais remplace le diptyque par un espace pleine largeur.
+- Le passage entre les huit premiers onglets **tourne la page** du volet droit
+  (navigation séquentielle, `react-pageflip`). Studio Audio et Bibliothèque
+  conservent le ruban latéral, mais remplacent le diptyque par un espace pleine
+  largeur ; Studio Audio est hors du flipbook, de sorte que le moteur vocal ne
+  démarre qu'à l'ouverture de son onglet.
 
 ### 3.1 Contenu des onglets
 
@@ -107,7 +109,8 @@ Huit onglets de répertoire, **ordre imposé** :
 | **Correcteur** | Relecture sur **deux feuillets** : *Feuillet IX* (examen typographique aldin) et *Feuillet X* (épreuves annotées par le correcteur linguistique) — voir §4.4. |
 | **Couverture** | Banc VI, *Atelier de reliure & marbre de montage* : *Feuillet VII* (épreuve 2D / volume 3D) et *Feuillet VIII* (matière, finitions, métriques, plat IV) — voir §4.4. |
 | **Export** | Bancs VII et VIII : lancement Word / PDF / EPUB, aperçu paginé, progression, journal et tirage — Feuillets XI & XII. |
-| **Bibliothèque** | Banc IV : rayons principaux et personnalisés, scan/agrégation EPUB, PDF et DOCX, Registre du Livre, choix du format, écoute d'une édition audio et suppression confirmée des exports associés. Le **Studio Audio (Banc V)** est une section du Registre, pas un onglet supplémentaire. |
+| **Studio Audio** | Banc V : console du moteur XTTS v2, profil de voix, table de synthèse par chapitre et pistes MP3 — voir §4.5. |
+| **Bibliothèque** | Banc IV : rayons principaux et personnalisés, scan/agrégation EPUB, PDF et DOCX, Registre du Livre, choix du format, lecture dans le **Lecteur d'Atelier** (§4.6) et suppression confirmée des exports associés. |
 
 ---
 
@@ -198,27 +201,34 @@ de l'instantané échoue, le manuscrit n'est pas remplacé.
 
 ### 4.5 Bibliothèque — Banc IV et Studio Audio — Banc V
 
-L'onglet **Bibliothèque**, placé après Export, occupe la zone de travail entière
+L'onglet **Bibliothèque**, placé en dernier après Studio Audio, occupe la zone de travail entière
 à droite des signets; il ne tourne pas dans le flipbook et n'affiche ni page
 gauche ni reliure centrale. Les rayons principaux (*En cours*, *Terminés*) et
 les rayons personnalisés contiennent une tranche par ouvrage. Un scan du dossier
 d'export regroupe les fichiers EPUB, PDF et DOCX d'un même nom de base dans une
 fiche unique; les badges de tranche ouvrent le Registre sur le format choisi.
 
-Le Registre permet de consulter les métadonnées par format, d'ouvrir le fichier,
-et de retirer l'ouvrage. La suppression exige une confirmation, efface les
+Le Registre permet de consulter les métadonnées par format, de lire le livre
+dans le Lecteur d'Atelier (§4.6) et de retirer l'ouvrage. Une édition audio y
+est simplement signalée (« à retrouver dans le Studio Audio »). La suppression exige une confirmation, efface les
 exports et couvertures associés dans le dossier de fabrication configuré, mais
 préserve les sources Markdown et les fichiers référencés par un autre ouvrage.
 
-Le **Studio Audio (Banc V)** est intégré au Registre du Livre. L'auteur choisit
-une voix française disponible localement, puis sélectionne obligatoirement un
-chapitre dans la liste extraite de l'ouvrage avant de lancer la génération.
-Chaque opération synthétise uniquement ce chapitre; aucune synthèse globale
-n'est proposée. Le Registre affiche pour le chapitre sélectionné son nombre de
-pages estimé, son nombre de mots et sa durée audio estimée à 135 mots/minute;
-ces métadonnées changent avec la sélection. Une corbeille au bout de chaque
-lecteur supprime le MP3 correspondant sur disque et retire sa référence du
-store local, après confirmation. Les EPUB et
+Le **Studio Audio (Banc V)** dispose de son propre ruban, entre Export et
+Bibliothèque ; il regroupe toutes les fonctions XTTS. Une **console du moteur
+vocal** indique l'état (moteur prêt, inactif, initialisation en %) et porte
+« Réessayer » ou l'assistant de mise en route. L'auteur choisit le livre du
+Registre et un profil de voix française disponible localement, puis lance la
+génération depuis la **table de synthèse** (colonnes Chapitre / Estimation /
+Piste / Action) : un bouton « Générer » ou « Régénérer » par ligne, avec barre
+de progression chapitre-segment en direct. Chaque opération synthétise
+uniquement ce chapitre; aucune synthèse globale n'est proposée. La table affiche
+pour chaque chapitre son nombre de pages estimé, son nombre de mots et sa durée
+audio estimée à 135 mots/minute. Un lecteur et une corbeille par piste permettent
+d'écouter ou de supprimer le MP3 correspondant sur disque et de retirer sa
+référence du store local, après confirmation. Le dossier d'export se choisit
+depuis ce ruban ou Export. Écritoire, Banc d'Épreuve et Épreuve de Plume ne
+portent aucune fonction vocale. Limites : MP3 uniquement, sans clonage de voix. Les EPUB et
 DOCX fournissent leurs titres et chapitres; un PDF textuel constitue un seul
 segment. Les éléments structurels (couverture, titre, sommaire, mentions
 légales) et les parasites évidents sont écartés.
@@ -258,6 +268,34 @@ l'interface signale l'indisponibilité et ne marque pas l'ouvrage comme audio.
 Les fichiers finaux restent dans le dossier d'export choisi; modèles, caches,
 temporaires Python et journaux restent dans LocalAppData, jamais dans
 `C:\Program Files\Aldus`.
+
+### 4.6 Lecteur d'Atelier
+
+« Ouvrir le livre » (Registre, formats EPUB, PDF, DOCX) ouvre un lecteur
+immersif plein écran, sans application tierce. `Échap` ou le bouton discret du
+coin ramène au Registre ; seul le format AUDIO s'ouvre encore avec le lecteur
+du système.
+
+- **Papiers** : Vélin vénitien (`#f5f0e6` / `#2c251e`), Parchemin doux
+  (`#ede4cf` / `#231c16`), Dark Atelier (`#121110` / `#f0ece1`), accent doré
+  `#d4af37` sur fond sombre.
+- **Mode Silence** : après 3 s sans mouvement, l'en-tête, la table des matières,
+  les flèches, la pagination et le tiroir passent à `opacity-0` (700 ms) ; tout
+  mouvement, clic ou touche les rétablit instantanément.
+- **Tiroir typographique** repliable : Literata, EB Garamond, Merriweather,
+  System Serif ; corps 12–24 px ; interligne 1,4–2,0 ; colonne « Confort roman »
+  ou « Feuillet entier » ; lecture paginée ou continue ; pour un PDF, zoom
+  continu et page seule / vis-à-vis. Les réglages sont mémorisés.
+- **EPUB et DOCX** : texte extrait localement, césures françaises, lettrines,
+  table des matières interactive (une entrée par document du dos EPUB).
+  Navigation : flèches, `PageUp/PageDown`, `Espace`, molette en mode paginé.
+- **PDF** : rendu local par pdf.js ; pas de table des matières.
+- **Signets dorés** : un clic en haut de la feuille pose un ruban `#d4af37` (un
+  second clic le retire) ; panneau de consultation rapide avec extrait, accès
+  direct et suppression. Les signets sont conservés dans `.aldus/bookmarks.json`
+  du dossier de sources et survivent au redémarrage.
+
+Limites : images des EPUB ignorées ; le mode continu défile chapitre par chapitre.
 
 La plaque de bronze affiche la version du binaire, vérifie une release GitHub
 avec un cache de deux heures après une réponse valide. La plaque ouvre toujours
@@ -370,10 +408,11 @@ est partagée entre les deux pages du livre via `StudioContext` (état
    remplissage, le foyer et les braises continuent d'animer la lettrine.
 3. Le bouton `[ Entrer dans l'atelier › ]` n'est cliquable qu'une fois la lettre
    comblée ; un clic pendant la coulée bascule immédiatement à l'état prêt.
-4. Les huit onglets sont intégralement lisibles, jamais tronqués, et l'ordre
-  Réglages → Informations → Écritoire → Organisation → Correcteur → Couverture → Export → Bibliothèque
-  est respecté. Bibliothèque conserve le ruban latéral, s'étend sur la zone de
-  travail sans diptyque, et les autres onglets conservent le livre double page.
+4. Les dix onglets sont intégralement lisibles, jamais tronqués, et l'ordre
+  Réglages → Informations → Écritoire → Organisation → Correcteur → Épreuve de Plume → Couverture → Export → Studio Audio → Bibliothèque
+  est respecté. Studio Audio et Bibliothèque conservent le ruban latéral,
+  s'étendent sur la zone de travail sans diptyque, et les autres onglets
+  conservent le livre double page.
 5. L'onglet Informations affiche le **Feuillet I à gauche** et le
    **Feuillet II à droite**, sans double ascenseur de page.
 6. La fermeture (ruban ou croix native) déclenche la cinématique de fermeture du
@@ -396,10 +435,11 @@ est partagée entre les deux pages du livre via `StudioContext` (état
 ## 9. Inventaire fonctionnel des Bancs de l'Atelier
 
 Les bancs sont des parcours éditoriaux; ils ne correspondent pas tous à un
-ruban de navigation distinct. L'application expose huit rubans : Réglages,
-Informations, Écritoire, Organisation, Correcteur, Couverture, Export et
-Bibliothèque. Le Banc V — Studio Audio est une extension du Banc IV —
-Bibliothèque, pas un neuvième ruban. Les Feuillets gauche/droite forment un seul
+ruban de navigation distinct. L'application expose dix rubans : Réglages,
+Informations, Écritoire, Organisation, Correcteur, Épreuve de Plume, Couverture,
+Export, Studio Audio et Bibliothèque. Le Banc V — Studio Audio a désormais son
+propre ruban ; la lecture d'un livre relève du Lecteur d'Atelier (§4.6), ouvert
+depuis le Registre du Banc IV. Les Feuillets gauche/droite forment un seul
 parcours fonctionnel et partagent le contexte du projet.
 
 | Banc | Entrée et interactions | Résultat / contrôles |
@@ -407,8 +447,8 @@ parcours fonctionnel et partagent le contexte du projet.
 | **I — Calibrage & Gabarits** | Menu Réglages : choisir le format KDP, les paramètres de composition (corps, police, interligne, alignement, lettrines), les dossiers de sources et options de journal/correcteur. Importer ou gérer les fichiers depuis les panneaux concernés. | Les paramètres décrivent le manuscrit exporté, pas l'interface. Les formats et réglages sont repris par les calculs d'imposition et les exports. |
 | **II — Identité & Colophon** | Menu Informations : renseigner titre/sous-titre, saga et tome, auteur et collaborateurs, éditeur, ISBN, date, lieu et bibliographie sur les deux feuillets. Validation au blur et sauvegarde automatique. | Métadonnées persistées dans le projet, réutilisées pour les pages liminaires et le colophon de tirage. |
 | **III — L’Écritoire** | Éditer un chapitre Markdown du dossier source, le créer, utiliser le réglet typographique et consulter le Manuel du Scribe. | Sauvegarde automatique du fichier source et aperçu live mis en page avec les réglages du manuscrit. |
-| **IV — Bibliothèque** | Après Export, consulter les rayons principaux/personnalisés, scanner le dossier de fabrication, agréger EPUB/PDF/DOCX par nom, inspecter les formats et supprimer un ouvrage après confirmation. | Une fiche et une tranche par titre normalisé; suppression limitée aux exports configurés, sans effacer les sources ou fichiers partagés. |
-| **V — Studio Audio** | Depuis le Registre du Livre, choisir une voix française locale, accepter la CPML au premier démarrage du MSI Windows, puis lancer la génération du chapitre sélectionné uniquement. | Sidecars XTTS/FFmpeg intégrés au MSI, hub global chapitre/segment, MP3 chapitrés, badge AUDIO et lecteur intégré; wrapper externe conservé en développement. |
+| **IV — Bibliothèque** | Après Studio Audio, consulter les rayons principaux/personnalisés, scanner le dossier de fabrication, agréger EPUB/PDF/DOCX par nom, inspecter les formats, lire un livre dans le Lecteur d'Atelier et supprimer un ouvrage après confirmation. | Une fiche et une tranche par titre normalisé; suppression limitée aux exports configurés, sans effacer les sources ou fichiers partagés. |
+| **V — Studio Audio** | Depuis le ruban Studio Audio, choisir le livre et une voix française locale, accepter la CPML au premier démarrage du MSI Windows, puis lancer la génération d'un chapitre depuis la table de synthèse. | Sidecars XTTS/FFmpeg intégrés au MSI, hub global chapitre/segment, MP3 chapitrés, badge AUDIO et lecteur intégré; wrapper externe conservé en développement. |
 | **Organisation & Imposition** | Menu Organisation : créer/importer actes, chapitres, images et pages spéciales, renommer, régler le rôle, puis réordonner par glisser-déposer. Consulter la table des matières, l'estimation KDP, les cahiers et les ouvertures de chapitres. | Numérotation romaine et alertes de belle page paire ; calculs de pagination et dos avec coefficients de papier. Une illustration non liée peut bloquer l'export. |
 | **Correcteur — Qualité Typographique & Épreuve** | Menu Correcteur : sélectionner un chapitre, examiner la jauge de qualité et les anomalies pondérées, activer/désactiver les 18 règles, parcourir les signalements dans le diptyque, localiser une occurrence, puis corriger par suggestion ou dans la retouche Markdown. | Les vues IX (examen/registre) et X (épreuve/conseils) partagent chapitre, texte, page et règles. |
 | **VI — Mise en couverture** | Menu Couverture : saisir la pagination, sélectionner papier crème/blanc/couleur, choisir Mat Velouté ou Brillant Éclatant, charger les plats, composer le texte et la couleur/dégradé du dos. Examiner le marbre 2D ou le volume 3D, puis passer la checklist avant export. | Calcul du dos et des dimensions dépliées, inspection DPI, repères de fond perdu/pliure/sécurité/code-barres et détection de dérive de pagination ou de structure. |

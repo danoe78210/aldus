@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { FolderOpen, Plus, ScanSearch, Trash2, X } from "lucide-react";
-import type { AudioGenerationProgress, Book, LibraryConfig, ScannedBook, Shelf, ShelfId } from "../types";
-import { addLibraryBook, createCustomShelf, deleteCustomShelf, deleteLibraryAudioTrack, deleteLibraryBook, generateLibraryAudio, getLibraryConfig, moveLibraryBook, scanExportFolder, updateCustomShelf } from "../utils/libraryApi";
+import type { Book, LibraryConfig, ScannedBook, Shelf, ShelfId } from "../types";
+import { addLibraryBook, createCustomShelf, deleteCustomShelf, deleteLibraryBook, getLibraryConfig, moveLibraryBook, scanExportFolder, updateCustomShelf } from "../utils/libraryApi";
 import { Bookshelf } from "./Bookshelf";
 import { LibraryImportDialog } from "./LibraryImportDialog";
 import { LibraryBookDetail } from "./LibraryBookDetail";
@@ -62,39 +62,6 @@ export const LibraryView: React.FC<LibraryViewProps> = ({ exportDirectory, sourc
       if (success) setSelectedBook({ id: bookId, format });
     });
   };
-  const generateAudio = async (
-    bookId: string,
-    voiceId: string,
-    chapterIndex: number,
-    onProgress: (progress: AudioGenerationProgress) => void,
-  ): Promise<boolean> => {
-    if (busy) return false;
-    if (!exportDirectory) {
-      setError("Choisissez un dossier d’export avant de générer l’audio.");
-      return false;
-    }
-    setBusy(true);
-    setError(null);
-    try {
-      setConfig(await generateLibraryAudio(bookId, exportDirectory, voiceId, chapterIndex, onProgress));
-      setImportSummary(`La piste du chapitre ${chapterIndex} a été ajoutée à l’édition audio.`);
-      return true;
-    } catch (reason) {
-      setError(reason instanceof Error ? reason.message : String(reason));
-      return false;
-    } finally {
-      setBusy(false);
-    }
-  };
-  const deleteAudioTrack = async (bookId: string, chapterIndex: number): Promise<boolean> => {
-    if (!exportDirectory) {
-      setError("Choisissez le dossier d’export avant de supprimer la piste audio.");
-      return false;
-    }
-    const success = await update(() => deleteLibraryAudioTrack(bookId, chapterIndex, exportDirectory));
-    if (success) setImportSummary(`La piste audio du chapitre ${chapterIndex} a été supprimée.`);
-    return success;
-  };
   const removeShelf = (shelf: Shelf) => {
     void update(() => deleteCustomShelf(shelf.id)).then((success) => {
       if (success) setPendingDelete(null);
@@ -152,7 +119,7 @@ export const LibraryView: React.FC<LibraryViewProps> = ({ exportDirectory, sourc
   if (selectedBookDetails) {
     return (
       <div className="flex h-full w-full flex-col gap-4 overflow-y-auto px-4 py-5 text-left sm:px-8">
-        <LibraryBookDetail key={selectedBookDetails.id} book={selectedBookDetails} initialFormat={selectedBook?.format} exportDirectory={exportDirectory} shelves={visibleShelves} busy={busy} operationError={error} onMove={moveBook} onGenerateAudio={generateAudio} onDeleteAudioTrack={deleteAudioTrack} onDelete={async (bookId) => {
+        <LibraryBookDetail key={selectedBookDetails.id} book={selectedBookDetails} initialFormat={selectedBook?.format} shelves={visibleShelves} busy={busy} operationError={error} onMove={moveBook} onDelete={async (bookId) => {
           const success = await update(() => deleteLibraryBook(bookId, exportDirectory ?? ""));
           if (success) {
             setSelectedBook(null);

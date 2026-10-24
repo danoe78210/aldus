@@ -428,7 +428,7 @@ pub(crate) fn load_persisted_payload(app: &tauri::AppHandle) -> Result<ProjectPa
     serde_json::from_str(&raw).map_err(|e| format!("Projet persistant illisible : {e}"))
 }
 
-fn configured_sources_directory(app: &tauri::AppHandle) -> Result<std::path::PathBuf, String> {
+pub(crate) fn configured_sources_directory(app: &tauri::AppHandle) -> Result<std::path::PathBuf, String> {
     let payload = load_persisted_payload(app)?;
     let root = payload
         .directories

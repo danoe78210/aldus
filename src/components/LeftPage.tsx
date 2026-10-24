@@ -5,6 +5,7 @@ import {
   ListTree,
   BookMarked,
   LibraryBig,
+  AudioLines,
   Share2,
   SpellCheck,
   Sparkles,
@@ -56,6 +57,7 @@ const tabs: TabItem[] = [
   { id: "epreuve-plume", label: "Épreuve de Plume", icon: Sparkles, color: "bg-linear-to-r from-[#332408] to-[#1f1604]", text: "text-[#f2e2be]" },
   { id: "couverture", label: "Couverture", icon: BookMarked, color: "bg-linear-to-r from-[#300d0d] to-[#1f0808]", text: "text-[#eed0d0]" },
   { id: "export", label: "Export", icon: Share2, color: "bg-linear-to-r from-[#1c1421] to-[#110c14]", text: "text-[#e0d2e8]" },
+  { id: "studio-audio", label: "Studio Audio", icon: AudioLines, color: "bg-linear-to-r from-[#10242a] to-[#0a1519]", text: "text-[#cfe6e8]" },
   { id: "bibliotheque", label: "Bibliothèque", icon: LibraryBig, color: "bg-linear-to-r from-[#2a1d17] to-[#17100c]", text: "text-[#e5d0b1]" },
 ];
 

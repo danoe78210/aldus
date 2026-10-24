@@ -1,23 +1,30 @@
 import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { LibraryView } from "../LibraryView";
-import type { AudioVoice } from "../../types";
-import { addLibraryBook, createCustomShelf, deleteLibraryAudioTrack, deleteLibraryBook, generateLibraryAudio, getAudioConsent, getLibraryConfig, listAudioVoices, listenAudioInitProgress, listBookAudioChapters, openLibraryResource, saveAudioConsent, scanExportFolder, startAudioEngine } from "../../utils/libraryApi";
+import { addLibraryBook, createCustomShelf, deleteLibraryBook, getLibraryConfig, listAudioVoices, openLibraryResource, scanExportFolder } from "../../utils/libraryApi";
+import { readBookContent } from "../../utils/readerApi";
 
 vi.mock("../../utils/libraryApi", async (importOriginal) => ({
   ...await importOriginal<typeof import("../../utils/libraryApi")>(),
   scanExportFolder: vi.fn(),
   openLibraryResource: vi.fn().mockResolvedValue(undefined),
-  deleteLibraryAudioTrack: vi.fn(),
   deleteLibraryBook: vi.fn(),
-  getAudioConsent: vi.fn(),
   listAudioVoices: vi.fn(),
-  listenAudioInitProgress: vi.fn().mockResolvedValue(null),
-  listBookAudioChapters: vi.fn(),
-  saveAudioConsent: vi.fn(),
-  startAudioEngine: vi.fn(),
-  generateLibraryAudio: vi.fn(),
 }));
+
+vi.mock("../../utils/readerApi", () => ({
+  readBookContent: vi.fn(),
+  loadReaderBookmarks: vi.fn().mockResolvedValue([]),
+  saveReaderBookmarks: vi.fn().mockResolvedValue(undefined),
+}));
+
+vi.mock("../reader/PdfReader", () => ({ PdfReader: () => <div data-testid="pdf-reader" /> }));
+
+const READER = { name: /Lecteur d'Atelier/ };
+const closeReader = async () => {
+  fireEvent.click(await screen.findByRole("button", { name: "Retour au Registre" }));
+  await waitFor(() => expect(screen.queryByRole("dialog", READER)).toBeNull());
+};
 
 beforeAll(() => {
   Object.defineProperty(HTMLDialogElement.prototype, "showModal", { configurable: true, value() { this.setAttribute("open", ""); } });
@@ -28,16 +35,7 @@ beforeEach(() => {
   localStorage.clear();
   vi.clearAllMocks();
   vi.mocked(deleteLibraryBook).mockReset();
-  vi.mocked(deleteLibraryAudioTrack).mockReset();
-  vi.mocked(getAudioConsent).mockResolvedValue({ cpml_accepted: false, cpml_accepted_at: null, engine_mode: "external" });
-  vi.mocked(listAudioVoices).mockResolvedValue([{ id: "fr-narrator", name: "Narrateur français", language: "fr-FR" }]);
-  vi.mocked(saveAudioConsent).mockResolvedValue({ cpml_accepted: true, cpml_accepted_at: "2026-10-18T10:45:00Z", engine_mode: "integrated" });
-  vi.mocked(startAudioEngine).mockResolvedValue([{ id: "fr-narrator", name: "Narrateur français", language: "fr-FR" }]);
-  vi.mocked(listBookAudioChapters).mockResolvedValue([
-    { index: 1, title: "Chapitre premier", wordCount: 250, pageCount: 1, estimatedDurationSeconds: 111 },
-    { index: 2, title: "Chapitre second", wordCount: 500, pageCount: 2, estimatedDurationSeconds: 222 },
-  ]);
-  vi.mocked(generateLibraryAudio).mockReset();
+  vi.mocked(readBookContent).mockResolvedValue({ format: "epub", chapters: [{ title: "Chapitre premier", blocks: [{ kind: "paragraph", level: 0, runs: [{ text: "Il était une fois." }] }] }] });
 });
 afterEach(() => {
   cleanup();
@@ -101,7 +99,9 @@ describe("LibraryView", () => {
     await screen.findByRole("heading", { name: "Le Registre du Livre" });
     expect(screen.getByRole("button", { name: "PDF" }).getAttribute("aria-pressed")).toBe("true");
     fireEvent.click(screen.getByRole("button", { name: "Ouvrir le livre" }));
-    expect(openLibraryResource).toHaveBeenLastCalledWith("first", "C:/Exports/Les Schattenjägers.pdf");
+    await screen.findByTestId("pdf-reader");
+    expect(openLibraryResource).not.toHaveBeenCalled();
+    await closeReader();
     fireEvent.click(screen.getByRole("button", { name: "Retour aux rayons" }));
     const config = await getLibraryConfig();
     expect(config.books).toHaveLength(1);
@@ -184,7 +184,9 @@ describe("LibraryView", () => {
     fireEvent.error(cover);
     expect(screen.getByRole("img", { name: "Couverture vierge de Le Roman" })).toBeTruthy();
     fireEvent.click(screen.getByRole("button", { name: "Ouvrir le livre" }));
-    expect(openLibraryResource).toHaveBeenCalledWith(expect.any(String), "C:/Exports/roman.epub");
+    await waitFor(() => expect(readBookContent).toHaveBeenCalledWith(expect.any(String), "C:/Exports/roman.epub"));
+    expect(openLibraryResource).not.toHaveBeenCalled();
+    await closeReader();
     expect(screen.queryByRole("button", { name: "Ouvrir l’EPUB" })).toBeNull();
     expect(screen.queryByRole("button", { name: "Ouvrir le PDF" })).toBeNull();
     expect(screen.queryByRole("button", { name: "Ouvrir le dossier source" })).toBeNull();
@@ -272,7 +274,9 @@ describe("LibraryView", () => {
     fireEvent.click(screen.getByRole("button", { name: "PDF" }));
     expect(screen.getByText("49")).toBeTruthy();
     fireEvent.click(screen.getByRole("button", { name: "Ouvrir le livre" }));
-    expect(openLibraryResource).toHaveBeenCalledWith("copies", "new/Nunael.pdf");
+    await screen.findByTestId("pdf-reader");
+    expect(openLibraryResource).not.toHaveBeenCalled();
+    await closeReader();
     expect((await getLibraryConfig()).books[0].files).toHaveLength(3);
   });
 
@@ -322,7 +326,8 @@ describe("LibraryView", () => {
     expect(statistics.textContent).toContain((4200).toLocaleString("fr-FR"));
     expect(screen.getByText("18 octobre 2026")).toBeTruthy();
     fireEvent.click(screen.getByRole("button", { name: "Ouvrir le livre" }));
-    expect(openLibraryResource).toHaveBeenLastCalledWith("formats", "C:/Exports/livre.docx");
+    await waitFor(() => expect(readBookContent).toHaveBeenLastCalledWith("formats", "C:/Exports/livre.docx"));
+    await closeReader();
     await waitFor(() => expect((screen.getByRole("button", { name: "PDF" }) as HTMLButtonElement).disabled).toBe(false));
     fireEvent.click(screen.getByRole("button", { name: "PDF" }));
     expect(statistics.textContent).toContain("Nbre de pages :49");
@@ -330,268 +335,35 @@ describe("LibraryView", () => {
     expect(screen.getByText("17 octobre 2026")).toBeTruthy();
     expect(screen.queryByText("Nbre de mots :")).toBeNull();
     fireEvent.click(screen.getByRole("button", { name: "Ouvrir le livre" }));
-    expect(openLibraryResource).toHaveBeenLastCalledWith("formats", "C:/Exports/livre.pdf");
+    await screen.findByTestId("pdf-reader");
+    await closeReader();
   });
 
-  it("generates one French audio chapter and exposes an AUDIO badge with playback", async () => {
+  it("keeps the AUDIO format chip for generated editions and points to the Studio Audio ribbon", async () => {
     await addLibraryBook({
       id: "spoken-book",
       title: "Le Roman parlé",
       shelfId: "completed",
       files: [{ path: "C:/Exports/roman.docx", format: "docx" }],
-    });
-    vi.mocked(generateLibraryAudio).mockImplementation(async (bookId, exportDirectory, voiceId, chapterIndex, onProgress) => {
-      expect(bookId).toBe("spoken-book");
-      expect(exportDirectory).toBe("C:/Exports");
-      expect(voiceId).toBe("fr-narrator");
-      expect(chapterIndex).toBe(1);
-      onProgress({ bookId, chapterIndex: 1, chapterCount: 2, chapterTitle: "Chapitre premier", progress: 45, status: "Synthèse en cours" });
-      const config = await getLibraryConfig();
-      config.books[0].audio = {
+      audio: {
         engine: "http://127.0.0.1:8020",
-        voiceId,
+        voiceId: "fr-narrator",
         voiceName: "Narrateur français",
         generatedAt: Date.UTC(2026, 9, 16),
-        chapters: [
-          { index: 1, title: "Chapitre premier", path: "C:/Exports/Audio/roman/001-chapitre-premier.mp3" },
-        ],
-      };
-      localStorage.setItem("aldus-library", JSON.stringify(config));
-      return config;
+        chapters: [{ index: 1, title: "Chapitre premier", path: "C:/Exports/Audio/roman/001-chapitre-premier.mp3" }],
+      },
     });
     render(<LibraryView exportDirectory="C:/Exports" />);
-    fireEvent.click(await screen.findByRole("button", { name: "Inspecter Le Roman parlé" }));
-    await screen.findByRole("heading", { name: "Studio Audio" });
-    await screen.findByRole("option", { name: "Narrateur français · fr-FR" });
-    expect(listAudioVoices).toHaveBeenCalled();
-    fireEvent.click(screen.getByRole("button", { name: "Générer l’édition audio" }));
-    await screen.findByText(/Édition audio · Narrateur français · 1 piste/);
-    expect(screen.queryByRole("progressbar", { name: "Progression audio" })).toBeNull();
-    expect(screen.getByRole("button", { name: "AUDIO" })).toBeTruthy();
-    fireEvent.click(screen.getByRole("button", { name: "Retour aux rayons" }));
-    expect(screen.getByLabelText("Formats : DOCX, AUDIO")).toBeTruthy();
+    expect(await screen.findByLabelText("Formats : DOCX, AUDIO")).toBeTruthy();
     fireEvent.click(screen.getByRole("button", { name: "Inspecter Le Roman parlé au format AUDIO" }));
     await screen.findByRole("heading", { name: "Le Registre du Livre" });
     expect(screen.getByRole("button", { name: "AUDIO" }).getAttribute("aria-pressed")).toBe("true");
-    expect(screen.getByLabelText("Écouter Chapitre premier")).toBeTruthy();
+    expect(screen.getByText(/à retrouver dans le Studio Audio/)).toBeTruthy();
+    expect(screen.queryByRole("button", { name: "Générer l’édition audio" })).toBeNull();
+    expect(listAudioVoices).not.toHaveBeenCalled();
     fireEvent.click(screen.getByRole("button", { name: "Ouvrir le livre" }));
-    expect(openLibraryResource).toHaveBeenLastCalledWith("spoken-book", "C:/Exports/Audio/roman/001-chapitre-premier.mp3");
-    expect((await getLibraryConfig()).books[0].audio?.chapters).toHaveLength(1);
-  });
-
-  it("regenerates one selected chapter without replacing other audio tracks", async () => {
-    await addLibraryBook({
-      id: "incremental-book",
-      title: "Le Roman incrémental",
-      shelfId: "in_progress",
-      files: [{ path: "C:/Exports/incremental.epub", format: "epub" }],
-      audio: {
-        engine: "http://127.0.0.1:8020",
-        voiceId: "fr-narrator",
-        voiceName: "Narrateur français",
-        generatedAt: Date.UTC(2026, 9, 16),
-        chapters: [
-          { index: 1, title: "Chapitre premier", path: "C:/Exports/Audio/old/001.mp3" },
-          { index: 2, title: "Chapitre second", path: "C:/Exports/Audio/old/002.mp3" },
-        ],
-      },
-    });
-    vi.mocked(generateLibraryAudio).mockImplementation(async (bookId, _exportDirectory, voiceId, chapterIndex, onProgress) => {
-      expect(chapterIndex).toBe(2);
-      onProgress({ bookId, chapterIndex: 2, chapterCount: 2, chapterTitle: "Chapitre second", progress: 90, status: "Synthèse du chapitre 2" });
-      const config = await getLibraryConfig();
-      const book = config.books.find((item) => item.id === bookId);
-      if (!book?.audio) throw new Error("Audio initial absent du test.");
-      book.audio.voiceId = voiceId;
-      book.audio.chapters = book.audio.chapters.map((chapter) => chapter.index === 2
-        ? { ...chapter, path: "C:/Exports/Audio/new/002.mp3" }
-        : chapter);
-      localStorage.setItem("aldus-library", JSON.stringify(config));
-      return config;
-    });
-
-    render(<LibraryView exportDirectory="C:/Exports" />);
-    fireEvent.click(await screen.findByRole("button", { name: "Inspecter Le Roman incrémental" }));
-    await screen.findByRole("option", { name: "2. Chapitre second" });
-    fireEvent.change(screen.getByRole("combobox", { name: "Chapitre à synthétiser" }), { target: { value: "2" } });
-    fireEvent.click(screen.getByRole("button", { name: "Générer l’édition audio" }));
-
-    await screen.findByLabelText("Écouter Chapitre second");
-    await waitFor(() => expect((screen.getByRole("button", { name: "Générer l’édition audio" }) as HTMLButtonElement).disabled).toBe(false));
-    expect(generateLibraryAudio).toHaveBeenCalledExactlyOnceWith(
-      "incremental-book",
-      "C:/Exports",
-      "fr-narrator",
-      2,
-      expect.any(Function),
-    );
-    expect(screen.getByLabelText("Écouter Chapitre premier")).toBeTruthy();
-    expect(screen.getByLabelText("Écouter Chapitre second")).toBeTruthy();
-    const config = await getLibraryConfig();
-    expect(config.books[0].audio?.chapters.map((chapter) => chapter.path)).toEqual([
-      "C:/Exports/Audio/old/001.mp3",
-      "C:/Exports/Audio/new/002.mp3",
-    ]);
-  });
-
-  it("shows the exact local-engine notice and prevents generation without a French voice", async () => {
-    await addLibraryBook({ id: "offline-audio", title: "Voix absente", shelfId: "in_progress", files: [{ path: "C:/Exports/offline.epub", format: "epub" }] });
-    vi.mocked(listAudioVoices).mockResolvedValueOnce([]);
-    render(<LibraryView exportDirectory="C:/Exports" />);
-    fireEvent.click(await screen.findByRole("button", { name: "Inspecter Voix absente" }));
-    await screen.findByRole("heading", { name: "Studio Audio" });
-    expect(await screen.findAllByText("Le moteur vocal local est inactif. Veuillez lancer le wrapper TTS sur le port 8020 ou configurer ALDUS_TTS_URL.")).not.toHaveLength(0);
-    const setup = await screen.findByRole("dialog", { name: "Assistant de mise en route XTTS v2" });
-    expect(setup.textContent).toContain("Moteur local externe");
-    expect(setup.textContent).toContain("scripts/xtts_wrapper.py");
-    expect(within(setup).queryByRole("checkbox")).toBeNull();
-    expect((screen.getByRole("button", { name: "Générer l’édition audio" }) as HTMLButtonElement).disabled).toBe(true);
-    expect(generateLibraryAudio).not.toHaveBeenCalled();
-    fireEvent.click(within(setup).getByRole("button", { name: "Vérifier le moteur externe" }));
-    await screen.findByRole("option", { name: "Narrateur français · fr-FR" });
-    expect(screen.queryByRole("dialog", { name: "Assistant de mise en route XTTS v2" })).toBeNull();
-    expect((screen.getByRole("button", { name: "Générer l’édition audio" }) as HTMLButtonElement).disabled).toBe(false);
-  });
-
-  it("shows live voice loading progress while profiles are being fetched", async () => {
-    await addLibraryBook({ id: "voice-progress", title: "Voix en cours", shelfId: "in_progress", files: [{ path: "C:/Exports/voice-progress.epub", format: "epub" }] });
-    vi.mocked(listenAudioInitProgress).mockImplementationOnce(async (handler) => {
-      handler({ percent: 35, stage: "Import PyTorch", isReady: false });
-      return null;
-    });
-    let finishVoiceRequest: ((voices: AudioVoice[]) => void) | undefined;
-    vi.mocked(listAudioVoices).mockImplementationOnce(() => new Promise((resolve) => {
-      finishVoiceRequest = resolve;
-    }));
-    render(<LibraryView exportDirectory="C:/Exports" />);
-    fireEvent.click(await screen.findByRole("button", { name: "Inspecter Voix en cours" }));
-    await screen.findByRole("option", { name: "Chargement des profils vocaux (35%)..." });
-    finishVoiceRequest?.([{ id: "fr-narrator", name: "Narrateur français", language: "fr-FR" }]);
-    await screen.findByRole("option", { name: "Narrateur français · fr-FR" });
-  });
-
-  it("cancels CPML onboarding without persisting consent", async () => {
-    await addLibraryBook({ id: "cpml-cancel", title: "Consentement annulé", shelfId: "in_progress", files: [{ path: "C:/Exports/cpml.epub", format: "epub" }] });
-    vi.mocked(getAudioConsent).mockResolvedValueOnce({ cpml_accepted: false, cpml_accepted_at: null, engine_mode: "integrated" });
-    render(<LibraryView exportDirectory="C:/Exports" />);
-    fireEvent.click(await screen.findByRole("button", { name: "Inspecter Consentement annulé" }));
-    const dialog = await screen.findByRole("dialog", { name: "Assistant de mise en route XTTS v2" });
-    fireEvent.click(within(dialog).getByRole("checkbox"));
-    fireEvent.click(within(dialog).getByRole("button", { name: "Annuler" }));
-    expect(saveAudioConsent).not.toHaveBeenCalled();
-    expect(screen.queryByRole("dialog", { name: "Assistant de mise en route XTTS v2" })).toBeNull();
-    fireEvent.click(within(screen.getByRole("region", { name: /Registre du Livre/ })).getByRole("button", { name: "Ouvrir l’assistant" }));
-    const reopened = await screen.findByRole("dialog", { name: "Assistant de mise en route XTTS v2" });
-    expect((within(reopened).getByRole("checkbox") as HTMLInputElement).checked).toBe(false);
-  });
-
-  it("persists CPML consent before starting the integrated audio engine", async () => {
-    await addLibraryBook({ id: "cpml-accept", title: "Consentement accepté", shelfId: "in_progress", files: [{ path: "C:/Exports/cpml-accept.epub", format: "epub" }] });
-    vi.mocked(getAudioConsent).mockResolvedValueOnce({ cpml_accepted: false, cpml_accepted_at: null, engine_mode: "integrated" });
-    let resolveConsent!: (config: Awaited<ReturnType<typeof getAudioConsent>>) => void;
-    vi.mocked(saveAudioConsent).mockImplementationOnce(() => new Promise((resolve) => { resolveConsent = resolve; }));
-    let resolveStart: ((voices: AudioVoice[]) => void) | undefined;
-    vi.mocked(startAudioEngine).mockImplementationOnce(() => new Promise((resolve) => {
-      resolveStart = resolve;
-    }));
-    render(<LibraryView exportDirectory="C:/Exports" />);
-    fireEvent.click(await screen.findByRole("button", { name: "Inspecter Consentement accepté" }));
-    const dialog = await screen.findByRole("dialog", { name: "Assistant de mise en route XTTS v2" });
-    fireEvent.click(within(dialog).getByRole("checkbox"));
-    fireEvent.click(within(dialog).getByRole("button", { name: "ACCEPTER ET DÉMARRER" }));
-    expect(screen.queryByRole("dialog", { name: "Assistant de mise en route XTTS v2" })).toBeNull();
-    expect(startAudioEngine).not.toHaveBeenCalled();
-    resolveConsent({ cpml_accepted: true, cpml_accepted_at: "2026-10-18T10:45:00Z", engine_mode: "integrated" });
-    await waitFor(() => expect(startAudioEngine).toHaveBeenCalledOnce());
-    expect(screen.queryByRole("dialog", { name: "Assistant de mise en route XTTS v2" })).toBeNull();
-    resolveStart?.([{ id: "fr-narrator", name: "Narrateur français", language: "fr-FR" }]);
-    await screen.findByRole("option", { name: "Narrateur français · fr-FR" });
-    expect(saveAudioConsent).toHaveBeenCalledWith(true);
-    expect(startAudioEngine).toHaveBeenCalledOnce();
-    expect(vi.mocked(saveAudioConsent).mock.invocationCallOrder[0]).toBeLessThan(vi.mocked(startAudioEngine).mock.invocationCallOrder[0]);
-    expect(screen.queryByRole("dialog", { name: "Assistant de mise en route XTTS v2" })).toBeNull();
-  });
-
-  it("starts the integrated audio engine automatically when CPML consent is already stored", async () => {
-    await addLibraryBook({ id: "cpml-stored", title: "Consentement conservé", shelfId: "in_progress", files: [{ path: "C:/Exports/cpml-stored.epub", format: "epub" }] });
-    vi.mocked(getAudioConsent).mockResolvedValueOnce({ cpml_accepted: true, cpml_accepted_at: "2026-10-18T10:45:00Z", engine_mode: "integrated" });
-    render(<LibraryView exportDirectory="C:/Exports" />);
-    fireEvent.click(await screen.findByRole("button", { name: "Inspecter Consentement conservé" }));
-    await screen.findByRole("option", { name: "Narrateur français · fr-FR" });
-    expect(startAudioEngine).toHaveBeenCalledOnce();
-    expect(saveAudioConsent).not.toHaveBeenCalled();
-    expect(screen.queryByRole("dialog", { name: "Assistant de mise en route XTTS v2" })).toBeNull();
-  });
-
-  it("updates chapter page and duration estimates and removes only the selected audio track", async () => {
-    await addLibraryBook({
-      id: "chapter-metadata",
-      title: "Métriques audio",
-      shelfId: "in_progress",
-      files: [{ path: "C:/Exports/metriques.epub", format: "epub" }],
-      audio: {
-        engine: "XTTS v2",
-        voiceId: "fr-narrator",
-        voiceName: "Narrateur français",
-        generatedAt: 1,
-        chapters: [
-          { index: 1, title: "Chapitre premier", path: "C:/Exports/Audio/book/001.mp3" },
-          { index: 2, title: "Chapitre second", path: "C:/Exports/Audio/book/002.mp3" },
-        ],
-      },
-    });
-    vi.spyOn(window, "confirm").mockReturnValue(true);
-    vi.mocked(deleteLibraryAudioTrack).mockImplementation(async (bookId, chapterIndex, exportDirectory) => {
-      expect(exportDirectory).toBe("C:/Exports");
-      const config = await getLibraryConfig();
-      const book = config.books.find((item) => item.id === bookId);
-      if (book?.audio) {
-        book.audio.chapters = book.audio.chapters.filter((chapter) => chapter.index !== chapterIndex);
-        if (book.audio.chapters.length === 0) book.audio = undefined;
-      }
-      localStorage.setItem("aldus-library", JSON.stringify(config));
-      return config;
-    });
-    render(<LibraryView exportDirectory="C:/Exports" />);
-    fireEvent.click(await screen.findByRole("button", { name: "Inspecter Métriques audio" }));
-
-    expect(await screen.findByText("1 page(s) estimée(s) · 250 mots · ~1 min 51 s")).toBeTruthy();
-    fireEvent.change(screen.getByRole("combobox", { name: "Chapitre à synthétiser" }), { target: { value: "2" } });
-    expect(screen.getByText("2 page(s) estimée(s) · 500 mots · ~3 min 42 s")).toBeTruthy();
-
-    vi.spyOn(window, "confirm").mockReturnValue(true);
-    fireEvent.click(screen.getByRole("button", { name: "Supprimer la piste audio Chapitre second" }));
-    await waitFor(() => expect(deleteLibraryAudioTrack).toHaveBeenCalledWith("chapter-metadata", 2, "C:/Exports"));
-    expect(screen.queryByRole("button", { name: "Lire Chapitre second" })).toBeNull();
-    expect(screen.getByRole("button", { name: "Lire Chapitre premier" })).toBeTruthy();
-  });
-
-  it("explains that an export folder is required before audio generation", async () => {
-    await addLibraryBook({ id: "needs-export", title: "Dossier manquant", shelfId: "in_progress", files: [{ path: "C:/Sources/livre.epub", format: "epub" }] });
-    render(<LibraryView />);
-    fireEvent.click(await screen.findByRole("button", { name: "Inspecter Dossier manquant" }));
-    await screen.findByRole("option", { name: "Narrateur français · fr-FR" });
-
-    expect((screen.getByRole("button", { name: "Générer l’édition audio" }) as HTMLButtonElement).disabled).toBe(true);
-    expect(screen.getByText(/Choisissez un dossier d’export dans Export → Inspection Pré-Presse → Parcourir les archives/)).toBeTruthy();
-    expect(generateLibraryAudio).not.toHaveBeenCalled();
-  });
-
-  it("locks concurrent controls while audio generation is in flight", async () => {
-    await addLibraryBook({ id: "busy-audio", title: "En cours", shelfId: "in_progress", files: [{ path: "C:/Exports/busy.epub", format: "epub" }] });
-    let resolveGeneration!: (config: Awaited<ReturnType<typeof getLibraryConfig>>) => void;
-    vi.mocked(generateLibraryAudio).mockImplementation(() => new Promise((resolve) => { resolveGeneration = resolve; }));
-    render(<LibraryView exportDirectory="C:/Exports" />);
-    fireEvent.click(await screen.findByRole("button", { name: "Inspecter En cours" }));
-    await screen.findByRole("option", { name: "Narrateur français · fr-FR" });
-    fireEvent.click(await screen.findByRole("button", { name: "Générer l’édition audio" }));
-    const activeButton = await screen.findByRole("button", { name: "Forge audio en cours…" });
-    await waitFor(() => expect((activeButton as HTMLButtonElement).disabled).toBe(true));
-    expect(activeButton.className).toContain("animate-pulse");
-    expect((screen.getByRole("combobox", { name: "Profil de voix" }) as HTMLSelectElement).disabled).toBe(true);
-    expect(screen.getByRole("combobox", { name: "Emplacement actuel" }).hasAttribute("disabled")).toBe(true);
-    resolveGeneration(await getLibraryConfig());
-    await waitFor(() => expect((screen.getByRole("button", { name: "Supprimer l’ouvrage" }) as HTMLButtonElement).disabled).toBe(false));
+    await waitFor(() => expect(openLibraryResource).toHaveBeenLastCalledWith("spoken-book", "C:/Exports/Audio/roman/001-chapitre-premier.mp3"));
+    expect(screen.queryByRole("dialog", { name: /Lecteur d'Atelier/ })).toBeNull();
   });
 
   it("does not reuse aggregate PDF statistics for a DOCX without readable metadata", async () => {
@@ -603,10 +375,10 @@ describe("LibraryView", () => {
     expect(screen.queryByText("49")).toBeNull();
     expect(screen.queryByText("9")).toBeNull();
     expect(screen.getAllByText("\u2014")).toHaveLength(1);
-    vi.mocked(openLibraryResource).mockRejectedValueOnce(new Error("Fichier introuvable"));
+    vi.mocked(readBookContent).mockRejectedValueOnce(new Error("Fichier introuvable"));
     fireEvent.click(screen.getByRole("button", { name: "Ouvrir le livre" }));
-    await screen.findByRole("alert");
-    expect(screen.getByText("Fichier introuvable")).toBeTruthy();
+    const reader = await screen.findByRole("dialog", READER);
+    expect((await within(reader).findByRole("alert")).textContent).toBe("Fichier introuvable");
   });
 
   it("migrates legacy archive books and hidden populated custom shelves without losing books", async () => {

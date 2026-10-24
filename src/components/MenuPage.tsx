@@ -9,6 +9,7 @@ import { ProofWorkbench } from "./ProofWorkbench";
 import { PressWorkshop } from "./PressWorkshop";
 import { WritingPreview } from "./WritingStudio";
 import { LibraryView } from "./LibraryView";
+import { StudioAudioView } from "./audio/StudioAudioView";
 import { IssuesList } from "./epreuve-plume/IssuesList";
 
 /**
@@ -45,6 +46,8 @@ export const MenuPage: React.FC<{ menu: ActiveMenu }> = ({ menu }) => {
       return <WritingPreview />;
     case "bibliotheque":
       return <LibraryView exportDirectory={studio.exportDirectory} sourceDirectory={studio.sourceConfig.directory} currentBookTitle={studio.bookInfo.title} currentCoverPath={studio.cover.frontPath} onPickExportDirectory={studio.onPickExportDirectory} />;
+    case "studio-audio":
+      return <StudioAudioView exportDirectory={studio.exportDirectory} onPickExportDirectory={studio.onPickExportDirectory} />;
     case "organisation":
       /* Feuillet VI : imposition & calibrage KDP — la table des matières
          (Feuillet V) est composée sur la page de gauche. */

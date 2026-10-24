@@ -1577,11 +1577,12 @@ const App: React.FC = () => {
               activeMenu={activeMenu}
               setActiveMenu={setActiveMenu}
               onExitApp={handleQuit}
-              navigationOnly={activeMenu === "bibliotheque"}
+              navigationOnly={activeMenu === "bibliotheque" || activeMenu === "studio-audio"}
             />
           }
           bookPages={BOOK_PAGES}
-          fullWidthContent={activeMenu === "bibliotheque" ? <MenuPage menu="bibliotheque" /> : undefined}
+          fullWidthContent={activeMenu === "bibliotheque" || activeMenu === "studio-audio" ? <MenuPage menu={activeMenu} /> : undefined}
+          fullWidthLabel={activeMenu === "studio-audio" ? "Studio Audio" : undefined}
           activeIndex={activeIndex}
           progress={progress}
           progressLabel={progressLabel}

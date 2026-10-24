@@ -188,12 +188,13 @@ chargement des deux familles avec repli système hors connexion). Les titres con
 ### 6.1 Ordre officiel des rubans
 Séquence canonique (`LeftPage.tsx`, union `ActiveMenu` et `MENU_ORDER` de `App.tsx`) :
 
-`Réglages` → `Informations` → `Organisation` → **`Correcteur`** → **`Couverture`** → `Export`
+`Réglages` → `Informations` → `Écritoire` → `Organisation` → **`Correcteur`** → `Épreuve de Plume` → **`Couverture`** → `Export` → `Studio Audio` → `Bibliothèque`
 
 soit, pour `ActiveMenu` :
 ```ts
 export type ActiveMenu =
-  | 'reglages' | 'infos' | 'organisation' | 'correcteur' | 'couverture' | 'export';
+  | 'reglages' | 'infos' | 'ecritoire' | 'organisation' | 'correcteur' | 'epreuve-plume'
+  | 'couverture' | 'export' | 'bibliotheque' | 'studio-audio';
 ```
 
 ### 6.2 Jauge de tranche inline (`SpineGauge.tsx`)

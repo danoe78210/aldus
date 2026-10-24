@@ -7,7 +7,8 @@ export type ActiveMenu =
   | 'couverture'
   | 'correcteur'
   | 'epreuve-plume'
-  | 'export';
+  | 'export'
+  | 'studio-audio';
 
 export type ShelfId = string;
 
@@ -427,4 +428,39 @@ export interface ProjectFile {
   };
   /** État persistant du module Couverture (Cover Studio). */
   cover?: CoverStudioState;
+}
+
+export interface ReaderRun {
+  text: string;
+  italic?: boolean;
+  bold?: boolean;
+}
+
+export interface ReaderBlock {
+  kind: "heading" | "paragraph" | "dialogue" | "quote" | "rule";
+  level: number;
+  runs: ReaderRun[];
+}
+
+export interface ReaderChapter {
+  title: string;
+  blocks: ReaderBlock[];
+}
+
+export interface ReaderContent {
+  format: "epub" | "docx";
+  chapters: ReaderChapter[];
+}
+
+export interface ReaderBookmark {
+  id: string;
+  bookId: string;
+  format: "epub" | "pdf" | "docx";
+  /** Chapitre (EPUB, DOCX) ou page (PDF) à partir de 0. */
+  chapter: number;
+  chapterTitle: string;
+  /** Avancement dans le chapitre, de 0 à 1. */
+  position: number;
+  excerpt: string;
+  createdAt: number;
 }

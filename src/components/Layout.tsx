@@ -23,6 +23,7 @@ interface LayoutProps {
   /** Contenu de la page de gauche (navigation & identité). */
   leftContent: ReactNode;
   fullWidthContent?: ReactNode;
+  fullWidthLabel?: string;
   /** Pages du livre virtuel de droite (une vue par menu). */
   bookPages: ReactNode[];
   /** Index de la page active (piloté par le ruban de navigation). */
@@ -44,6 +45,7 @@ interface LayoutProps {
 export const Layout: React.FC<LayoutProps> = ({
   leftContent,
   fullWidthContent,
+  fullWidthLabel = "Espace bibliothèque",
   bookPages,
   activeIndex,
   progress,
@@ -83,7 +85,7 @@ export const Layout: React.FC<LayoutProps> = ({
         {fullWidthContent ? (
           <div className="relative h-full min-h-0 w-full" style={{ opacity: closing ? 0 : 1, transition: "opacity 1000ms ease" }}>
             <div className="absolute inset-y-0 left-0 w-0">{leftContent}</div>
-            <section aria-label="Espace bibliothèque" className="h-full min-h-0 w-full overflow-hidden border-y border-[#3a3022] bg-[#181614]">
+            <section aria-label={fullWidthLabel} className="h-full min-h-0 w-full overflow-hidden border-y border-[#3a3022] bg-[#181614]">
               {fullWidthContent}
             </section>
           </div>

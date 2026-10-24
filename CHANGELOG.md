@@ -1,4 +1,25 @@
 # Registre des Évolutions — Aldus
+## [Non publié] — Lecteur d'Atelier & ruban Studio Audio
+### Ajouté
+- **Lecteur d'Atelier** : « Ouvrir le livre » du Registre ouvre désormais l'EPUB, le PDF ou le DOCX dans un lecteur immersif plein écran intégré, sans application tierce. `Échap` ou le bouton discret du coin ramène au Registre.
+- Trois papiers — Vélin vénitien (`#f5f0e6` / `#2c251e`), Parchemin doux (`#ede4cf` / `#231c16`) et Dark Atelier (`#121110` / `#f0ece1`) — et un tiroir typographique repliable : Literata, EB Garamond, Merriweather, System Serif ; corps 12–24 px ; interligne 1,4–2,0 ; colonne « Confort roman » ou « Feuillet entier ». Les réglages sont mémorisés.
+- Mode Silence : après 3 s sans mouvement, les contrôles s'effacent (`opacity-0`, 700 ms) ; tout mouvement, clic ou touche les rétablit instantanément.
+- EPUB et DOCX : extraction locale en Rust, lecture paginée ou continue, césures françaises, lettrines, table des matières interactive (une entrée par document du dos EPUB).
+- PDF : rendu local par pdf.js (chargé à la demande), zoom continu, page seule ou vis-à-vis.
+- **Signets dorés** : un clic en haut de la feuille pose un ruban `#d4af37` ; les signets sont écrits de façon atomique dans `.aldus/bookmarks.json` et survivent au redémarrage ; panneau de consultation rapide avec extrait et suppression.
+- **Ruban « Studio Audio »** dans la navigation (après Export, avant Bibliothèque) : console du moteur XTTS v2, sélecteur de voix, table de synthèse par chapitre (générer / régénérer, progression chapitre-segment, écoute, suppression des pistes MP3). La Bibliothèque ne garde que le Registre ; une édition audio y est simplement signalée.
+
+### Modifié
+- Écritoire, Banc d'Épreuve et Épreuve de Plume se concentrent sur le texte et la stylométrie ; toute la synthèse vocale vit dans le Studio Audio. Aucun changement du moteur : sidecar local sur `127.0.0.1:8020`, segments de 240 caractères maximum, consentement CPML inchangé.
+- Le moteur vocal intégré ne démarre qu'à l'ouverture du ruban Studio Audio.
+
+### Corrigé
+- Lecteur : les signets filtrés sont mémoïsés, ce qui évite une boucle de rendu entre la vue et le hook des signets.
+
+### Limites connues
+- Lecteur : pas de table des matières pour les PDF ; les images des EPUB sont ignorées ; le mode continu défile chapitre par chapitre.
+- Studio Audio : MP3 uniquement (ni clonage de voix, ni WAV, ni m4b).
+
 ## [1.4.10] - 2026-10-20 — Épreuve de Plume, pupitre de remaniement
 ### Ajouté
 - Mode Retouche du feuillet gauche : éditeur Markdown brut sur fond ébène avec numérotation des lignes logiques, ouvert librement par la bascule `[ Épreuve | Retouche ]` ou ciblé sur un passage par « Remanier dans l'éditeur » depuis une carte sans reformation automatique. `Enregistrer & réévaluer` (ou `Ctrl+S`) passe par l'instantané `.aldus/history/` et l'écriture atomique avant réaudit ; un échec conserve le brouillon, « Annuler » l'abandonne.

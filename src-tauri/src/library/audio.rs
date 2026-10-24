@@ -791,40 +791,8 @@ fn xhtml_blocks(document: &roxmltree::Document<'_>) -> String {
 fn extract_epub(path: &Path) -> Result<Vec<NarratedChapter>, String> {
     let mut archive = ZipArchive::new(File::open(path).map_err(|error| error.to_string())?)
         .map_err(|error| format!("EPUB illisible : {error}"))?;
-    let container = metadata::xml_entry(&mut archive, "META-INF/container.xml")
-        .ok_or("EPUB sans META-INF/container.xml.")?;
-    let container = metadata::parse_xml(&container).ok_or("Container EPUB invalide.")?;
-    let package_path = container
-        .descendants()
-        .find(|node| node.has_tag_name("rootfile"))
-        .and_then(|node| node.attribute("full-path"))
-        .ok_or("Chemin OPF absent du conteneur EPUB.")?;
-    let package_xml =
-        metadata::xml_entry(&mut archive, package_path).ok_or("OPF EPUB introuvable.")?;
-    let package = metadata::parse_xml(&package_xml).ok_or("OPF EPUB invalide.")?;
-    let spine = package
-        .descendants()
-        .find(|node| node.has_tag_name("spine"))
-        .ok_or("Structure spine absente de l'EPUB.")?;
     let mut chapters = Vec::new();
-    for item_ref in spine.children().filter(|node| node.has_tag_name("itemref")) {
-        if item_ref.attribute("linear") == Some("no") {
-            continue;
-        }
-        let id = item_ref.attribute("idref").unwrap_or("");
-        let Some(item) = package
-            .descendants()
-            .find(|node| node.has_tag_name("item") && node.attribute("id") == Some(id))
-        else {
-            continue;
-        };
-        if item.attribute("media-type") != Some("application/xhtml+xml") {
-            continue;
-        }
-        let Some(href) = item.attribute("href") else {
-            continue;
-        };
-        let entry_path = metadata::archive_path(package_path, href);
+    for entry_path in super::reader::epub_spine_entries(&mut archive)? {
         let Some(text) = metadata::xml_entry(&mut archive, &entry_path) else {
             continue;
         };

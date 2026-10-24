@@ -21,8 +21,12 @@ la typographie humaniste.
   fichiers `.md` dans le dossier source du projet, avec sauvegarde automatique.
 - **Banc IV — Bibliothèque :** rayons de livres, scan et regroupement EPUB/PDF/DOCX, statistiques
   par format, gestion des exports et badge AUDIO sur les ouvrages narrés.
-- **Banc V — Studio Audio :** synthèse XTTS v2 locale, sélection ciblée par chapitre, génération
-  incrémentale, progression globale et lecteur intégré; le manuscrit reste sur la machine.
+- **Lecteur d'Atelier :** « Ouvrir le livre » lit l'EPUB, le PDF ou le DOCX en plein écran dans
+  Aldus : trois papiers (Vélin, Parchemin, Dark Atelier), tiroir typographique, mode Silence après
+  3 s, table des matières interactive et signets dorés persistants.
+- **Banc V — Studio Audio (ruban dédié) :** console du moteur XTTS v2 local, choix de la voix,
+  table de synthèse par chapitre (génération incrémentale, progression, écoute, suppression des
+  MP3); le manuscrit reste sur la machine.
 - **Diptyque d'écriture :** éditeur Markdown épuré sur le feuillet gauche et prévisualisation
   typographique instantanée sur le feuillet droit, selon les réglages du manuscrit.
 - **Réglet & Manuel du Scribe :** insertion rapide de guillemets français (`« »`), espaces

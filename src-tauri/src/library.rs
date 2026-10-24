@@ -7,6 +7,7 @@ use std::time::{SystemTime, UNIX_EPOCH};
 mod audio;
 mod deletion;
 mod metadata;
+pub(crate) mod reader;
 pub use audio::AudioEngine;
 
 pub type ShelfId = String;
