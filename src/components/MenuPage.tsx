@@ -11,7 +11,7 @@ import { WritingPreview } from "./WritingStudio";
 import { LibraryView } from "./LibraryView";
 import { StudioAudioView } from "./audio/StudioAudioView";
 import { IssuesList } from "./epreuve-plume/IssuesList";
-import { PendingView } from "./navigation/PendingView";
+import { AudioReaderView } from "./audio/AudioReaderView";
 import { SalonView } from "./reader/SalonView";
 
 /**
@@ -59,7 +59,7 @@ export const MenuPage: React.FC<{ menu: ActiveMenu }> = ({ menu }) => {
          composé sur la page de gauche (Feuillet VII). */
       return <CoverCalibration />;
     case "lecteur":
-      return <PendingView title="Le Lecteur" hint="Musicothèque d'atelier : un disque par livre. Choisissez un fichier, il se lit sur le lecteur de bande." />;
+      return <AudioReaderView currentBookTitle={studio.bookInfo.title} onOpenStudio={studio.onOpenStudioAudio} />;
     case "salon":
       return <SalonView target={studio.salonTarget} />;
     case "correcteur":

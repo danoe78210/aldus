@@ -147,6 +147,8 @@ export interface StudioContextValue {
   salonTarget: SalonTarget | null;
   /** Transmet un livre au Salon de lecture et l'ouvre. */
   onOpenSalon: (target: SalonTarget) => void;
+  /** Ouvre le Studio Audio, où les disques du Lecteur sont gravés. */
+  onOpenStudioAudio: () => void;
 
   // --- Journal d'atelier (StatusBar) ---
   /** Consigne un message horodaté dans le journal d'opérations. */

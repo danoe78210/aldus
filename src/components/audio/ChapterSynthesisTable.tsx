@@ -2,6 +2,7 @@ import { AudioLines, Disc3 } from "lucide-react";
 import type { AudioChapter, AudioChapterChoice, AudioGenerationProgress } from "../../types";
 import { libraryCoverUrl } from "../../utils/libraryApi";
 import { AudioTrackPlayer } from "../AudioTrackPlayer";
+import { burnDetails } from "./burnDetails";
 
 interface ChapterSynthesisTableProps {
   chapters: AudioChapterChoice[];
@@ -18,16 +19,6 @@ const formatEstimatedDuration = (seconds: number): string => {
   const remainingSeconds = seconds % 60;
   return remainingSeconds === 0 ? `${minutes} min` : `${minutes} min ${remainingSeconds} s`;
 };
-
-const formatClock = (seconds: number): string => `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, "0")}`;
-
-const burnDetails = ({ burn }: AudioChapter): string | null => burn
-  ? [
-      new Date(burn.burnedAt).toLocaleDateString("fr-FR"),
-      burn.durationSeconds !== undefined ? formatClock(burn.durationSeconds) : null,
-      burn.mode === "polyphonic" ? `polyphonie · ${burn.roles.map((entry) => `${entry.role} ×${entry.lines}`).join(", ")}` : "voix unique",
-    ].filter(Boolean).join(" · ")
-  : null;
 
 export const ChapterSynthesisTable = ({ chapters, tracks, generatingIndex, progress, canGenerate, onGenerate, onDelete }: ChapterSynthesisTableProps) => (
   <table className="w-full border-collapse text-left font-serif text-sm text-[#c9bea9]">

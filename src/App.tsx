@@ -1527,6 +1527,7 @@ const App: React.FC = () => {
     onEnterAtelier: enterAtelier,
     salonTarget,
     onOpenSalon: handleOpenSalon,
+    onOpenStudioAudio: () => setActiveMenu("studio-audio"),
     onNotify: addLog,
     manuscriptConfig,
     sourceConfig,
