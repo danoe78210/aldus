@@ -98,7 +98,7 @@ describe("StudioAudioView", () => {
     await screen.findByRole("option", { name: "Narrateur français · fr-FR" });
     fireEvent.click(await screen.findByRole("button", { name: "Régénérer le chapitre 2" }));
     await waitFor(() => expect((screen.getByRole("button", { name: "Régénérer le chapitre 2" }) as HTMLButtonElement).disabled).toBe(false));
-    expect(generateLibraryAudio).toHaveBeenCalledExactlyOnceWith("incremental-book", "C:/Exports", "fr-narrator", 2, expect.any(Function));
+    expect(generateLibraryAudio).toHaveBeenCalledExactlyOnceWith("incremental-book", "C:/Exports", "fr-narrator", 2, expect.any(Function), undefined);
     expect(screen.getByLabelText("Écouter Chapitre premier")).toBeTruthy();
     expect((await getLibraryConfig()).books[0].audio?.chapters.map((chapter) => chapter.path)).toEqual(["C:/Exports/Audio/old/001.mp3", "C:/Exports/Audio/new/002.mp3"]);
   });
@@ -301,7 +301,7 @@ describe("StudioAudioView", () => {
     fireEvent.change(screen.getByRole("combobox", { name: "Rôle de la réplique 1" }), { target: { value: "unattributed-dialogue|Dialogues" } });
     const recap = within(screen.getByRole("list", { name: "Récapitulatif des rôles" }));
     expect(recap.getByText(/Dialogues · 3 réplique\(s\)/)).toBeTruthy();
-    expect(screen.getByText(/voix unique \(Narrateur français\)/)).toBeTruthy();
+    expect(screen.getByText(/lu en polyphonie.*voix par défaut \(Narrateur français\)/)).toBeTruthy();
     expect((screen.getByRole("button", { name: "Générer le chapitre 2" }) as HTMLButtonElement).disabled).toBe(false);
   });
 
@@ -317,6 +317,27 @@ describe("StudioAudioView", () => {
     fireEvent.change(role, { target: { value: "character|Élise" } });
     expect((screen.getByRole("combobox", { name: "Rôle de la réplique 1" }) as HTMLSelectElement).value).toBe("character|Élise");
     expect(within(screen.getByRole("list", { name: "Récapitulatif des rôles" })).getByText(/Élise · 1 réplique\(s\) · Narrateur français/)).toBeTruthy();
+  });
+
+  it("génère le chapitre adapté en polyphonie et les autres chapitres en voix unique", async () => {
+    await addLibraryBook({ id: "poly-book", title: "Le Roman polyphonique", shelfId: "in_progress", files: [{ path: "C:/Exports/poly.epub", format: "epub" }] });
+    vi.mocked(getBookChapterText).mockResolvedValue("Le soir tombait.\n— Je pars, dit-elle.");
+    vi.mocked(generateLibraryAudio).mockImplementation(async () => getLibraryConfig());
+    render(<StudioAudioView exportDirectory="C:/Exports" />);
+    fireEvent.click(screen.getByRole("tab", { name: "Le Studio" }));
+    await screen.findByRole("textbox", { name: "Texte de la réplique 2" });
+    await screen.findByRole("option", { name: "Narrateur français · fr-FR" });
+    fireEvent.change(screen.getByRole("combobox", { name: "Rôle de la réplique 2" }), { target: { value: "narrator|Narrateur" } });
+    fireEvent.click(screen.getByRole("button", { name: "Générer le chapitre 1" }));
+    await waitFor(() => expect(generateLibraryAudio).toHaveBeenCalledTimes(1));
+    expect(vi.mocked(generateLibraryAudio).mock.calls[0][5]).toEqual([
+      { role: "Narrateur", kind: "narrator", text: "Le soir tombait." },
+      { role: "Narrateur", kind: "narrator", text: "Je pars, dit-elle." },
+    ]);
+    await waitFor(() => expect((screen.getByRole("button", { name: "Générer le chapitre 2" }) as HTMLButtonElement).disabled).toBe(false));
+    fireEvent.click(screen.getByRole("button", { name: "Générer le chapitre 2" }));
+    await waitFor(() => expect(generateLibraryAudio).toHaveBeenCalledTimes(2));
+    expect(vi.mocked(generateLibraryAudio).mock.calls[1][5]).toBeUndefined();
   });
 
   it("signale l'indisponibilité du texte d'un chapitre", async () => {

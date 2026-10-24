@@ -884,8 +884,9 @@ pub async fn generate_book_audio(
     export_directory: String,
     voice_id: String,
     chapter_index: u32,
+    script: Option<Vec<audio::ScriptLineInput>>,
 ) -> Result<LibraryConfig, String> {
-    audio::generate_book_audio(app, book_id, export_directory, voice_id, chapter_index).await
+    audio::generate_book_audio(app, book_id, export_directory, voice_id, chapter_index, script).await
 }
 
 #[tauri::command]

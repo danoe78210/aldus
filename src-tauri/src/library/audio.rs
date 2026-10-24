@@ -1,5 +1,5 @@
 use super::metadata;
-use super::{read_config, write_config, AudioChapter, AudioEdition, Book};
+use super::{read_config, write_config, AudioChapter, AudioEdition, Book, CastingRoleKind, VoiceCasting};
 use chrono::{SecondsFormat, Utc};
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeSet;
@@ -474,6 +474,14 @@ struct SynthesisRequest<'a> {
     chapter_title: &'a str,
     segment_index: u32,
     segment_count: u32,
+}
+
+#[derive(Clone, Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ScriptLineInput {
+    pub role: String,
+    pub kind: CastingRoleKind,
+    pub text: String,
 }
 
 #[derive(Clone, Debug)]
@@ -1053,6 +1061,54 @@ fn safe_component(value: &str) -> String {
         .collect::<String>()
 }
 
+fn casting_voice<'a>(
+    casting: Option<&'a VoiceCasting>,
+    available: &[AudioVoice],
+    kind: CastingRoleKind,
+    role: &str,
+) -> Option<&'a str> {
+    let role = role.trim().to_lowercase();
+    casting?
+        .mappings
+        .iter()
+        .find(|mapping| {
+            mapping.kind == kind
+                && (kind != CastingRoleKind::Character || mapping.role.trim().to_lowercase() == role)
+        })
+        .map(|mapping| mapping.voice_id.as_str())
+        .filter(|id| available.iter().any(|voice| voice.id == *id))
+}
+
+/// Segments (voix, texte) d'un script : voix du rôle, sinon voix du narrateur, sinon voix par défaut.
+fn script_segments(
+    lines: &[ScriptLineInput],
+    casting: Option<&VoiceCasting>,
+    available: &[AudioVoice],
+    default_voice: &str,
+) -> Vec<(String, String)> {
+    let narrator = casting_voice(casting, available, CastingRoleKind::Narrator, "");
+    let mut unresolved = BTreeSet::new();
+    let segments = lines
+        .iter()
+        .flat_map(|line| {
+            let voice = casting_voice(casting, available, line.kind, &line.role).or_else(|| {
+                if line.kind != CastingRoleKind::Narrator {
+                    unresolved.insert(line.role.clone());
+                }
+                narrator
+            });
+            let voice = voice.unwrap_or(default_voice).to_string();
+            chunk_narration(&line.text, MAX_TTS_SEGMENT_CHARS)
+                .into_iter()
+                .map(move |text| (voice.clone(), text))
+        })
+        .collect();
+    if !unresolved.is_empty() {
+        log::warn!("audio casting: voix introuvable ou non assignée, repli sur le narrateur pour les rôles {unresolved:?}");
+    }
+    segments
+}
+
 fn selected_chapter_indices(
     chapter_count: usize,
     chapter_index: u32,
@@ -1296,6 +1352,7 @@ pub async fn generate_book_audio(
     export_directory: String,
     voice_id: String,
     chapter_index: u32,
+    script: Option<Vec<ScriptLineInput>>,
 ) -> Result<super::LibraryConfig, String> {
     if export_directory.trim().is_empty() {
         return Err("Choisissez un dossier d'export avant de générer l'audio.".into());
@@ -1361,10 +1418,14 @@ pub async fn generate_book_audio(
         .iter()
         .copied()
         .map(|index| {
-            (
-                index,
-                chunk_narration(&chapters[index].text, MAX_TTS_SEGMENT_CHARS),
-            )
+            let segments = match script.as_deref().filter(|lines| !lines.is_empty()) {
+                Some(lines) => script_segments(lines, book.audio.as_ref().and_then(|edition| edition.casting.as_ref()), &voices, &voice.id),
+                None => chunk_narration(&chapters[index].text, MAX_TTS_SEGMENT_CHARS)
+                    .into_iter()
+                    .map(|text| (voice.id.clone(), text))
+                    .collect(),
+            };
+            (index, segments)
         })
         .collect();
     let total_segments: usize = selected_chapters
@@ -1386,7 +1447,7 @@ pub async fn generate_book_audio(
             .join(format!("{chapter_number:03}-{safe_title}.mp3"));
         let mut segment_paths = Vec::with_capacity(segments.len());
         let segment_count = segments.len();
-        for (segment_position, segment_text) in segments.iter().enumerate() {
+        for (segment_position, (segment_voice, segment_text)) in segments.iter().enumerate() {
             let segment_number = segment_position + 1;
             let segment_path = temporary_directory.path().join(format!(
                 "{chapter_number:03}-segment-{segment_number:04}.mp3"
@@ -1411,7 +1472,7 @@ pub async fn generate_book_audio(
                 "audio synthesis segment started endpoint={} book_id={} voice_id={} chapter={}/{} segment={}/{} characters={}",
                 request_url,
                 book_id,
-                voice.id,
+                segment_voice,
                 chapter_number,
                 total,
                 segment_number,
@@ -1430,7 +1491,7 @@ pub async fn generate_book_audio(
                 .timeout(remaining)
                 .json(&SynthesisRequest {
                     text: segment_text,
-                    voice_id: &voice.id,
+                    voice_id: &segment_voice,
                     language: "fr",
                     output_format: "mp3",
                     chapter_index: chapter_number,
@@ -1455,7 +1516,7 @@ pub async fn generate_book_audio(
                         category,
                         request_url,
                         book_id,
-                        voice.id,
+                        segment_voice,
                         chapter_number,
                         total,
                         segment_number,
@@ -1494,7 +1555,7 @@ pub async fn generate_book_audio(
                     "endpoint={} book_id={} voice_id={} chapter={}/{} chapter_title={:?} segment={}/{} http_status={} response_body={}",
                     request_url,
                     book_id,
-                    voice.id,
+                    segment_voice,
                     chapter_number,
                     total,
                     chapter.title,
@@ -1746,7 +1807,8 @@ mod tests {
         AudioTempDirectory, EngineInitStatus, SynthesisRequest,
         AUDIO_INIT_TIMEOUT, MAX_TTS_SEGMENT_CHARS, SIDECAR_STARTUP_TIMEOUT,
     };
-    use crate::library::AudioChapter;
+    use super::{script_segments, AudioVoice, ScriptLineInput};
+    use crate::library::{AudioChapter, CastingRoleKind, CharacterVoiceMapping, VoiceCasting};
     use std::io::Write;
     use std::time::Duration;
 
@@ -1961,6 +2023,73 @@ mod tests {
         drop(temporary);
         assert!(!root.exists());
         Ok(())
+    }
+
+    fn voice(id: &str) -> AudioVoice {
+        AudioVoice { id: id.into(), name: id.into(), language: Some("fr-FR".into()) }
+    }
+
+    fn line(kind: CastingRoleKind, role: &str, text: &str) -> ScriptLineInput {
+        ScriptLineInput { role: role.into(), kind, text: text.into() }
+    }
+
+    fn casting(mappings: &[(CastingRoleKind, &str, &str)]) -> VoiceCasting {
+        VoiceCasting {
+            mappings: mappings
+                .iter()
+                .map(|(kind, role, voice)| CharacterVoiceMapping { role: (*role).into(), kind: *kind, voice_id: (*voice).into() })
+                .collect(),
+            updated_at: 0,
+        }
+    }
+
+    #[test]
+    fn script_segments_use_the_voice_of_each_role_in_order() {
+        let cast = casting(&[
+            (CastingRoleKind::Narrator, "Narrateur", "fr-n"),
+            (CastingRoleKind::UnattributedDialogue, "Dialogues", "fr-d"),
+            (CastingRoleKind::Character, "Élise", "fr-e"),
+        ]);
+        let lines = [
+            line(CastingRoleKind::Narrator, "Narrateur", "Elle entra."),
+            line(CastingRoleKind::UnattributedDialogue, "Dialogues", "Bonjour."),
+            line(CastingRoleKind::Character, " élise ", "Je pars."),
+        ];
+        let voices = [voice("fr-n"), voice("fr-d"), voice("fr-e"), voice("fr-default")];
+        let segments = script_segments(&lines, Some(&cast), &voices, "fr-default");
+        let voices_used: Vec<_> = segments.iter().map(|(voice, _)| voice.as_str()).collect();
+        assert_eq!(voices_used, ["fr-n", "fr-d", "fr-e"]);
+        assert_eq!(segments[2].1, "Je pars.");
+    }
+
+    #[test]
+    fn script_segments_fall_back_to_the_narrator_then_to_the_default_voice() {
+        let cast = casting(&[
+            (CastingRoleKind::Narrator, "Narrateur", "fr-n"),
+            (CastingRoleKind::Character, "Élise", "fr-gone"),
+        ]);
+        let lines = [
+            line(CastingRoleKind::Character, "Élise", "Voix retirée du moteur."),
+            line(CastingRoleKind::Character, "Inconnu", "Rôle non distribué."),
+            line(CastingRoleKind::UnattributedDialogue, "Dialogues", "Dialogue libre."),
+        ];
+        let available = [voice("fr-n"), voice("fr-default")];
+        let with_narrator = script_segments(&lines, Some(&cast), &available, "fr-default");
+        assert!(with_narrator.iter().all(|(voice, _)| voice == "fr-n"));
+        let without_casting = script_segments(&lines, None, &available, "fr-default");
+        assert!(without_casting.iter().all(|(voice, _)| voice == "fr-default"));
+        let narrator_gone = casting(&[(CastingRoleKind::Narrator, "Narrateur", "fr-gone")]);
+        let narration = [line(CastingRoleKind::Narrator, "Narrateur", "Texte.")];
+        assert_eq!(script_segments(&narration, Some(&narrator_gone), &available, "fr-default")[0].0, "fr-default");
+    }
+
+    #[test]
+    fn script_segments_keep_the_xtts_limit_inside_every_line() {
+        let long = "mot ".repeat(200);
+        let lines = [line(CastingRoleKind::Narrator, "Narrateur", &long), line(CastingRoleKind::Narrator, "Narrateur", "  ")];
+        let segments = script_segments(&lines, None, &[voice("fr-default")], "fr-default");
+        assert!(segments.len() > 1);
+        assert!(segments.iter().all(|(_, text)| text.chars().count() <= MAX_TTS_SEGMENT_CHARS));
     }
 
     #[test]

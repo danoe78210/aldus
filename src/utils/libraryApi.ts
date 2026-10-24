@@ -1,5 +1,5 @@
 import { convertFileSrc } from "@tauri-apps/api/core";
-import type { AudioChapterChoice, AudioConfig, AudioGenerationProgress, AudioInitProgressPayload, AudioVoice, Book, LibraryConfig, ScannedBook, Shelf, ShelfId, UpdateStatus, VoiceCasting } from "../types";
+import type { AudioChapterChoice, AudioConfig, AudioGenerationProgress, AudioInitProgressPayload, AudioVoice, Book, LibraryConfig, PodcastLine, ScannedBook, Shelf, ShelfId, UpdateStatus, VoiceCasting } from "../types";
 import { invokeCommand, isInvokeAvailable, listenEvent } from "./tauri";
 
 const STORAGE_KEY = "aldus-library";
@@ -206,12 +206,13 @@ export const generateLibraryAudio = async (
   voiceId: string,
   chapterIndex: number,
   onProgress: (progress: AudioGenerationProgress) => void,
+  script?: Pick<PodcastLine, "role" | "kind" | "text">[],
 ): Promise<LibraryConfig> => {
   const unlisten = await listenEvent<AudioGenerationProgress>("audio-generation-progress", (progress) => {
     if (progress.bookId === bookId) onProgress(progress);
   });
   try {
-    return await invokeCommand<LibraryConfig>("generate_book_audio", { bookId, exportDirectory, voiceId, chapterIndex });
+    return await invokeCommand<LibraryConfig>("generate_book_audio", { bookId, exportDirectory, voiceId, chapterIndex, script });
   } finally {
     unlisten?.();
   }

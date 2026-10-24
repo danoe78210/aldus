@@ -71,12 +71,16 @@ export const StudioAudioView = ({ exportDirectory, onPickExportDirectory }: Stud
     return () => { active = false; };
   }, [bookId]);
 
+  const polyphonicLines = podcast.script?.lines ?? [];
   const generate = (chapterIndex: number) => {
     if (!bookId || !exportDirectory || !engine.voiceId || generating) return;
     setGeneratingIndex(chapterIndex);
     setProgress(null);
     setError(null);
-    generateLibraryAudio(bookId, exportDirectory, engine.voiceId, chapterIndex, setProgress)
+    const script = chapterIndex === adaptChapter?.index && polyphonicLines.length > 0
+      ? polyphonicLines.map(({ role, kind, text }) => ({ role, kind, text }))
+      : undefined;
+    generateLibraryAudio(bookId, exportDirectory, engine.voiceId, chapterIndex, setProgress, script)
       .then(setConfig)
       .catch((reason: unknown) => setError(messageOf(reason, "Génération audio impossible.")))
       .finally(() => setGeneratingIndex(null));

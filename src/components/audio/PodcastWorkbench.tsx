@@ -122,7 +122,7 @@ export const PodcastRegie = ({ podcast, casting, voices, defaultVoiceId, chapter
           <li key={roleKey(kind, role)}>{role} · {count} réplique(s) · {voiceName(casting.voiceOf(role, kind)) ?? `voix par défaut (${defaultName})`}</li>
         ))}
       </ul>
-      <p className="text-xs italic text-[#8c8275]">La synthèse lit pour l’instant le chapitre en voix unique ({defaultName}) ; la voix par rôle sera appliquée à l’étape suivante.</p>
+      <p className="text-xs italic text-[#8c8275]">Ce chapitre est lu en polyphonie : chaque réplique prend la voix de son rôle ; à défaut, la voix du Narrateur, puis la voix par défaut ({defaultName}). Les autres chapitres restent en voix unique.</p>
     </div>
   );
 };
