@@ -69,6 +69,38 @@ export interface VoiceCasting {
   updatedAt?: number;
 }
 
+export type ScriptRuleId = "strip-incises" | "breath-pauses" | "proper-nouns";
+
+/** Prononciation de substitution d'un nom propre (« Aldus » → « Aldusse »). */
+export interface PronunciationEntry {
+  name: string;
+  spoken: string;
+}
+
+export interface ScriptRule {
+  id: ScriptRuleId;
+  enabled: boolean;
+  /** Table de substitution, propre à la règle `proper-nouns`. */
+  substitutions?: PronunciationEntry[];
+}
+
+export interface PodcastLine {
+  /** Nom du rôle de la distribution (Narrateur, Dialogues ou personnage). */
+  role: string;
+  kind: CastingRoleKind;
+  text: string;
+  /** Indication de jeu à l'attention du moteur vocal. */
+  direction?: string;
+  /** Rang du paragraphe d'origine dans le chapitre. */
+  source: number;
+}
+
+export interface PodcastScript {
+  chapterIndex: number;
+  lines: PodcastLine[];
+  rules: ScriptRule[];
+}
+
 export interface AudioChapter {
   index: number;
   title: string;

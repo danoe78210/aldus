@@ -677,6 +677,28 @@ pub fn list_book_chapters(
         .collect()
 }
 
+pub fn chapter_text(
+    app: &tauri::AppHandle,
+    book_id: &str,
+    chapter_index: u32,
+) -> Result<String, String> {
+    let config = read_config(app)?;
+    let book = config
+        .books
+        .iter()
+        .find(|book| book.id == book_id)
+        .ok_or("Ouvrage introuvable dans la bibliothèque.")?;
+    let position = usize::try_from(chapter_index)
+        .ok()
+        .and_then(|index| index.checked_sub(1))
+        .ok_or("Numéro de chapitre invalide.")?;
+    extract_chapters(book)?
+        .into_iter()
+        .nth(position)
+        .map(|chapter| chapter.text)
+        .ok_or_else(|| "Chapitre introuvable dans l'ouvrage.".to_string())
+}
+
 fn estimate_chapter_metadata(text: &str) -> Result<(u32, u32, u32), String> {
     let word_count = u32::try_from(text.split_whitespace().count())
         .map_err(|error| format!("Nombre de mots du chapitre invalide : {error}"))?;

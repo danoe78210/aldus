@@ -5,7 +5,9 @@ import { deleteLibraryAudioTrack, generateLibraryAudio, getLibraryConfig, listBo
 import { AudioSetupDialog } from "../AudioSetupDialog";
 import { ChapterSynthesisTable } from "./ChapterSynthesisTable";
 import { SidecarConsole } from "./SidecarConsole";
+import { PodcastRegie, PodcastWorkbench } from "./PodcastWorkbench";
 import { useAudioEngine } from "./useAudioEngine";
+import { usePodcastScript } from "./usePodcastScript";
 import { useVoiceCasting } from "./useVoiceCasting";
 import { VoiceChoir } from "./VoiceChoir";
 
@@ -23,7 +25,8 @@ interface ChapterList {
 type AudioTab = "choeur" | "studio";
 
 const messageOf = (reason: unknown, fallback: string): string => (reason instanceof Error ? reason.message : fallback);
-const selectClass = "mt-1 w-full min-w-0 rounded-sm border border-[#6b5327] bg-[#13110f] px-2 py-2 text-base text-[#f3f0ea] focus:border-[#d4af37] focus:outline-hidden disabled:opacity-50";
+const stageTitle = "font-cinzel text-xs tracking-wider text-[#d4af37] uppercase";
+const selectClass ="mt-1 w-full min-w-0 rounded-sm border border-[#6b5327] bg-[#13110f] px-2 py-2 text-base text-[#f3f0ea] focus:border-[#d4af37] focus:outline-hidden disabled:opacity-50";
 
 export const StudioAudioView = ({ exportDirectory, onPickExportDirectory }: StudioAudioViewProps) => {
   const engine = useAudioEngine();
@@ -34,6 +37,7 @@ export const StudioAudioView = ({ exportDirectory, onPickExportDirectory }: Stud
   const [progress, setProgress] = useState<AudioGenerationProgress | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<AudioTab>("choeur");
+  const [adaptIndex, setAdaptIndex] = useState<number | null>(null);
 
   const books = config?.books ?? [];
   const book = books.find((candidate) => candidate.id === selectedId) ?? books[0];
@@ -42,6 +46,8 @@ export const StudioAudioView = ({ exportDirectory, onPickExportDirectory }: Stud
   const chapters = loadedChapters?.chapters ?? [];
   const tracks: AudioChapter[] = book?.audio?.chapters ?? [];
   const generating = generatingIndex !== null;
+  const adaptChapter = chapters.find((chapter) => chapter.index === adaptIndex) ?? chapters[0];
+  const podcast = usePodcastScript(bookId, adaptChapter?.index ?? null);
   const casting = useVoiceCasting(bookId, book?.audio?.casting, useCallback((saved: LibraryConfig) => setConfig(saved), []));
 
   useEffect(() => {
@@ -141,9 +147,25 @@ export const StudioAudioView = ({ exportDirectory, onPickExportDirectory }: Stud
         ) : (
           <>
             {book?.audio && book.audio.chapters.length > 0 && <p className="font-serif text-sm text-[#a99a83]">Édition audio · {book.audio.voiceName} · {book.audio.chapters.length} piste(s)</p>}
-            <ChapterSynthesisTable chapters={chapters} tracks={tracks} generatingIndex={generatingIndex} progress={progress} canGenerate={canGenerate} onGenerate={generate} onDelete={remove} />
-            {blockReason && <p role="status" className="max-w-xl font-serif text-sm leading-relaxed text-[#c5a059]">{blockReason}</p>}
-            <p className="font-serif text-xs italic text-[#8c8275]">Édition en podcast et règles de transformation : en cours de composition.</p>
+            <section aria-labelledby="stage-chapter-title" className="flex max-w-3xl flex-col gap-2">
+              <h3 id="stage-chapter-title" className={stageTitle}>I. Sélection du chapitre</h3>
+              <label className="text-sm text-[#c9bea9]">Chapitre à adapter
+                <select value={adaptChapter?.index ?? ""} disabled={chapters.length === 0} onChange={(event) => setAdaptIndex(Number(event.target.value))} className={selectClass}>
+                  {chapters.length === 0 && <option value="">Aucun chapitre disponible</option>}
+                  {chapters.map((chapter) => <option key={chapter.index} value={chapter.index}>{chapter.index}. {chapter.title}</option>)}
+                </select>
+              </label>
+            </section>
+            <section aria-labelledby="stage-bench-title" className="flex max-w-3xl flex-col gap-2">
+              <h3 id="stage-bench-title" className={stageTitle}>II. Banc d’adaptation &amp; Règles</h3>
+              <PodcastWorkbench podcast={podcast} casting={casting} />
+            </section>
+            <section aria-labelledby="stage-regie-title" className="flex flex-col gap-3">
+              <h3 id="stage-regie-title" className={stageTitle}>III. Régie de synthèse</h3>
+              <PodcastRegie podcast={podcast} casting={casting} voices={engine.voices} defaultVoiceId={engine.voiceId} chapterTitle={adaptChapter?.title} />
+              <ChapterSynthesisTable chapters={chapters} tracks={tracks} generatingIndex={generatingIndex} progress={progress} canGenerate={canGenerate} onGenerate={generate} onDelete={remove} />
+              {blockReason && <p role="status" className="max-w-xl font-serif text-sm leading-relaxed text-[#c5a059]">{blockReason}</p>}
+            </section>
           </>
         )}
         {error && <p role="alert" className="text-xs text-[#d28b75]">{error}</p>}

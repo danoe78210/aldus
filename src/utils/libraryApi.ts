@@ -197,6 +197,9 @@ export const listenAudioInitProgress = (
 export const listBookAudioChapters = (bookId: string): Promise<AudioChapterChoice[]> =>
   invokeCommand<AudioChapterChoice[]>("list_book_audio_chapters", { bookId });
 
+export const getBookChapterText = (bookId: string, chapterIndex: number): Promise<string> =>
+  invokeCommand<string>("get_book_chapter_text", { bookId, chapterIndex });
+
 export const generateLibraryAudio = async (
   bookId: string,
   exportDirectory: string,

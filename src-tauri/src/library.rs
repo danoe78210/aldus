@@ -818,6 +818,17 @@ pub async fn list_book_audio_chapters(
 }
 
 #[tauri::command]
+pub async fn get_book_chapter_text(
+    app: tauri::AppHandle,
+    book_id: String,
+    chapter_index: u32,
+) -> Result<String, String> {
+    audio::chapter_text(&app, &book_id, chapter_index).inspect_err(|error| {
+        log::error!("chapter text unavailable book_id={book_id} chapter={chapter_index}: {error}");
+    })
+}
+
+#[tauri::command]
 pub async fn save_voice_casting(
     app: tauri::AppHandle,
     book_id: String,

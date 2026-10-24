@@ -481,6 +481,7 @@ pub fn run() {
             library::save_audio_consent,
             library::start_audio_engine,
             library::list_book_audio_chapters,
+            library::get_book_chapter_text,
             library::generate_book_audio,
             clear_cache_and_exit,
             updater::check_for_updates,
