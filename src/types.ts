@@ -13,6 +13,11 @@ export type ActiveMenu =
   | 'lecteur'
   | 'salon';
 
+export interface SalonTarget {
+  bookId: string;
+  file: { path: string; format: 'epub' | 'pdf' | 'docx' };
+}
+
 export type NavPole = 'ecritoire' | 'presse' | 'oratoire' | 'bibliotheque';
 
 export type ShelfId = string;

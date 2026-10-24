@@ -2,15 +2,15 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import './index.css';
 import { Layout } from "./components/Layout";
 import { LeftPage } from "./components/LeftPage";
-import { MenuPage } from "./components/MenuPage";
 import { SubNavHeader } from "./components/navigation/SubNavHeader";
+import { MenuPage } from "./components/MenuPage";
 import { usePoleNavigation } from "./components/navigation/usePoleNavigation";
-import { FULL_WIDTH_MENUS, poleOf } from "./components/navigation/poles";
+import { FULL_WIDTH_MENUS, viewLabel } from "./components/navigation/poles";
 import { PreviewFlipbook } from "./components/PreviewFlipbook";
 import { StudioProvider, type ProofTab, type StudioContextValue } from "./components/StudioContext";
 import { PlumeProvider } from "./components/epreuve-plume/PlumeContext";
 import { Toast, type ToastMessage } from "./components/Toast";
-import type { ActiveMenu, AudioGenerationProgress, AudioInitProgressPayload, BookInfoConfig, CoverStudioState, ErrorLogConfig, ImageColorMode, LogDiagnosticLevel, LogEntry, LogLevel, ManuscriptLayoutConfig, SourcesConfig, SpecialPageRole, StructureItem } from "./types";
+import type { ActiveMenu, AudioGenerationProgress, AudioInitProgressPayload, BookInfoConfig, CoverStudioState, ErrorLogConfig, ImageColorMode, LogDiagnosticLevel, LogEntry, LogLevel, ManuscriptLayoutConfig, SalonTarget, SourcesConfig, SpecialPageRole, StructureItem } from "./types";
 import { findTrimPreset } from "./data/trimSizes";
 import { INHERIT_FONT, numberFr } from "./data/fonts";
 import { DEFAULT_SPECIAL_ROLE, specialRoleLabel } from "./data/specialPages";
@@ -159,19 +159,19 @@ const DEFAULT_COVER: CoverStudioState = {
   backLogoPath: null,
 };
 
-// Ordre des pages du livre virtuel de droite (identique à l'ordre du ruban gauche).
+// Ordre des pages du livre virtuel de droite (suit l'arborescence du ruban).
+// Le Banc d'épreuve partage la page du Correcteur (même diptyque, bascule `proofTab`).
 const MENU_ORDER: ActiveMenu[] = [
-  'reglages',
   'infos',
-  'ecritoire',
   'organisation',
+  'ecritoire',
   'correcteur',
-  'banc-epreuve',
   'epreuve-plume',
+  'reglages',
   'couverture',
   'export',
-  'bibliotheque',
 ];
+
 
 // Pages du livre virtuel — identité **stable** (constante module) : leur contenu
 // reste vivant via `StudioContext`, sans ré-initialiser le flipbook.
@@ -224,6 +224,7 @@ const App: React.FC = () => {
   // le chapitre/texte en épreuve et la pagination du banc sont **partagés** entre
   // la page gauche et la page droite du livre (les deux volets du diptyque).
   // Le Correcteur et le Banc d'épreuve sont deux sous-vues du ruban : l'onglet interne en dérive.
+  const [salonTarget, setSalonTarget] = useState<SalonTarget | null>(null);
   const proofTab: ProofTab = activeMenu === "banc-epreuve" ? "banc" : "purete";
   const [proofEnabledRules, setProofEnabledRules] = useState<TypographyRuleId[]>(
     ALL_RULES.map((rule) => rule.id),
@@ -1293,7 +1294,10 @@ const App: React.FC = () => {
   }, [chapterFiles, handleLoadWritingChapter, sourceConfig.directory, writingChapter]);
 
   /** Bascule le diptyque du Correcteur (VII — Indice de Qualité Typographique / VIII — Banc d'Épreuve). */
-  const handleProofTabChange = useCallback((tab: ProofTab) => setActiveMenu(tab === "banc" ? "banc-epreuve" : "correcteur"), [setActiveMenu]);
+  const handleOpenSalon = useCallback((target: SalonTarget) => {
+    setSalonTarget(target);
+    setActiveMenu("salon");
+  }, [setActiveMenu]);
 
   /** Active / désactive une règle depuis « Les Règles Analysées » (page droite du Feuillet VII). */
   const handleToggleProofRule = useCallback((ruleId: TypographyRuleId) => {
@@ -1491,7 +1495,6 @@ const App: React.FC = () => {
       void handleOpenExportDirectory();
     },
     proofTab,
-    onProofTabChange: handleProofTabChange,
     proofEnabledRules,
     onToggleProofRule: handleToggleProofRule,
     proofChapter,
@@ -1522,6 +1525,8 @@ const App: React.FC = () => {
     isAtelierOpen,
     isTransitioning,
     onEnterAtelier: enterAtelier,
+    salonTarget,
+    onOpenSalon: handleOpenSalon,
     onNotify: addLog,
     manuscriptConfig,
     sourceConfig,
@@ -1570,7 +1575,7 @@ const App: React.FC = () => {
     },
   };
 
-  const activeIndex = Math.max(0, MENU_ORDER.indexOf(activeMenu));
+  const activeIndex = Math.max(0, MENU_ORDER.indexOf(activeMenu === "banc-epreuve" ? "correcteur" : activeMenu));
 
   return (
     <>
@@ -1586,10 +1591,10 @@ const App: React.FC = () => {
               navigationOnly={FULL_WIDTH_MENUS.includes(activeMenu)}
             />
           }
-          subNavContent={isAtelierOpen ? <SubNavHeader activeMenu={activeMenu} onSelect={setActiveMenu} /> : undefined}
           bookPages={BOOK_PAGES}
           fullWidthContent={FULL_WIDTH_MENUS.includes(activeMenu) ? <MenuPage menu={activeMenu} /> : undefined}
-          fullWidthLabel={activeMenu === "bibliotheque" ? undefined : poleOf(activeMenu).views.find((view) => view.id === activeMenu)?.label}
+          fullWidthLabel={viewLabel(activeMenu)}
+          subNavContent={isAtelierOpen ? <SubNavHeader activeMenu={activeMenu} onSelect={setActiveMenu} /> : undefined}
           activeIndex={activeIndex}
           progress={progress}
           progressLabel={progressLabel}

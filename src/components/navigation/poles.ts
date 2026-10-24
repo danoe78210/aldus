@@ -23,6 +23,7 @@ export const POLES: PoleDefinition[] = [
     id: "presse",
     label: "Presse",
     views: [
+      { id: "reglages", label: "Réglages" },
       { id: "couverture", label: "Couverture" },
       { id: "export", label: "Impression" },
     ],
@@ -39,9 +40,8 @@ export const POLES: PoleDefinition[] = [
     id: "bibliotheque",
     label: "Bibliothèque",
     views: [
-      { id: "bibliotheque", label: "Bibliothèque" },
+      { id: "bibliotheque", label: "La Bibliothèque" },
       { id: "salon", label: "Salon de lecture" },
-      { id: "reglages", label: "Réglages" },
     ],
   },
 ];
@@ -58,3 +58,6 @@ export const FULL_WIDTH_MENUS: readonly ActiveMenu[] = ["bibliotheque", "studio-
 
 export const poleOf = (menu: ActiveMenu): PoleDefinition =>
   POLES.find((pole) => pole.views.some((view) => view.id === menu)) ?? POLES[0];
+
+export const viewLabel = (menu: ActiveMenu): string =>
+  poleOf(menu).views.find((view) => view.id === menu)?.label ?? "";

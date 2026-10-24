@@ -218,6 +218,15 @@ describe("StudioAudioView", () => {
     await waitFor(() => expect((screen.getByRole("button", { name: "Générer le chapitre 2" }) as HTMLButtonElement).disabled).toBe(false));
   });
 
+  it("sépare Le Chœur et Le Studio en deux onglets", async () => {
+    render(<StudioAudioView exportDirectory="C:/Exports" />);
+    expect(screen.getByRole("tab", { name: "Le Chœur" }).getAttribute("aria-selected")).toBe("true");
+    fireEvent.click(screen.getByRole("tab", { name: "Le Studio" }));
+    expect(screen.getByRole("tab", { name: "Le Studio" }).getAttribute("aria-selected")).toBe("true");
+    expect(screen.getByRole("tab", { name: "Le Chœur" }).getAttribute("aria-selected")).toBe("false");
+    await screen.findByRole("option", { name: "Narrateur français · fr-FR" });
+  });
+
   it("invites the author to add a book when the register is empty", async () => {
     render(<StudioAudioView exportDirectory="C:/Exports" />);
     expect(await screen.findByText(/Aucun livre au Registre/)).toBeTruthy();

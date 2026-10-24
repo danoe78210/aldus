@@ -23,8 +23,8 @@ interface LayoutProps {
   /** Contenu de la page de gauche (navigation & identité). */
   leftContent: ReactNode;
   /** Ruban de sous-navigation sous le pupitre (absent avant l'entrée dans l'atelier). */
-  subNavContent?: ReactNode;
   fullWidthContent?: ReactNode;
+  subNavContent?: ReactNode;
   fullWidthLabel?: string;
   /** Pages du livre virtuel de droite (une vue par menu). */
   bookPages: ReactNode[];
@@ -46,8 +46,8 @@ interface LayoutProps {
 
 export const Layout: React.FC<LayoutProps> = ({
   leftContent,
-  subNavContent,
   fullWidthContent,
+  subNavContent,
   fullWidthLabel = "Espace bibliothèque",
   bookPages,
   activeIndex,

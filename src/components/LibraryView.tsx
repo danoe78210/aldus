@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { FolderOpen, Plus, ScanSearch, Trash2, X } from "lucide-react";
-import type { Book, LibraryConfig, ScannedBook, Shelf, ShelfId } from "../types";
+import type { Book, LibraryConfig, SalonTarget, ScannedBook, Shelf, ShelfId } from "../types";
 import { addLibraryBook, createCustomShelf, deleteCustomShelf, deleteLibraryBook, getLibraryConfig, moveLibraryBook, scanExportFolder, updateCustomShelf } from "../utils/libraryApi";
 import { Bookshelf } from "./Bookshelf";
 import { LibraryImportDialog } from "./LibraryImportDialog";
@@ -14,9 +14,10 @@ interface LibraryViewProps {
   currentBookTitle?: string;
   currentCoverPath?: string | null;
   onPickExportDirectory?: () => void;
+  onReadBook?: (target: SalonTarget) => void;
 }
 
-export const LibraryView: React.FC<LibraryViewProps> = ({ exportDirectory, sourceDirectory, currentBookTitle, currentCoverPath, onPickExportDirectory }) => {
+export const LibraryView: React.FC<LibraryViewProps> = ({ exportDirectory, sourceDirectory, currentBookTitle, currentCoverPath, onPickExportDirectory, onReadBook }) => {
   const [config, setConfig] = useState<LibraryConfig | null>(null);
   const [candidates, setCandidates] = useState<ScannedBook[] | null>(null);
   const [selectedBook, setSelectedBook] = useState<{ id: string; format?: "epub" | "pdf" | "docx" | "audio" } | null>(null);
@@ -119,7 +120,7 @@ export const LibraryView: React.FC<LibraryViewProps> = ({ exportDirectory, sourc
   if (selectedBookDetails) {
     return (
       <div className="flex h-full w-full flex-col gap-4 overflow-y-auto px-4 py-5 text-left sm:px-8">
-        <LibraryBookDetail key={selectedBookDetails.id} book={selectedBookDetails} initialFormat={selectedBook?.format} shelves={visibleShelves} busy={busy} operationError={error} onMove={moveBook} onDelete={async (bookId) => {
+        <LibraryBookDetail key={selectedBookDetails.id} book={selectedBookDetails} initialFormat={selectedBook?.format} shelves={visibleShelves} busy={busy} operationError={error} onRead={onReadBook} onMove={moveBook} onDelete={async (bookId) => {
           const success = await update(() => deleteLibraryBook(bookId, exportDirectory ?? ""));
           if (success) {
             setSelectedBook(null);

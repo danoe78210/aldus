@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { ArrowLeft, AudioLines, BookOpen, Trash2 } from "lucide-react";
-import type { Book, Shelf } from "../types";
+import type { Book, SalonTarget, Shelf } from "../types";
 import { libraryCoverUrl, openLibraryResource } from "../utils/libraryApi";
 import { LibraryDeleteDialog } from "./LibraryDeleteDialog";
 import { WorkshopReaderView } from "./reader/WorkshopReaderView";
@@ -14,9 +14,11 @@ interface LibraryBookDetailProps {
   onMove: (bookId: string, shelfId: string) => void;
   onDelete: (bookId: string) => Promise<boolean>;
   operationError?: string | null;
+  /** Confie la lecture au Salon de lecture ; sans lui, le lecteur s'ouvre ici. */
+  onRead?: (target: SalonTarget) => void;
 }
 
-export const LibraryBookDetail = ({ book, initialFormat, shelves, busy, onBack, onMove, onDelete, operationError }: LibraryBookDetailProps) => {
+export const LibraryBookDetail = ({ book, initialFormat, shelves, busy, onBack, onMove, onDelete, operationError, onRead }: LibraryBookDetailProps) => {
   const [error, setError] = useState<string | null>(null);
   const [failedCover, setFailedCover] = useState<string | null>(null);
   const [opening, setOpening] = useState(false);
@@ -40,7 +42,8 @@ export const LibraryBookDetail = ({ book, initialFormat, shelves, busy, onBack, 
     if (opening || !selectedFile) return;
     if (selectedFile.format !== "audio") {
       setError(null);
-      setReading(true);
+      if (onRead) onRead({ bookId: book.id, file: { path: selectedFile.path, format: selectedFile.format } });
+      else setReading(true);
       return;
     }
     setOpening(true);

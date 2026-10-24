@@ -8,6 +8,7 @@ import type {
   LogLevel,
   ManuscriptLayoutConfig,
   PaginationResult,
+  SalonTarget,
   SourcesConfig,
   SpecialPageRole,
   StructureItem,
@@ -142,6 +143,10 @@ export interface StudioContextValue {
    * bascule d'état vers l'onglet **Réglages** (premier signet de la tranche).
    */
   onEnterAtelier: () => void;
+  /** Livre choisi dans la Bibliothèque, lu au Salon de lecture. */
+  salonTarget: SalonTarget | null;
+  /** Transmet un livre au Salon de lecture et l'ouvre. */
+  onOpenSalon: (target: SalonTarget) => void;
 
   // --- Journal d'atelier (StatusBar) ---
   /** Consigne un message horodaté dans le journal d'opérations. */
@@ -171,7 +176,6 @@ export interface StudioContextValue {
   /** Feuillet du Correcteur déployé par la bascule d'en-tête (partagée entre les deux pages du livre). */
   proofTab: ProofTab;
   /** Bascule le diptyque du Correcteur (VII — Indice de Qualité Typographique / VIII — Banc d'Épreuve). */
-  onProofTabChange: (tab: ProofTab) => void;
   /** Règles aldines activées : l'analyse (page gauche) suit la grille « Les Règles Analysées » (page droite). */
   proofEnabledRules: TypographyRuleId[];
   /** Active ou désactive une règle depuis « Les Règles Analysées ». */

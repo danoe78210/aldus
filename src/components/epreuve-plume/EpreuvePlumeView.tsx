@@ -15,7 +15,7 @@ const MODES: Array<{ id: PlumeMode; icon: string; label: string }> = [
 
 /** Pupitre gauche de l'Épreuve de Plume : jauge, micro-métriques et feuillet annoté ou en retouche. */
 export const EpreuvePlumeView: React.FC<{ onOpenCorrector?: () => void }> = ({ onOpenCorrector }) => {
-  const { chapterFiles, proofChapter, proofText, proofDirty, proofLoading, proofError, loadProofChapter, onNotify, sourceConfig, saveProofRevisions, onProofTabChange } = useStudio();
+  const { chapterFiles, proofChapter, proofText, proofDirty, proofLoading, proofError, loadProofChapter, onNotify, sourceConfig, saveProofRevisions } = useStudio();
   const { rules, setRules, rulesError, error, report, activeIssues, applyingId, hoveredId, setFocusedId, mode, editTarget, openEditor, closeEditor } = usePlume();
   const [rulesOpen, setRulesOpen] = useState(false);
   const editing = mode === "retouche";
@@ -41,10 +41,7 @@ export const EpreuvePlumeView: React.FC<{ onOpenCorrector?: () => void }> = ({ o
         {onOpenCorrector && (
           <button
             type="button"
-            onClick={() => {
-              onProofTabChange("banc");
-              onOpenCorrector();
-            }}
+            onClick={onOpenCorrector}
             disabled={editing}
             title={editing ? "Enregistrez ou annulez la retouche en cours" : "Travail d'écriture long, sans l'audit stylométrique"}
             className="inline-flex h-10 shrink-0 items-center gap-1 px-1 font-cinzel text-[10px] tracking-wider text-[#a89f91] uppercase hover:text-[#d4af37] disabled:cursor-not-allowed disabled:opacity-50"

@@ -365,16 +365,14 @@ it("keeps the draft open when the save fails and discards it on cancel", async (
 });
 
 it("opens the chapter in the Correcteur's Banc d'Épreuve", async () => {
-  const onProofTabChange = vi.fn();
   const onOpenCorrector = vi.fn();
-  mockStudio({ onProofTabChange });
+  mockStudio({});
   render(
     <PlumeProvider enabled>
       <EpreuvePlumeView onOpenCorrector={onOpenCorrector} />
     </PlumeProvider>,
   );
   fireEvent.click(screen.getByRole("button", { name: "Ouvrir dans le Correcteur" }));
-  expect(onProofTabChange).toHaveBeenCalledWith("banc");
   expect(onOpenCorrector).toHaveBeenCalled();
   await waitFor(() => expect(auditChapterStylometry).toHaveBeenCalled());
 });

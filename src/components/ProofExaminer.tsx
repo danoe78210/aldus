@@ -4,7 +4,6 @@ import { ChevronLeft, ChevronRight, Feather, Loader2, RefreshCw, ScrollText, Sta
 import { useStudio } from "./StudioContext";
 import type { TypoBatchSummary } from "./StudioContext";
 import { invokeCommand, isInvokeAvailable } from "../utils/tauri";
-import { ProofTabToggle } from "./proof/ProofTabToggle";
 import { ProofReader } from "./proof/ProofReader";
 import { ChapterHistoryDialog } from "./proof/ChapterHistoryDialog";
 import { buildProofFolio } from "../utils/proofLayout";
@@ -40,7 +39,6 @@ export const ProofExaminer: React.FC = () => {
   const {
     chapterFiles,
     proofTab,
-    onProofTabChange,
     proofEnabledRules,
     proofChapter,
     proofText,
@@ -129,10 +127,9 @@ export const ProofExaminer: React.FC = () => {
 
   return (
     <div className="animate-ink-reveal flex h-full w-full min-h-0 flex-col justify-between overflow-y-auto proof-scroll-dark px-2 pr-1">
-      {/* Bascule d'en-tête — les deux diptyques autonomes du Correcteur */}
+      {/* Le Correcteur et le Banc d'épreuve se choisissent dans le ruban de sous-navigation */}
       <div className="mb-4 shrink-0">
-        <ProofTabToggle tab={proofTab} onChange={onProofTabChange} />
-        <h2 className="mt-3 shrink-0 text-center font-cinzel text-sm sm:text-base tracking-[0.25em] text-[#d4af37] uppercase">
+        <h2 className="shrink-0 text-center font-cinzel text-sm sm:text-base tracking-[0.25em] text-[#d4af37] uppercase">
           {proofTab === "purete" ? "IX. Indice de Qualité Typographique" : "X. Le Banc d'Épreuve"}
         </h2>
       </div>

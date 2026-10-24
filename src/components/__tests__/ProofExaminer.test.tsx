@@ -14,7 +14,6 @@ beforeEach(() => {
   mockUseStudio.mockReturnValue({
     chapterFiles: ["Chapitre 1.md"],
     proofTab: "banc",
-    onProofTabChange: vi.fn(),
     proofEnabledRules: [],
     proofChapter: "Chapitre 1.md",
     proofText: "Texte corrigé.",

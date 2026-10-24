@@ -16,7 +16,7 @@ describe("poleOf", () => {
     expect(poleOf("studio-audio").id).toBe("oratoire");
     expect(poleOf("lecteur").id).toBe("oratoire");
     expect(poleOf("bibliotheque").id).toBe("bibliotheque");
-    expect(poleOf("reglages").id).toBe("bibliotheque");
+    expect(poleOf("reglages").id).toBe("presse");
   });
 
   it("n'expose que les quatre signets canoniques", () => {
@@ -30,7 +30,7 @@ describe("usePoleNavigation", () => {
 
     act(() => result.current.setActiveMenu("epreuve-plume"));
     act(() => result.current.setActivePole("presse"));
-    expect(result.current.activeMenu).toBe("couverture");
+    expect(result.current.activeMenu).toBe("reglages");
 
     act(() => result.current.setActiveMenu("export"));
     act(() => result.current.setActivePole("ecritoire"));
@@ -44,7 +44,7 @@ describe("usePoleNavigation", () => {
     const { result } = renderHook(() => usePoleNavigation("reglages"));
     act(() => result.current.setActivePole("oratoire"));
     expect(result.current.activeMenu).toBe("studio-audio");
-    act(() => result.current.setActivePole("bibliotheque"));
+    act(() => result.current.setActivePole("presse"));
     expect(result.current.activeMenu).toBe("reglages");
   });
 });
@@ -61,7 +61,7 @@ describe("SubNavHeader", () => {
   it("transmet la sous-vue choisie", () => {
     const onSelect = vi.fn();
     render(<SubNavHeader activeMenu="ecritoire" onSelect={onSelect} />);
-    expect(screen.getAllByRole("button")).toHaveLength(6);
+    expect(screen.getAllByRole("button").map((button) => button.textContent)).toEqual(["Registre", "Manuscrit", "Façonnage", "Correcteur", "Épreuve stylistique", "Banc d'épreuve"]);
     fireEvent.click(screen.getByRole("button", { name: "Banc d'épreuve" }));
     expect(onSelect).toHaveBeenCalledWith("banc-epreuve");
   });

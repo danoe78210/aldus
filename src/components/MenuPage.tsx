@@ -12,6 +12,7 @@ import { LibraryView } from "./LibraryView";
 import { StudioAudioView } from "./audio/StudioAudioView";
 import { IssuesList } from "./epreuve-plume/IssuesList";
 import { PendingView } from "./navigation/PendingView";
+import { SalonView } from "./reader/SalonView";
 
 /**
  * Page du livre virtuel : rend la **vue correspondant au menu** en lisant l'état
@@ -46,7 +47,7 @@ export const MenuPage: React.FC<{ menu: ActiveMenu }> = ({ menu }) => {
     case "ecritoire":
       return <WritingPreview />;
     case "bibliotheque":
-      return <LibraryView exportDirectory={studio.exportDirectory} sourceDirectory={studio.sourceConfig.directory} currentBookTitle={studio.bookInfo.title} currentCoverPath={studio.cover.frontPath} onPickExportDirectory={studio.onPickExportDirectory} />;
+      return <LibraryView exportDirectory={studio.exportDirectory} sourceDirectory={studio.sourceConfig.directory} currentBookTitle={studio.bookInfo.title} currentCoverPath={studio.cover.frontPath} onPickExportDirectory={studio.onPickExportDirectory} onReadBook={studio.onOpenSalon} />;
     case "studio-audio":
       return <StudioAudioView exportDirectory={studio.exportDirectory} onPickExportDirectory={studio.onPickExportDirectory} />;
     case "organisation":
@@ -58,10 +59,11 @@ export const MenuPage: React.FC<{ menu: ActiveMenu }> = ({ menu }) => {
          composé sur la page de gauche (Feuillet VII). */
       return <CoverCalibration />;
     case "lecteur":
-      return <PendingView title="Le Lecteur" hint="Musicothèque d'atelier : un disque par livre, lu comme sur un magnétophone." />;
+      return <PendingView title="Le Lecteur" hint="Musicothèque d'atelier : un disque par livre. Choisissez un fichier, il se lit sur le lecteur de bande." />;
     case "salon":
-      return <PendingView title="Salon de lecture" hint="Lecture immersive du livre, en pleine page ou en volume relié." />;
+      return <SalonView target={studio.salonTarget} />;
     case "correcteur":
+      return <ProofWorkbench />;
     case "banc-epreuve":
       return <ProofWorkbench />;
     case "epreuve-plume":
