@@ -1,4 +1,14 @@
-import type { StylometryIssue } from "./stylometryApi";
+import type { StylometryIssue, StylometryReport, StylometryRule } from "./stylometryApi";
+
+/** Le masquage ne change pas le texte : seule sa contribution d'alertes est réduite. */
+export const sessionRisk = (report: StylometryReport, activeIssues: StylometryIssue[], rules: StylometryRule[]): number => {
+  if (activeIssues.length === report.issues.length) return report.aiRiskPercent;
+  const weights = new Map(rules.map((rule) => [rule.id, rule.kind.kind === "detection" ? Math.max(0, rule.kind.penaltyWeight) : 0]));
+  const weightOf = (issues: StylometryIssue[]) => issues.reduce((sum, issue) => sum + (weights.get(issue.ruleId) ?? 0), 0);
+  const total = weightOf(report.issues);
+  const fraction = total > 0 ? weightOf(activeIssues) / total : 0;
+  return Math.round((report.backgroundRisk + report.alertRisk * fraction) * 10) / 10;
+};
 
 /** Teinte et verdict du cercle de risque selon la gravité. */
 export const riskTone = (risk: number): { color: string; label: string } =>

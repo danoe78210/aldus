@@ -5,6 +5,7 @@ interface ChapterSelectorProps {
   chapters: string[];
   chapter: string;
   loading: boolean;
+  disabled?: boolean;
   onChange: (chapter: string) => void;
 }
 
@@ -12,6 +13,7 @@ export const ChapterSelector: React.FC<ChapterSelectorProps> = ({
   chapters,
   chapter,
   loading,
+  disabled = false,
   onChange,
 }) => (
   <label className="flex min-w-0 flex-1 items-center gap-2">
@@ -19,7 +21,7 @@ export const ChapterSelector: React.FC<ChapterSelectorProps> = ({
     <select
       value={chapter}
       onChange={(event) => onChange(event.target.value)}
-      disabled={loading}
+      disabled={loading || disabled}
       aria-label="Chapitre à auditer"
       className="h-10 min-w-0 flex-1 rounded-xs border border-[#3a3022] bg-[#13110f] px-3 font-serif text-sm text-[#f5efe4] focus:border-[#d4af37] focus:outline-none disabled:opacity-60"
     >

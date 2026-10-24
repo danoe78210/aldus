@@ -1,6 +1,13 @@
 # Registre des Évolutions — Aldus
 ## [1.4.10] - 2026-10-20 — Épreuve de Plume, pupitre de remaniement
+### Ajouté
+- Mode Retouche du feuillet gauche : éditeur Markdown brut sur fond ébène avec numérotation des lignes logiques, ouvert librement par la bascule `[ Épreuve | Retouche ]` ou ciblé sur un passage par « Remanier dans l'éditeur » depuis une carte sans reformation automatique. `Enregistrer & réévaluer` (ou `Ctrl+S`) passe par l'instantané `.aldus/history/` et l'écriture atomique avant réaudit ; un échec conserve le brouillon, « Annuler » l'abandonne.
+- « Ouvrir dans le Correcteur » : passage direct du chapitre audité au Banc d'Épreuve pour un travail d'écriture long, sans l'audit stylométrique.
+
 ### Amélioré
+- Score de Plume réactif : 40 % de métriques du texte (cadence et diversité lexicale, bonus d'humanisation conservés) et 60 % de densité pondérée d'alertes par tranche de 250 mots. La courbe progressive en arctangente remplace le cumul saturé à 100 %.
+- « Appliquer » attend le réaudit complet ; « Ignorer » réduit immédiatement la contribution des alertes au prorata de leur poids, pour la session seulement. Le masquage ne modifie pas les micro-métriques du texte.
+- Les micro-jauges affichent une décimale et animent leur largeur sur 500 ms après réévaluation (sauf préférence de mouvement réduit).
 - Épreuve de Plume : l'écran ne reprend plus les règles d'orthotypographie du Banc d'Épreuve et se consacre aux métriques stylistiques (cadence, tics de transition, triades, entropie, distribution de Zipf).
 - Registre des Remaniements : flux défilant de cartes d'alerte (ligne, motif, texte original, diagnostic, proposition de la Forge) remplaçant la liste paginée à cases à cocher.
 - « Appliquer la reformation » crée un instantané dans `.aldus/history/`, remplace le passage de façon atomique après vérification du texte d'origine et recalcule le score ; « Ignorer » masque l'alerte pour la session sans toucher au fichier.

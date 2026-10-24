@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from "react";
-import { Check, EyeOff } from "lucide-react";
+import { Check, EyeOff, PenLine } from "lucide-react";
 import type { StylometryIssue } from "../../utils/stylometryApi";
 import { usePlume } from "./PlumeContext";
 
@@ -22,13 +22,15 @@ interface AlertCardProps {
   focused: boolean;
   leaving: boolean;
   applying: boolean;
+  busy: boolean;
   disableApply: boolean;
   onApply: () => void;
+  onRework: () => void;
   onIgnore: () => void;
   onHover: (hovered: boolean) => void;
 }
 
-const AlertCard: React.FC<AlertCardProps> = ({ issue, location, label, focused, leaving, applying, disableApply, onApply, onIgnore, onHover }) => {
+const AlertCard: React.FC<AlertCardProps> = ({ issue, location, label, focused, leaving, applying, busy, disableApply, onApply, onRework, onIgnore, onHover }) => {
   const ref = useRef<HTMLElement>(null);
   useEffect(() => {
     if (!focused) return;
@@ -58,11 +60,11 @@ const AlertCard: React.FC<AlertCardProps> = ({ issue, location, label, focused, 
       </p>
       <p className="mt-3 text-left font-sans text-[11px] font-medium tracking-wider text-[#c5a059] uppercase">Diagnostic</p>
       <p className="mt-1 text-left font-sans text-[13px] leading-normal text-[#ded8cc]">{issue.explanation}</p>
-      <p className="mt-3 text-left font-sans text-[11px] font-medium tracking-wider text-[#c5a059] uppercase">Proposition de la Forge</p>
-      {issue.suggestedRewrite !== null ? (
-        <p className="mt-1 border-l-2 border-[#d4af37] bg-[#23201b] px-3 py-2 text-left font-reading text-sm italic leading-relaxed text-[#f0ece1]">« {issue.suggestedRewrite} »</p>
-      ) : (
-        <p className="mt-1 text-left font-sans text-[13px] italic text-[#a8a29e]">Aucune reformation automatique : remaniez ce passage à la main.</p>
+      {issue.suggestedRewrite !== null && (
+        <>
+          <p className="mt-3 text-left font-sans text-[11px] font-medium tracking-wider text-[#c5a059] uppercase">Proposition de la Forge</p>
+          <p className="mt-1 border-l-2 border-[#d4af37] bg-[#23201b] px-3 py-2 text-left font-reading text-sm italic leading-relaxed text-[#f0ece1]">« {issue.suggestedRewrite} »</p>
+        </>
       )}
       <div className="mt-4 flex flex-wrap justify-between gap-2">
         {issue.suggestedRewrite !== null ? (
@@ -74,11 +76,20 @@ const AlertCard: React.FC<AlertCardProps> = ({ issue, location, label, focused, 
           >
             <Check size={12} aria-hidden /> {applying ? "Application…" : "Appliquer la reformation"}
           </button>
-        ) : <span />}
+        ) : (
+          <button
+            type="button"
+            onClick={onRework}
+            disabled={busy}
+            className="inline-flex cursor-pointer items-center gap-1.5 border border-[#d4af37] bg-[#2a2318] px-3 py-1.5 font-sans text-xs font-medium tracking-wide text-[#d4af37] uppercase transition-colors hover:bg-[#382f20] hover:text-[#f0ece1] disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            <PenLine size={12} aria-hidden /> Remanier dans l'éditeur
+          </button>
+        )}
         <button
           type="button"
           onClick={onIgnore}
-          disabled={applying}
+          disabled={busy}
           className="inline-flex cursor-pointer items-center gap-1.5 border border-zinc-700 px-3 py-1.5 font-sans text-xs font-medium tracking-wide text-[#a8a29e] uppercase transition-colors hover:border-zinc-500 hover:text-white disabled:cursor-not-allowed disabled:opacity-50"
         >
           <EyeOff size={12} aria-hidden /> Ignorer
@@ -90,7 +101,7 @@ const AlertCard: React.FC<AlertCardProps> = ({ issue, location, label, focused, 
 
 /** Page droite de l'Épreuve de Plume : registre défilant des remaniements actifs. */
 export const IssuesList: React.FC = () => {
-  const { rules, report, activeIssues, lineOf, applyingId, leavingId, apply, ignore, focusedId, setFocusedId, setHoveredId } = usePlume();
+  const { rules, report, activeIssues, lineOf, applyingId, leavingId, apply, ignore, focusedId, setFocusedId, setHoveredId, mode, openEditor } = usePlume();
   const ruleNames = Object.fromEntries(rules.map((rule) => [rule.id, rule.name]));
 
   return (
@@ -118,8 +129,11 @@ export const IssuesList: React.FC = () => {
               focused={focusedId === issue.id}
               leaving={leavingId === issue.id}
               applying={applyingId === issue.id}
-              disableApply={applyingId !== null}
+              busy={applyingId !== null}
+              // Une reformation réécrirait le fichier sous le brouillon de la Retouche.
+              disableApply={applyingId !== null || mode === "retouche"}
               onApply={() => void apply(issue)}
+              onRework={() => openEditor(issue)}
               onIgnore={() => {
                 ignore(issue.id);
                 setHoveredId(null);

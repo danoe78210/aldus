@@ -1,5 +1,6 @@
-import React, { createContext, useContext, useEffect, useMemo, useState } from "react";
+import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 import { useStudio } from "../StudioContext";
+import { sessionRisk } from "../../utils/stylometryView";
 import {
   applyStylometrySuggestion,
   auditChapterStylometry,
@@ -11,6 +12,16 @@ import {
 
 /** Durée de l'animation de retrait d'une carte résolue. */
 const LEAVE_MS = 280;
+
+/** Feuillet gauche : lecture annotée ou retouche manuelle du Markdown. */
+export type PlumeMode = "epreuve" | "retouche";
+
+/** Passage à présenter dans l'éditeur (offsets en points de code Unicode). */
+export interface EditTarget {
+  start: number;
+  end: number;
+  line: number;
+}
 
 export interface PlumeValue {
   rules: StylometryRule[];
@@ -31,6 +42,12 @@ export interface PlumeValue {
   setHoveredId: (id: string | null) => void;
   focusedId: string | null;
   setFocusedId: (id: string | null) => void;
+  mode: PlumeMode;
+  /** Passage ciblé à l'ouverture de l'éditeur, `null` pour une retouche libre. */
+  editTarget: EditTarget | null;
+  /** Bascule en Retouche, sur le passage de l'alerte s'il est fourni. */
+  openEditor: (issue?: StylometryIssue) => void;
+  closeEditor: () => void;
 }
 
 const PlumeContext = createContext<PlumeValue | null>(null);
@@ -53,6 +70,34 @@ export const PlumeProvider: React.FC<{ enabled: boolean; children: React.ReactNo
   const [ignoredByChapter, setIgnoredByChapter] = useState<Record<string, Set<string>>>({});
   const [hoveredId, setHoveredId] = useState<string | null>(null);
   const [focusedId, setFocusedId] = useState<string | null>(null);
+  const [mode, setMode] = useState<PlumeMode>("epreuve");
+  const [editTarget, setEditTarget] = useState<EditTarget | null>(null);
+  const auditRequest = useRef(0);
+  const auditScope = useRef(0);
+  const auditHandledAfterApply = useRef(false);
+
+  useEffect(() => () => {
+    auditRequest.current += 1;
+    auditScope.current += 1;
+    auditHandledAfterApply.current = false;
+  }, [enabled, proofChapter, sourceConfig.directory, rules]);
+
+  const refreshReport = useCallback(async (workspace: string, chapter: string, isActive: () => boolean) => {
+    const request = ++auditRequest.current;
+    try {
+      const next = await auditChapterStylometry(workspace, chapter);
+      if (isActive() && request === auditRequest.current) {
+        setReport(next);
+        setError(null);
+      }
+    } catch (cause) {
+      if (isActive() && request === auditRequest.current) {
+        setReport(null);
+        setError(messageOf(cause));
+        onNotify("error", `Audit de stylométrie impossible : ${messageOf(cause)}`);
+      }
+    }
+  }, [onNotify]);
 
   useEffect(() => {
     if (!enabled || rules.length > 0) return;
@@ -69,21 +114,16 @@ export const PlumeProvider: React.FC<{ enabled: boolean; children: React.ReactNo
   }, [enabled, rules.length, onNotify]);
 
   useEffect(() => {
-    if (!enabled || !proofChapter || !sourceConfig.directory || proofDirty || proofLoading || rules.length === 0) return;
+    if (!enabled || !proofChapter || !sourceConfig.directory || proofDirty || proofLoading || rules.length === 0 || applyingId !== null) return;
+    // L'application attend déjà son audit ; ne pas en déclencher un second à sa fin.
+    if (auditHandledAfterApply.current) {
+      auditHandledAfterApply.current = false;
+      return;
+    }
     let active = true;
-    auditChapterStylometry(sourceConfig.directory, proofChapter).then((next) => {
-      if (active) {
-        setReport(next);
-        setError(null);
-      }
-    }).catch((cause: unknown) => {
-      if (active) {
-        setError(messageOf(cause));
-        onNotify("error", `Audit de stylométrie impossible : ${messageOf(cause)}`);
-      }
-    });
+    void refreshReport(sourceConfig.directory, proofChapter, () => active);
     return () => { active = false; };
-  }, [enabled, proofChapter, proofText, proofDirty, proofLoading, rules, sourceConfig.directory, onNotify]);
+  }, [enabled, proofChapter, proofText, proofDirty, proofLoading, rules, sourceConfig.directory, refreshReport, applyingId]);
 
   const activeReport = report?.chapterId === proofChapter && !proofDirty ? report : null;
   const ignored = ignoredByChapter[proofChapter];
@@ -91,6 +131,10 @@ export const PlumeProvider: React.FC<{ enabled: boolean; children: React.ReactNo
     () => activeReport?.issues.filter((issue) => !ignored?.has(issue.id)) ?? [],
     [activeReport, ignored],
   );
+  const sessionReport = useMemo(() => activeReport ? {
+    ...activeReport,
+    aiRiskPercent: sessionRisk(activeReport, activeIssues, rules),
+  } : null, [activeReport, activeIssues, rules]);
 
   const lineOf = useMemo(() => {
     const lines: Record<string, number> = {};
@@ -109,6 +153,7 @@ export const PlumeProvider: React.FC<{ enabled: boolean; children: React.ReactNo
 
   const apply = async (issue: StylometryIssue) => {
     if (!sourceConfig.directory || !proofChapter || issue.suggestedRewrite === null) return;
+    const scope = auditScope.current;
     setApplyingId(issue.id);
     setError(null);
     try {
@@ -116,7 +161,11 @@ export const PlumeProvider: React.FC<{ enabled: boolean; children: React.ReactNo
       await applyStylometrySuggestion(sourceConfig.directory, proofChapter, issue, issue.suggestedRewrite);
       setLeavingId(issue.id);
       await new Promise((resolve) => setTimeout(resolve, LEAVE_MS));
+      if (scope !== auditScope.current) return;
       await loadProofChapter(proofChapter);
+      if (scope !== auditScope.current) return;
+      await refreshReport(sourceConfig.directory, proofChapter, () => scope === auditScope.current);
+      auditHandledAfterApply.current = scope === auditScope.current;
     } catch (cause) {
       setError(messageOf(cause));
       onNotify("error", `Application de la reformation impossible : ${messageOf(cause)}`);
@@ -134,7 +183,7 @@ export const PlumeProvider: React.FC<{ enabled: boolean; children: React.ReactNo
     },
     rulesError,
     error,
-    report: activeReport,
+    report: sessionReport,
     activeIssues,
     lineOf,
     applyingId,
@@ -148,6 +197,16 @@ export const PlumeProvider: React.FC<{ enabled: boolean; children: React.ReactNo
     setHoveredId,
     focusedId,
     setFocusedId,
+    mode,
+    editTarget,
+    openEditor: (issue) => {
+      setEditTarget(issue ? { start: issue.startOffset, end: issue.endOffset, line: lineOf[issue.id] ?? 1 } : null);
+      setMode("retouche");
+    },
+    closeEditor: () => {
+      setEditTarget(null);
+      setMode("epreuve");
+    },
   };
 
   return <PlumeContext.Provider value={value}>{children}</PlumeContext.Provider>;

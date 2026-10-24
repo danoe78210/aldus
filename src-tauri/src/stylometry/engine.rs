@@ -2,7 +2,7 @@ use regex::Regex;
 use serde::{Deserialize, Serialize};
 
 use super::rules::{PatternType, RuleKind, StylometryRule};
-use super::scorer::base_risk;
+use super::scorer::{base_risk, risk_components};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -21,7 +21,10 @@ pub struct StylometryIssue {
 #[serde(rename_all = "camelCase")]
 pub struct StylometryReport {
     pub chapter_id: String,
-    pub ai_risk_percent: u8,
+    pub ai_risk_percent: f32,
+    /// Contributions before rounding, retained for session-only alert dismissal.
+    pub background_risk: f32,
+    pub alert_risk: f32,
     pub burstiness_score: f32,
     pub lexical_richness: f32,
     pub issues_count: usize,
@@ -715,6 +718,7 @@ pub fn analyze(
     .map(|sentence| sentence.words)
     .collect::<Vec<_>>();
     let (mut score, burstiness_score, lexical_richness) = base_risk(&sentence_lengths, &tokens);
+    let mut penalty = 0.0;
     let mut issues = Vec::new();
     let exemptions = lexical_exemptions(rules)?;
 
@@ -736,7 +740,7 @@ pub fn analyze(
                     | PatternType::ChapterConclusion
             ) => {
                 for (start, end) in matching_spans(&text, pattern_type, pattern)? {
-                    score += (*penalty_weight).max(0.0);
+                    penalty += (*penalty_weight).max(0.0);
                     issues.push(issue(
                         &text,
                         &byte_to_char,
@@ -791,12 +795,15 @@ pub fn analyze(
         &exemptions,
         rules,
         &mut issues,
-        &mut score,
+        &mut penalty,
     );
     issues.sort_by_key(|found| found.start_offset);
+    let (background_risk, alert_risk) = risk_components(score, penalty, tokens.len());
     Ok(StylometryReport {
         chapter_id: chapter_id.into(),
-        ai_risk_percent: score.round().clamp(0.0, 100.0) as u8,
+        ai_risk_percent: ((background_risk + alert_risk) * 10.0).round() / 10.0,
+        background_risk,
+        alert_risk,
         burstiness_score,
         lexical_richness,
         issues_count: issues.len(),
@@ -810,6 +817,61 @@ mod tests {
     use crate::stylometry::rules::default_rules;
 
     #[test]
+    fn five_resolved_alerts_update_the_whole_report_progressively() -> Result<(), String> {
+        let rules = vec![StylometryRule {
+            id: "test-signal".into(),
+            name: "Signal".into(),
+            enabled: true,
+            is_builtin: false,
+            kind: RuleKind::Detection {
+                pattern_type: PatternType::ExactMatch,
+                pattern: "signal".into(),
+                penalty_weight: 8.0,
+                category: "Test".into(),
+                explanation: "Test".into(),
+                default_suggestion: Some("trace".into()),
+            },
+        }];
+        let mut text = (0..2500)
+            .map(|index| if index % 125 == 0 { "signal" } else { "mot" })
+            .collect::<Vec<_>>()
+            .join(" ");
+        let first = analyze("x.md", &text, &rules)?;
+        assert_eq!(first.issues_count, 20);
+        let mut previous = first.ai_risk_percent;
+        for corrected in 1..=5 {
+            text = text.replacen("signal", "trace", 1);
+            let next = analyze("x.md", &text, &rules)?;
+            assert_eq!(next.issues_count, 20 - corrected);
+            assert!(next.ai_risk_percent < previous);
+            assert!((next.background_risk + next.alert_risk - next.ai_risk_percent).abs() <= 0.051);
+            previous = next.ai_risk_percent;
+        }
+        assert!(first.ai_risk_percent - previous >= 5.0);
+        Ok(())
+    }
+
+    #[test]
+    fn rewriting_a_local_isometric_passage_changes_the_reported_rhythm() -> Result<(), String> {
+        let sentence = format!("{}.", vec!["mot"; 20].join(" "));
+        let text = vec![sentence.as_str(); 100].join(" ");
+        let revised = text.replacen(
+            &sentence,
+            &format!(
+                "{}. {}.",
+                vec!["mot"; 5].join(" "),
+                vec!["mot"; 15].join(" ")
+            ),
+            1,
+        );
+        let before = analyze("x.md", &text, &[])?;
+        let after = analyze("x.md", &revised, &[])?;
+        assert!(after.burstiness_score - before.burstiness_score > 0.1);
+        assert!(after.ai_risk_percent < before.ai_risk_percent);
+        Ok(())
+    }
+
+    #[test]
     fn reports_french_offsets_after_yaml_frontmatter() -> Result<(), String> {
         let text = "---\ntitle: En effet\n---\nEn effet, la forêt répond.";
         let report = analyze("chapitre.md", text, &default_rules())?;
@@ -820,7 +882,7 @@ mod tests {
             .ok_or("tic de liaison non détecté")?;
         assert_eq!(found.start_offset, 24);
         assert_eq!(found.original_text, "En effet");
-        assert!(report.ai_risk_percent <= 100);
+        assert!(report.ai_risk_percent <= 100.0);
         Ok(())
     }
 

@@ -16,7 +16,7 @@ interface ProofReaderProps {
   /** Anomalie ciblée par « Localiser » (surbrillance or vénitien, facultatif). */
   activeAnomalyId?: string | null;
   /** Consigne les retouches du vélin (texte partagé + fichier + analyse relancée). */
-  onSave?: (next: string) => Promise<void>;
+  onSave?: (next: string) => Promise<unknown>;
   /** Notifie le survol d'une anomalie depuis le feuillet. */
   onHover: (id: string | null) => void;
 }

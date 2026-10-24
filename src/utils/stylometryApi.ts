@@ -55,6 +55,9 @@ export interface StylometryIssue {
 export interface StylometryReport {
   chapterId: string;
   aiRiskPercent: number;
+  /** Contributions non arrondies : 40 % texte, 60 % densité pondérée d'alertes. */
+  backgroundRisk: number;
+  alertRisk: number;
   burstinessScore: number;
   lexicalRichness: number;
   issuesCount: number;

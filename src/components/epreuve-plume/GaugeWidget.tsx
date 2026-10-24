@@ -2,15 +2,15 @@ import React from "react";
 import { riskTone } from "../../utils/stylometryView";
 
 const MicroMetric: React.FC<{ label: string; value: number | null }> = ({ label, value }) => {
-  const percent = Math.round(Math.min(100, Math.max(0, value ?? 0)));
+  const percent = Math.round(Math.min(100, Math.max(0, value ?? 0)) * 10) / 10;
   return (
     <div>
       <div className="flex justify-between font-sans text-xs text-[#f0ece1]">
         <span>{label}</span>
-        <span className="tabular-nums">{value === null ? "—" : `${percent} %`}</span>
+        <span className="tabular-nums">{value === null ? "—" : `${percent.toLocaleString("fr-FR", { minimumFractionDigits: 1, maximumFractionDigits: 1 })} %`}</span>
       </div>
-      <div role="progressbar" aria-label={label} aria-valuemin={0} aria-valuemax={100} aria-valuenow={percent}       className="mt-1 h-1.5 overflow-hidden rounded-full bg-[#2a2622]">
-              <div className="h-full rounded-full bg-[#d99b32] transition-[width] duration-500" style={{ width: `${percent}%` }} />
+      <div role="progressbar" aria-label={label} aria-valuemin={0} aria-valuemax={100} aria-valuenow={percent} className="mt-1 h-1.5 overflow-hidden rounded-full bg-[#2a2622]">
+        <div className="h-full rounded-full bg-[#d99b32] transition-[width] duration-500 ease-out motion-reduce:transition-none" style={{ width: `${percent}%` }} />
       </div>
     </div>
   );

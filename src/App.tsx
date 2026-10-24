@@ -1371,13 +1371,13 @@ const App: React.FC = () => {
   const handleSaveProofRevisions = useCallback(
     async (next: string) => {
       if (next === proofText) {
-        return; // aucune retouche : rien à consigner
+        return true; // aucune retouche : rien à consigner
       }
       if (proofChapter === "") {
         setProofText(next); // repli mémoire sans fichier
         setProofDirty(true);
         addLog("warning", "Aucun chapitre sélectionné : retouches gardées en mémoire.");
-        return;
+        return false;
       }
       try {
         await saveChapterFile(proofChapter, next);
@@ -1387,10 +1387,12 @@ const App: React.FC = () => {
         setActiveAnomalyId(null);
         addLog("success", `Retouches consignées dans ${proofChapter} — analyse relancée.`);
         showProofSavedIndicator();
+        return true;
       } catch (cause) {
         const message = cause instanceof Error ? cause.message : String(cause);
         setProofError(message);
         addLog("error", `Consignation impossible : ${message}`);
+        return false;
       }
     },
     [proofChapter, proofText, addLog, showProofSavedIndicator],

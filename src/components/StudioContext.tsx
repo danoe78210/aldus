@@ -207,8 +207,9 @@ export interface StudioContextValue {
   imposeProofUsage: () => void;
   /** Consigne le chapitre justifié dans son fichier (écriture atomique). */
   persistProofChapter: () => Promise<void>;
-  /** Consigne les retouches du vélin (Feuillet X) : texte partagé mis à jour, fichier écrit, analyse relancée. */
-  saveProofRevisions: (next: string) => Promise<void>;
+  /** Consigne les retouches du vélin (Feuillet X) : texte partagé mis à jour, fichier écrit
+      (instantané `.aldus/history/` + écriture atomique), analyse relancée. `true` si le disque est à jour. */
+  saveProofRevisions: (next: string) => Promise<boolean>;
 }
 
 const StudioContext = createContext<StudioContextValue | null>(null);

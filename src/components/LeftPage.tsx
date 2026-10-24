@@ -230,7 +230,7 @@ export const LeftPage: React.FC<LeftPageProps> = ({
         /* Feuillet IX — l'Examen Aldin (le banc d'épreuve est à droite). */
         <ProofExaminer />
       ) : activeMenu === "epreuve-plume" ? (
-        <EpreuvePlumeView />
+        <EpreuvePlumeView onOpenCorrector={() => setActiveMenu("correcteur")} />
       ) : activeMenu === "export" ? (
         /* Feuillet XI — inspection pré-presse (le tirage est à droite). */
         <PressInspection />
