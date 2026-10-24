@@ -69,21 +69,18 @@ jobs:
           tagName: ${{ github.ref_name }}
           releaseName: 'Aldus ${{ github.ref_name }}'
           releaseBody: |
-            ## Aldus 1.4.10 — Épreuve de Plume, pupitre de remaniement
+            ## Aldus 1.4.11 — Lecteur d'Atelier & ruban Studio Audio
 
-            - Épreuve de Plume recentrée sur la stylométrie : cadence, tics de transition, triades, entropie et distribution de Zipf ; aucune règle d'orthotypographie du Banc d'Épreuve.
-            - Registre des Remaniements : cartes d'alerte défilantes avec texte original, diagnostic et proposition de la Forge.
-            - « Appliquer la reformation » : instantané `.aldus/history/`, écriture atomique vérifiée et recalcul immédiat du score ; « Ignorer » masque l'alerte pour la session.
-            - Manuscrit annoté : surlignage bidirectionnel carte ↔ passage, texte justifié avec césures françaises (Literata), titres Markdown mis en forme.
-            - Contrastes Dark Atelier renforcés sur la jauge, les cartes et les boutons.
-            - Plaque de version : cache de vérification de deux heures et bouton « Vérifier maintenant ».
-
-            Le score reste un indicateur heuristique, non une preuve d'origine.
+            - Lecteur d'Atelier : « Ouvrir le livre » lit l'EPUB, le PDF ou le DOCX en plein écran, avec trois papiers (Vélin, Parchemin, Dark Atelier), tiroir typographique, table des matières, mode Silence et signets dorés conservés dans `.aldus/bookmarks.json`.
+            - Ruban « Studio Audio » dédié : console du moteur XTTS v2 local, choix de la voix et table de synthèse par chapitre (génération, régénération, écoute, suppression des pistes MP3).
+            - Installateur MSI en français (`fr-FR`), aux couleurs d'Aldus : emblème doré, bandeau en vélin et texte lisible quel que soit le thème de Windows.
+            - Aucun changement du moteur vocal : sidecar local sur `127.0.0.1:8020`, segments de 240 caractères maximum, consentement CPML inchangé.
 
             ### Captures
-            - [Épreuve de Plume — Registre des Remaniements](https://github.com/danoe78210/aldus/blob/v1.4.10/docs/assets/screenshots/epreuve-de-plume-v1.4.10.png)
+            - [Lecteur d'Atelier](https://github.com/danoe78210/aldus/blob/v1.4.11/docs/assets/screenshots/lecteur-atelier-v1.4.11.png)
+            - [Studio Audio](https://github.com/danoe78210/aldus/blob/v1.4.11/docs/assets/screenshots/studio-audio-v1.4.11.png)
 
-            Voir [CHANGELOG.md](https://github.com/danoe78210/aldus/blob/v1.4.10/CHANGELOG.md).
+            Voir [CHANGELOG.md](https://github.com/danoe78210/aldus/blob/v1.4.11/CHANGELOG.md).
           releaseDraft: false
           prerelease: false
           args: ${{ matrix.args }}

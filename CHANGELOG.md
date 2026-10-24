@@ -1,5 +1,5 @@
 # Registre des Évolutions — Aldus
-## [Non publié] — Lecteur d'Atelier & ruban Studio Audio
+## [1.4.11] - 2026-10-24 — Lecteur d'Atelier & ruban Studio Audio
 ### Ajouté
 - **Lecteur d'Atelier** : « Ouvrir le livre » du Registre ouvre désormais l'EPUB, le PDF ou le DOCX dans un lecteur immersif plein écran intégré, sans application tierce. `Échap` ou le bouton discret du coin ramène au Registre.
 - Trois papiers — Vélin vénitien (`#f5f0e6` / `#2c251e`), Parchemin doux (`#ede4cf` / `#231c16`) et Dark Atelier (`#121110` / `#f0ece1`) — et un tiroir typographique repliable : Literata, EB Garamond, Merriweather, System Serif ; corps 12–24 px ; interligne 1,4–2,0 ; colonne « Confort roman » ou « Feuillet entier ». Les réglages sont mémorisés.
@@ -10,11 +10,20 @@
 - **Ruban « Studio Audio »** dans la navigation (après Export, avant Bibliothèque) : console du moteur XTTS v2, sélecteur de voix, table de synthèse par chapitre (générer / régénérer, progression chapitre-segment, écoute, suppression des pistes MP3). La Bibliothèque ne garde que le Registre ; une édition audio y est simplement signalée.
 
 ### Modifié
+- Installateur MSI localisé en français (`fr-FR`) : l'assistant, ses boutons et le nom du fichier produit (`Aldus_1.4.11_x64_fr-FR.msi`) passent au français.
+- Charte d'Aldus dans l'assistant WiX : panneau d'accueil ébène avec l'emblème doré, bandeau vélin à filet d'or et texte d'encre sombre (`#191919`) via un gabarit `src-tauri/wix/main.wxs`, lisible quel que soit le thème clair ou sombre de Windows.
 - Écritoire, Banc d'Épreuve et Épreuve de Plume se concentrent sur le texte et la stylométrie ; toute la synthèse vocale vit dans le Studio Audio. Aucun changement du moteur : sidecar local sur `127.0.0.1:8020`, segments de 240 caractères maximum, consentement CPML inchangé.
 - Le moteur vocal intégré ne démarre qu'à l'ouverture du ruban Studio Audio.
+- Installateur MSI localisé en français (`fr-FR`) : l'assistant et le fichier produit (`Aldus_1.4.11_x64_fr-FR.msi`) sont en français.
+- Charte Aldus dans l'assistant d'installation : emblème doré sur panneau ébène à la place du CD générique, bandeau en vélin, et gabarit WiX personnalisé (`src-tauri/wix/main.wxs`) fixant un texte d'encre lisible quel que soit le thème de Windows.
 
 ### Corrigé
 - Lecteur : les signets filtrés sont mémoïsés, ce qui évite une boucle de rendu entre la vue et le hook des signets.
+
+### Vérifié
+- Ruban Studio Audio : 11 tests React (génération par chapitre, régénération isolée, consentement CPML, progression d'initialisation, suppression de piste, verrouillage pendant la génération, registre vide).
+- Lecteur d'Atelier : 15 tests React (navigation, table des matières, signets persistés, réglages du tiroir, mode Silence, PDF, erreurs de lecture) et tests des réglages mémorisés.
+- Suite Vitest complète au vert ; `tsc`, `npm run lint` et `cargo check` sans avertissement.
 
 ### Limites connues
 - Lecteur : pas de table des matières pour les PDF ; les images des EPUB sont ignorées ; le mode continu défile chapitre par chapitre.
