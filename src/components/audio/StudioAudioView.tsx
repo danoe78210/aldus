@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { AudioLines, FolderOpen } from "lucide-react";
 import type { AudioChapter, AudioChapterChoice, AudioGenerationProgress, LibraryConfig } from "../../types";
 import { deleteLibraryAudioTrack, generateLibraryAudio, getLibraryConfig, listBookAudioChapters } from "../../utils/libraryApi";
@@ -47,8 +47,10 @@ export const StudioAudioView = ({ exportDirectory, onPickExportDirectory }: Stud
   const tracks: AudioChapter[] = book?.audio?.chapters ?? [];
   const generating = generatingIndex !== null;
   const adaptChapter = chapters.find((chapter) => chapter.index === adaptIndex) ?? chapters[0];
-  const podcast = usePodcastScript(bookId, adaptChapter?.index ?? null);
-  const casting = useVoiceCasting(bookId, book?.audio?.casting, useCallback((saved: LibraryConfig) => setConfig(saved), []));
+  const onSaved = useCallback((saved: LibraryConfig) => setConfig(saved), []);
+  const casting = useVoiceCasting(bookId, book?.audio?.casting, onSaved);
+  const characterRoles = useMemo(() => casting.characters.map((character) => character.role), [casting.characters]);
+  const podcast = usePodcastScript({ bookId, chapterIndex: adaptChapter?.index ?? null, saved: book?.audio?.adaptations, characters: characterRoles, onSaved });
 
   useEffect(() => {
     let active = true;
@@ -150,7 +152,6 @@ export const StudioAudioView = ({ exportDirectory, onPickExportDirectory }: Stud
           <p className="font-serif text-sm text-[#a99a83]">Aucun livre au Registre : ajoutez-en un depuis la Bibliothèque.</p>
         ) : (
           <>
-            {book?.audio && book.audio.chapters.length > 0 && <p className="font-serif text-sm text-[#a99a83]">Édition audio · {book.audio.voiceName} · {book.audio.chapters.length} piste(s)</p>}
             <section aria-labelledby="stage-chapter-title" className="flex max-w-3xl flex-col gap-2">
               <h3 id="stage-chapter-title" className={stageTitle}>I. Sélection du chapitre</h3>
               <label className="text-sm text-[#c9bea9]">Chapitre à adapter
@@ -166,6 +167,7 @@ export const StudioAudioView = ({ exportDirectory, onPickExportDirectory }: Stud
             </section>
             <section aria-labelledby="stage-regie-title" className="flex flex-col gap-3">
               <h3 id="stage-regie-title" className={stageTitle}>III. Régie de synthèse</h3>
+              {book?.audio && book.audio.chapters.length > 0 && <p className="font-serif text-sm text-[#d4af37]">Disque du livre · {book.audio.voiceName} · {book.audio.chapters.length} piste(s) gravée(s)</p>}
               <PodcastRegie podcast={podcast} casting={casting} voices={engine.voices} defaultVoiceId={engine.voiceId} chapterTitle={adaptChapter?.title} />
               <ChapterSynthesisTable chapters={chapters} tracks={tracks} generatingIndex={generatingIndex} progress={progress} canGenerate={canGenerate} onGenerate={generate} onDelete={remove} />
               {blockReason && <p role="status" className="max-w-xl font-serif text-sm leading-relaxed text-[#c5a059]">{blockReason}</p>}

@@ -1,5 +1,5 @@
 import { convertFileSrc } from "@tauri-apps/api/core";
-import type { AudioChapterChoice, AudioConfig, AudioGenerationProgress, AudioInitProgressPayload, AudioVoice, Book, LibraryConfig, PodcastLine, ScannedBook, Shelf, ShelfId, UpdateStatus, VoiceCasting } from "../types";
+import type { AudioChapterChoice, AudioConfig, AudioGenerationProgress, AudioInitProgressPayload, AudioVoice, Book, ChapterAdaptation, LibraryConfig, PodcastLine, ScannedBook, Shelf, ShelfId, UpdateStatus, VoiceCasting } from "../types";
 import { invokeCommand, isInvokeAvailable, listenEvent } from "./tauri";
 
 const STORAGE_KEY = "aldus-library";
@@ -172,6 +172,18 @@ export const saveVoiceCasting = async (bookId: string, casting: VoiceCasting): P
   if (!book) throw new Error("Ouvrage introuvable dans la bibliothèque.");
   const stamped = { ...casting, updatedAt: Date.now() };
   book.audio = book.audio ? { ...book.audio, casting: stamped } : { engine: "", voiceId: "", voiceName: "", generatedAt: 0, chapters: [], casting: stamped };
+  return saveBrowserConfig(config);
+};
+
+export const saveChapterAdaptation = async (bookId: string, adaptation: ChapterAdaptation): Promise<LibraryConfig> => {
+  if (isInvokeAvailable()) return invokeCommand<LibraryConfig>("save_chapter_adaptation", { bookId, adaptation });
+  const config = readBrowserConfig();
+  const book = config.books.find((candidate) => candidate.id === bookId);
+  if (!book) throw new Error("Ouvrage introuvable dans la bibliothèque.");
+  const edition = book.audio ?? { engine: "", voiceId: "", voiceName: "", generatedAt: 0, chapters: [] };
+  const others = (edition.adaptations ?? []).filter((saved) => saved.chapterIndex !== adaptation.chapterIndex);
+  const pristine = adaptation.edits.length === 0 && adaptation.rules.every((rule) => !rule.enabled && !rule.substitutions?.length);
+  book.audio = { ...edition, adaptations: pristine ? others : [...others, { ...adaptation, updatedAt: Date.now() }].sort((a, b) => a.chapterIndex - b.chapterIndex) };
   return saveBrowserConfig(config);
 };
 

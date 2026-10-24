@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, beforeAll, describe, expect, it, vi } from "vitest";
 import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { StudioAudioView } from "../StudioAudioView";
-import type { AudioVoice } from "../../../types";
+import type { AudioChapter, AudioVoice } from "../../../types";
 import { addLibraryBook, deleteLibraryAudioTrack, generateLibraryAudio, getAudioConsent, getBookChapterText, getLibraryConfig, listAudioVoices, listenAudioInitProgress, libraryCoverUrl, listBookAudioChapters, previewVoice, saveAudioConsent, startAudioEngine } from "../../../utils/libraryApi";
 
 vi.mock("../../../utils/libraryApi", async (importOriginal) => ({
@@ -49,7 +49,7 @@ afterEach(() => {
   vi.restoreAllMocks();
 });
 
-const audioEdition = (chapters: { index: number; title: string; path: string }[]) => ({
+const audioEdition = (chapters: Pick<AudioChapter, "index" | "title" | "path" | "burn">[]) => ({
   engine: "http://127.0.0.1:8020", voiceId: "fr-narrator", voiceName: "Narrateur français", generatedAt: 1, chapters,
 });
 
@@ -74,7 +74,8 @@ describe("StudioAudioView", () => {
     expect(screen.getByText("Segment 3/7")).toBeTruthy();
     await screen.findByLabelText("Écouter Chapitre premier");
     expect(screen.queryByRole("progressbar")).toBeNull();
-    expect(screen.getByText(/Édition audio · Narrateur français · 1 piste/)).toBeTruthy();
+    expect(screen.getByText("Disque du livre · Narrateur français · 1 piste(s) gravée(s)")).toBeTruthy();
+    expect(screen.getByText("Gravée sur le disque")).toBeTruthy();
     expect(screen.getByRole("button", { name: "Régénérer le chapitre 1" })).toBeTruthy();
     expect(screen.getByRole("button", { name: "Générer le chapitre 2" })).toBeTruthy();
   });
@@ -267,7 +268,7 @@ describe("StudioAudioView", () => {
     ]);
     fireEvent.click(screen.getByRole("button", { name: "Retirer le personnage Élise" }));
     await waitFor(() => expect(screen.queryByRole("combobox", { name: "Voix du personnage Élise" })).toBeNull());
-    expect(screen.queryByText(/Édition audio/)).toBeNull();
+    expect(screen.queryByText(/Disque du livre/)).toBeNull();
   });
 
   it("adapte un chapitre en trois temps : sélection, banc d'adaptation et régie", async () => {
@@ -346,6 +347,108 @@ describe("StudioAudioView", () => {
     render(<StudioAudioView exportDirectory="C:/Exports" />);
     fireEvent.click(screen.getByRole("tab", { name: "Le Studio" }));
     expect((await screen.findByRole("alert")).textContent).toContain("Chapitre introuvable.");
+  });
+
+  it("filtre les voix d'un nouveau personnage par genre et permet de les écouter", async () => {
+    const female: AudioVoice = { id: "fr-claribel", name: "Claribel Dervla", language: "fr-FR" };
+    const male: AudioVoice = { id: "fr-viktor", name: "Viktor Eka", language: "fr-FR" };
+    vi.mocked(listAudioVoices).mockResolvedValue([NARRATOR, female, male]);
+    vi.mocked(previewVoice).mockResolvedValue("C:/Data/voice-previews/fr-claribel.mp3");
+    vi.stubGlobal("Audio", vi.fn(function (this: { play: () => Promise<void>; pause: () => void }) { this.play = vi.fn().mockResolvedValue(undefined); this.pause = vi.fn(); }));
+    await addLibraryBook({ id: "gender-book", title: "Le Roman mixte", shelfId: "in_progress", files: [{ path: "C:/Exports/mixte.epub", format: "epub" }] });
+    render(<StudioAudioView exportDirectory="C:/Exports" />);
+    await screen.findByRole("option", { name: "Claribel Dervla · fr-FR" });
+    const voiceNames = () => within(screen.getByRole("combobox", { name: "Voix du nouveau personnage" })).getAllByRole("option").map((option) => option.textContent);
+    expect(voiceNames()).toEqual(["Narrateur français", "Claribel Dervla", "Viktor Eka"]);
+    fireEvent.change(screen.getByRole("combobox", { name: "Genre du nouveau personnage" }), { target: { value: "female" } });
+    expect(voiceNames()).toEqual(["Claribel Dervla"]);
+    fireEvent.click(screen.getByRole("button", { name: "Écouter le timbre du nouveau personnage" }));
+    await waitFor(() => expect(previewVoice).toHaveBeenCalledWith("fr-claribel", expect.any(String)));
+    fireEvent.change(screen.getByRole("combobox", { name: "Genre du nouveau personnage" }), { target: { value: "male" } });
+    expect(voiceNames()).toEqual(["Viktor Eka"]);
+    fireEvent.change(screen.getByRole("textbox", { name: "Nom du personnage" }), { target: { value: "Victor" } });
+    fireEvent.click(screen.getByRole("button", { name: "Ajouter" }));
+    await screen.findByRole("combobox", { name: "Voix du personnage Victor" });
+    expect((await getLibraryConfig()).books[0].audio?.casting?.mappings).toEqual([{ role: "Victor", kind: "character", voiceId: "fr-viktor" }]);
+    expect((screen.getByRole("combobox", { name: "Genre du personnage Victor" }) as HTMLSelectElement).value).toBe("male");
+    vi.unstubAllGlobals();
+  });
+
+  it("garde le Narrateur permanent : aucun bouton pour le retirer", async () => {
+    await addLibraryBook({ id: "narrator-book", title: "Le Roman permanent", shelfId: "in_progress", files: [{ path: "C:/Exports/permanent.epub", format: "epub" }] });
+    render(<StudioAudioView exportDirectory="C:/Exports" />);
+    await screen.findByRole("combobox", { name: "Voix du rôle Narrateur" });
+    expect(screen.getByLabelText("Rôle permanent")).toBeTruthy();
+    expect(screen.queryByRole("button", { name: /Retirer le (personnage|rôle) Narrateur/ })).toBeNull();
+  });
+
+  it("rend au Narrateur les répliques d'un personnage retiré du Chœur", async () => {
+    await addLibraryBook({
+      id: "orphan-book", title: "Le Roman orphelin", shelfId: "in_progress", files: [{ path: "C:/Exports/orphelin.epub", format: "epub" }],
+      audio: { ...audioEdition([]), casting: { mappings: [{ role: "Élise", kind: "character", voiceId: "fr-narrator" }] } },
+    });
+    vi.mocked(getBookChapterText).mockResolvedValue("— Bonjour.");
+    render(<StudioAudioView exportDirectory="C:/Exports" />);
+    fireEvent.click(screen.getByRole("tab", { name: "Le Studio" }));
+    fireEvent.change(await screen.findByRole("combobox", { name: "Rôle de la réplique 1" }), { target: { value: "character|Élise" } });
+    fireEvent.click(screen.getByRole("button", { name: "Retirer le personnage Élise" }));
+    await waitFor(() => expect((screen.getByRole("combobox", { name: "Rôle de la réplique 1" }) as HTMLSelectElement).value).toBe("narrator|Narrateur"));
+  });
+
+  it("restaure l'adaptation d'un chapitre à la réouverture du livre", async () => {
+    await addLibraryBook({ id: "kept-book", title: "Le Roman gardé", shelfId: "in_progress", files: [{ path: "C:/Exports/garde.epub", format: "epub" }] });
+    vi.mocked(getBookChapterText).mockResolvedValue("— Je pars, dit-elle, demain.\n— Aldus rit.");
+    const first = render(<StudioAudioView exportDirectory="C:/Exports" />);
+    fireEvent.click(screen.getByRole("tab", { name: "Le Studio" }));
+    fireEvent.click(await screen.findByRole("checkbox", { name: /Alléger les incises/ }));
+    fireEvent.click(screen.getByRole("checkbox", { name: /Noms propres/ }));
+    fireEvent.change(screen.getByRole("textbox", { name: "Nom propre" }), { target: { value: "Aldus" } });
+    fireEvent.change(screen.getByRole("textbox", { name: "Prononciation" }), { target: { value: "Al-duss" } });
+    fireEvent.click(screen.getByRole("button", { name: "Ajouter la prononciation" }));
+    fireEvent.change(screen.getByRole("textbox", { name: "Texte de la réplique 1" }), { target: { value: "Je m'en vais." } });
+    fireEvent.change(screen.getByRole("combobox", { name: "Rôle de la réplique 2" }), { target: { value: "narrator|Narrateur" } });
+    await waitFor(async () => expect((await getLibraryConfig()).books[0].audio?.adaptations).toHaveLength(1));
+    const [saved] = (await getLibraryConfig()).books[0].audio?.adaptations ?? [];
+    expect(saved.chapterIndex).toBe(1);
+    expect(saved.rules.filter((rule) => rule.enabled).map((rule) => rule.id)).toEqual(["strip-incises", "proper-nouns"]);
+    expect(saved.rules.find((rule) => rule.id === "proper-nouns")?.substitutions).toEqual([{ name: "Aldus", spoken: "Al-duss" }]);
+    expect(saved.edits).toEqual([{ source: 0, text: "Je m'en vais." }, { source: 1, role: "Narrateur", kind: "narrator" }]);
+
+    first.unmount();
+    render(<StudioAudioView exportDirectory="C:/Exports" />);
+    fireEvent.click(screen.getByRole("tab", { name: "Le Studio" }));
+    expect((await screen.findByRole("textbox", { name: "Texte de la réplique 1" }) as HTMLTextAreaElement).value).toBe("Je m'en vais.");
+    expect((screen.getByRole("textbox", { name: "Texte de la réplique 2" }) as HTMLTextAreaElement).value).toBe("Al-duss rit.");
+    expect((screen.getByRole("combobox", { name: "Rôle de la réplique 2" }) as HTMLSelectElement).value).toBe("narrator|Narrateur");
+    expect((screen.getByRole("checkbox", { name: /Alléger les incises/ }) as HTMLInputElement).checked).toBe(true);
+    expect((screen.getByRole("checkbox", { name: /Respirations/ }) as HTMLInputElement).checked).toBe(false);
+  });
+
+  it("n'enregistre rien quand l'adaptation revient à son état d'origine", async () => {
+    await addLibraryBook({ id: "pristine-book", title: "Le Roman intact", shelfId: "in_progress", files: [{ path: "C:/Exports/intact.epub", format: "epub" }] });
+    vi.mocked(getBookChapterText).mockResolvedValue("— Bonjour.");
+    render(<StudioAudioView exportDirectory="C:/Exports" />);
+    fireEvent.click(screen.getByRole("tab", { name: "Le Studio" }));
+    const rule = await screen.findByRole("checkbox", { name: /Respirations/ });
+    fireEvent.click(rule);
+    await waitFor(async () => expect((await getLibraryConfig()).books[0].audio?.adaptations).toHaveLength(1));
+    fireEvent.click(rule);
+    await waitFor(async () => expect((await getLibraryConfig()).books[0].audio?.adaptations).toEqual([]));
+  });
+
+  it("marque la piste « Gravée sur le disque » avec ses métadonnées de gravure", async () => {
+    await addLibraryBook({
+      id: "burnt-book", title: "Le Roman gravé", shelfId: "in_progress", files: [{ path: "C:/Exports/grave.epub", format: "epub" }],
+      audio: audioEdition([{
+        index: 1, title: "Chapitre premier", path: "C:/Exports/Audio/grave/001.mp3",
+        burn: { burnedAt: Date.UTC(2026, 9, 20, 12), durationSeconds: 125, mode: "polyphonic", roles: [{ role: "Narrateur", kind: "narrator", voiceId: "fr-narrator", lines: 4 }, { role: "Élise", kind: "character", voiceId: "fr-narrator", lines: 2 }] },
+      }, { index: 2, title: "Chapitre second", path: "C:/Exports/Audio/grave/002.mp3" }]),
+    });
+    render(<StudioAudioView exportDirectory="C:/Exports" />);
+    fireEvent.click(screen.getByRole("tab", { name: "Le Studio" }));
+    await screen.findByRole("button", { name: "Régénérer le chapitre 1" });
+    expect(screen.getAllByText("Gravée sur le disque")).toHaveLength(2);
+    expect(screen.getByText(/2:05 · polyphonie · Narrateur ×4, Élise ×2/)).toBeTruthy();
   });
 
   it("invites the author to add a book when the register is empty", async () => {

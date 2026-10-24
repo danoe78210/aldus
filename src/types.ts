@@ -53,6 +53,7 @@ export interface AudioEdition {
   generatedAt: number;
   chapters: AudioChapter[];
   casting?: VoiceCasting;
+  adaptations?: ChapterAdaptation[];
 }
 
 /** Rôle de la distribution : texte courant, dialogues par défaut, ou personnage créé par l'auteur. */
@@ -95,6 +96,37 @@ export interface PodcastLine {
   source: number;
 }
 
+/** Retouche de l'auteur sur une réplique, repérée par son rang source. */
+export interface LineEdit {
+  source: number;
+  text?: string;
+  role?: string;
+  kind?: CastingRoleKind;
+}
+
+/** État persisté de l'adaptation d'un chapitre : règles, table phonétique et retouches. */
+export interface ChapterAdaptation {
+  chapterIndex: number;
+  rules: ScriptRule[];
+  edits: LineEdit[];
+  updatedAt?: number;
+}
+
+export interface BurnRole {
+  role: string;
+  kind: CastingRoleKind;
+  voiceId: string;
+  lines: number;
+}
+
+/** Métadonnées de gravure d'une piste : date, durée, mode et distribution employée. */
+export interface TrackBurn {
+  burnedAt: number;
+  durationSeconds?: number;
+  mode: "mono" | "polyphonic";
+  roles: BurnRole[];
+}
+
 export interface PodcastScript {
   chapterIndex: number;
   lines: PodcastLine[];
@@ -105,6 +137,7 @@ export interface AudioChapter {
   index: number;
   title: string;
   path: string;
+  burn?: TrackBurn;
 }
 
 export interface AudioChapterChoice {
@@ -115,10 +148,13 @@ export interface AudioChapterChoice {
   estimatedDurationSeconds: number;
 }
 
+export type VoiceGender = "male" | "female" | "neutral";
+
 export interface AudioVoice {
   id: string;
   name: string;
   language?: string | null;
+  gender?: VoiceGender;
 }
 
 export interface AudioConfig {

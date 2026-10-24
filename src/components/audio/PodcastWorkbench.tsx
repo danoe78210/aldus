@@ -50,6 +50,7 @@ export const PodcastWorkbench = ({ podcast, casting }: { podcast: Podcast; casti
 
   return (
     <div className="flex min-w-0 flex-col gap-4">
+      {podcast.saveError && <p role="alert" className="text-xs text-[#d28b75]">{podcast.saveError}</p>}
       <fieldset className="flex flex-col gap-2">
         <legend className="mb-1 font-cinzel text-xs tracking-wider text-[#a99a83] uppercase">Règles de transformation</legend>
         {DEFAULT_RULES.map(({ id }) => {
@@ -119,7 +120,7 @@ export const PodcastRegie = ({ podcast, casting, voices, defaultVoiceId, chapter
       <p>{chapterTitle ?? "Chapitre"} · {lines.length} réplique(s) · {lines.reduce((total, line) => total + line.text.length, 0)} caractères</p>
       <ul aria-label="Récapitulatif des rôles" className="text-xs text-[#a99a83]">
         {[...summary.values()].map(({ kind, role, count }) => (
-          <li key={roleKey(kind, role)}>{role} · {count} réplique(s) · {voiceName(casting.voiceOf(role, kind)) ?? `voix par défaut (${defaultName})`}</li>
+          <li key={roleKey(kind, role)}>{role} · {count} réplique(s) · {voiceName(casting.voiceOf(role, kind)) ?? voiceName(casting.voiceOf(NARRATOR_ROLE, "narrator")) ?? `voix par défaut (${defaultName})`}</li>
         ))}
       </ul>
       <p className="text-xs italic text-[#8c8275]">Ce chapitre est lu en polyphonie : chaque réplique prend la voix de son rôle ; à défaut, la voix du Narrateur, puis la voix par défaut ({defaultName}). Les autres chapitres restent en voix unique.</p>

@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import type { CastingRoleKind, CharacterVoiceMapping, LibraryConfig, VoiceCasting } from "../../types";
 import { saveVoiceCasting } from "../../utils/libraryApi";
 
@@ -12,7 +12,8 @@ const messageOf = (reason: unknown): string =>
 export const useVoiceCasting = (bookId: string | undefined, saved: VoiceCasting | undefined, onSaved: (config: LibraryConfig) => void) => {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const mappings = saved?.mappings ?? [];
+  const mappings = useMemo(() => saved?.mappings ?? [], [saved]);
+  const characters = useMemo(() => mappings.filter((mapping) => mapping.kind === "character"), [mappings]);
 
   const persist = useCallback((next: CharacterVoiceMapping[]) => {
     if (!bookId) return Promise.resolve();
@@ -44,7 +45,7 @@ export const useVoiceCasting = (bookId: string | undefined, saved: VoiceCasting 
 
   return {
     mappings,
-    characters: mappings.filter((mapping) => mapping.kind === "character"),
+    characters,
     saving,
     error,
     voiceOf,

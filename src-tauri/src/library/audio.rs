@@ -1,5 +1,5 @@
 use super::metadata;
-use super::{read_config, write_config, AudioChapter, AudioEdition, Book, CastingRoleKind, VoiceCasting};
+use super::{read_config, write_config, AudioChapter, AudioEdition, Book, BurnMode, BurnRole, CastingRoleKind, TrackBurn, VoiceCasting};
 use chrono::{SecondsFormat, Utc};
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeSet;
@@ -1109,6 +1109,64 @@ fn script_segments(
     segments
 }
 
+fn resolved_role_voice(
+    casting: Option<&VoiceCasting>,
+    available: &[AudioVoice],
+    kind: CastingRoleKind,
+    role: &str,
+    default_voice: &str,
+) -> String {
+    casting_voice(casting, available, kind, role)
+        .or_else(|| casting_voice(casting, available, CastingRoleKind::Narrator, ""))
+        .unwrap_or(default_voice)
+        .to_string()
+}
+
+/// Distribution des rôles gravée avec la piste : une entrée par rôle, avec la voix réellement employée.
+fn script_roles(
+    lines: &[ScriptLineInput],
+    casting: Option<&VoiceCasting>,
+    available: &[AudioVoice],
+    default_voice: &str,
+) -> Vec<BurnRole> {
+    let mut roles: Vec<BurnRole> = Vec::new();
+    for line in lines {
+        match roles.iter_mut().find(|entry| entry.kind == line.kind && entry.role.trim().to_lowercase() == line.role.trim().to_lowercase()) {
+            Some(entry) => entry.lines += 1,
+            None => roles.push(BurnRole {
+                role: line.role.clone(),
+                kind: line.kind,
+                voice_id: resolved_role_voice(casting, available, line.kind, &line.role, default_voice),
+                lines: 1,
+            }),
+        }
+    }
+    roles
+}
+
+fn parse_ffmpeg_duration(stderr: &str) -> Option<u32> {
+    let clock = stderr.split("Duration:").nth(1)?.split(',').next()?.trim();
+    let mut parts = clock.split(':');
+    let hours: f64 = parts.next()?.parse().ok()?;
+    let minutes: f64 = parts.next()?.parse().ok()?;
+    let seconds: f64 = parts.next()?.parse().ok()?;
+    Some((hours * 3600.0 + minutes * 60.0 + seconds).round() as u32)
+}
+
+fn probe_duration_seconds(ffmpeg_path: &Path, track: &Path) -> Option<u32> {
+    let output = Command::new(ffmpeg_path)
+        .args(["-nostdin", "-hide_banner", "-i"])
+        .arg(track)
+        .output()
+        .inspect_err(|error| log::warn!("audio duration probe failed path={} error={error}", track.display()))
+        .ok()?;
+    let duration = parse_ffmpeg_duration(&String::from_utf8_lossy(&output.stderr));
+    if duration.is_none() {
+        log::warn!("audio duration unreadable path={}", track.display());
+    }
+    duration
+}
+
 fn selected_chapter_indices(
     chapter_count: usize,
     chapter_index: u32,
@@ -1418,26 +1476,40 @@ pub async fn generate_book_audio(
         .iter()
         .copied()
         .map(|index| {
-            let segments = match script.as_deref().filter(|lines| !lines.is_empty()) {
-                Some(lines) => script_segments(lines, book.audio.as_ref().and_then(|edition| edition.casting.as_ref()), &voices, &voice.id),
-                None => chunk_narration(&chapters[index].text, MAX_TTS_SEGMENT_CHARS)
-                    .into_iter()
-                    .map(|text| (voice.id.clone(), text))
-                    .collect(),
-            };
-            (index, segments)
+            let casting = book.audio.as_ref().and_then(|edition| edition.casting.as_ref());
+            match script.as_deref().filter(|lines| !lines.is_empty()) {
+                Some(lines) => (
+                    index,
+                    script_segments(lines, casting, &voices, &voice.id),
+                    BurnMode::Polyphonic,
+                    script_roles(lines, casting, &voices, &voice.id),
+                ),
+                None => {
+                    let segments: Vec<(String, String)> = chunk_narration(&chapters[index].text, MAX_TTS_SEGMENT_CHARS)
+                        .into_iter()
+                        .map(|text| (voice.id.clone(), text))
+                        .collect();
+                    let roles = vec![BurnRole {
+                        role: "Narrateur".into(),
+                        kind: CastingRoleKind::Narrator,
+                        voice_id: voice.id.clone(),
+                        lines: segments.len() as u32,
+                    }];
+                    (index, segments, BurnMode::Mono, roles)
+                }
+            }
         })
         .collect();
     let total_segments: usize = selected_chapters
         .iter()
-        .map(|(_, segments)| segments.len())
+        .map(|(_, segments, _, _)| segments.len())
         .sum();
     if total_segments == 0 {
         return Err("Aucun segment narratif à synthétiser.".into());
     }
     let mut completed_segments = 0usize;
     let mut audio_chapters = Vec::with_capacity(selected_chapters.len());
-    for (index, segments) in selected_chapters {
+    for (index, segments, burn_mode, burn_roles) in selected_chapters {
         let chapter_started = Instant::now();
         let chapter = &chapters[index];
         let chapter_number = index as u32 + 1;
@@ -1742,6 +1814,15 @@ pub async fn generate_book_audio(
             index: chapter_number,
             title: chapter.title.clone(),
             path: path.to_string_lossy().to_string(),
+            burn: Some(TrackBurn {
+                burned_at: SystemTime::now()
+                    .duration_since(UNIX_EPOCH)
+                    .map_err(|error| error.to_string())?
+                    .as_millis() as u64,
+                duration_seconds: probe_duration_seconds(&ffmpeg_path, &path),
+                mode: burn_mode,
+                roles: burn_roles,
+            }),
         });
         emit_progress(
             &app,
@@ -1766,6 +1847,11 @@ pub async fn generate_book_audio(
         .find(|book| book.id == book_id)
         .ok_or("L'ouvrage a été retiré pendant la génération audio.")?;
     let casting = updated_book.audio.as_ref().and_then(|edition| edition.casting.clone());
+    let adaptations = updated_book
+        .audio
+        .as_ref()
+        .map(|edition| edition.adaptations.clone())
+        .unwrap_or_default();
     let previous_chapters = updated_book
         .audio
         .as_ref()
@@ -1778,6 +1864,7 @@ pub async fn generate_book_audio(
         generated_at,
         chapters: merge_audio_chapters(previous_chapters, audio_chapters),
         casting,
+        adaptations,
     });
     write_config(&app, &updated)?;
     output_directory.commit();
@@ -1807,7 +1894,7 @@ mod tests {
         AudioTempDirectory, EngineInitStatus, SynthesisRequest,
         AUDIO_INIT_TIMEOUT, MAX_TTS_SEGMENT_CHARS, SIDECAR_STARTUP_TIMEOUT,
     };
-    use super::{script_segments, AudioVoice, ScriptLineInput};
+    use super::{parse_ffmpeg_duration, script_roles, script_segments, AudioVoice, ScriptLineInput};
     use crate::library::{AudioChapter, CastingRoleKind, CharacterVoiceMapping, VoiceCasting};
     use std::io::Write;
     use std::time::Duration;
@@ -1970,11 +2057,13 @@ mod tests {
                 index: 1,
                 title: "Chapitre premier".into(),
                 path: "old-1.mp3".into(),
+                burn: None,
             },
             AudioChapter {
                 index: 2,
                 title: "Chapitre second".into(),
                 path: "old-2.mp3".into(),
+                burn: None,
             },
         ];
         let merged = merge_audio_chapters(
@@ -1983,6 +2072,7 @@ mod tests {
                 index: 2,
                 title: "Chapitre second".into(),
                 path: "new-2.mp3".into(),
+                burn: None,
             }],
         );
         assert_eq!(merged.len(), 2);
@@ -2081,6 +2171,34 @@ mod tests {
         let narrator_gone = casting(&[(CastingRoleKind::Narrator, "Narrateur", "fr-gone")]);
         let narration = [line(CastingRoleKind::Narrator, "Narrateur", "Texte.")];
         assert_eq!(script_segments(&narration, Some(&narrator_gone), &available, "fr-default")[0].0, "fr-default");
+    }
+
+    #[test]
+    fn script_roles_count_lines_per_role_with_the_voice_really_used() {
+        let cast = casting(&[
+            (CastingRoleKind::Narrator, "Narrateur", "fr-n"),
+            (CastingRoleKind::Character, "Élise", "fr-e"),
+        ]);
+        let lines = [
+            line(CastingRoleKind::Narrator, "Narrateur", "Elle entra."),
+            line(CastingRoleKind::Character, "Élise", "Bonjour."),
+            line(CastingRoleKind::Character, " élise ", "Au revoir."),
+            line(CastingRoleKind::UnattributedDialogue, "Dialogues", "Qui va là ?"),
+        ];
+        let available = [voice("fr-n"), voice("fr-e"), voice("fr-default")];
+        let roles = script_roles(&lines, Some(&cast), &available, "fr-default");
+        let summary: Vec<_> = roles.iter().map(|role| (role.role.as_str(), role.voice_id.as_str(), role.lines)).collect();
+        assert_eq!(summary, [("Narrateur", "fr-n", 1), ("Élise", "fr-e", 2), ("Dialogues", "fr-n", 1)]);
+    }
+
+    #[test]
+    fn reads_the_duration_printed_by_ffmpeg() {
+        let banner = "Input #0, mp3, from 'a.mp3':
+  Duration: 00:02:05.40, start: 0.025057, bitrate: 192 kb/s
+";
+        assert_eq!(parse_ffmpeg_duration(banner), Some(125));
+        assert_eq!(parse_ffmpeg_duration("Duration: N/A, bitrate: N/A"), None);
+        assert_eq!(parse_ffmpeg_duration("rien"), None);
     }
 
     #[test]

@@ -1,4 +1,4 @@
-import { AudioLines } from "lucide-react";
+import { AudioLines, Disc3 } from "lucide-react";
 import type { AudioChapter, AudioChapterChoice, AudioGenerationProgress } from "../../types";
 import { libraryCoverUrl } from "../../utils/libraryApi";
 import { AudioTrackPlayer } from "../AudioTrackPlayer";
@@ -18,6 +18,16 @@ const formatEstimatedDuration = (seconds: number): string => {
   const remainingSeconds = seconds % 60;
   return remainingSeconds === 0 ? `${minutes} min` : `${minutes} min ${remainingSeconds} s`;
 };
+
+const formatClock = (seconds: number): string => `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, "0")}`;
+
+const burnDetails = ({ burn }: AudioChapter): string | null => burn
+  ? [
+      new Date(burn.burnedAt).toLocaleDateString("fr-FR"),
+      burn.durationSeconds !== undefined ? formatClock(burn.durationSeconds) : null,
+      burn.mode === "polyphonic" ? `polyphonie · ${burn.roles.map((entry) => `${entry.role} ×${entry.lines}`).join(", ")}` : "voix unique",
+    ].filter(Boolean).join(" · ")
+  : null;
 
 export const ChapterSynthesisTable = ({ chapters, tracks, generatingIndex, progress, canGenerate, onGenerate, onDelete }: ChapterSynthesisTableProps) => (
   <table className="w-full border-collapse text-left font-serif text-sm text-[#c9bea9]">
@@ -49,7 +59,13 @@ export const ChapterSynthesisTable = ({ chapters, tracks, generatingIndex, progr
                   <span className="text-xs text-[#c5a059]">{timeline?.segmentIndex != null && timeline.segmentCount != null ? `Segment ${timeline.segmentIndex}/${timeline.segmentCount}` : timeline?.status ?? "Forge en cours…"}</span>
                 </div>
               ) : track ? (
-                <AudioTrackPlayer title={chapter.title} src={libraryCoverUrl(track.path)} onDelete={() => onDelete(track)} />
+                <div className="flex flex-col gap-1.5">
+                  <p className="flex flex-wrap items-center gap-x-2 text-xs text-[#d4af37]">
+                    <span className="flex items-center gap-1 font-cinzel tracking-wider uppercase"><Disc3 size={12} /> Gravée sur le disque</span>
+                    {burnDetails(track) && <span className="text-[#a99a83]">{burnDetails(track)}</span>}
+                  </p>
+                  <AudioTrackPlayer title={chapter.title} src={libraryCoverUrl(track.path)} onDelete={() => onDelete(track)} />
+                </div>
               ) : (
                 <span className="text-xs text-[#8c8275]">Aucune piste</span>
               )}

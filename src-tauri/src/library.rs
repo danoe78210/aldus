@@ -61,6 +61,8 @@ pub struct AudioEdition {
     pub chapters: Vec<AudioChapter>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub casting: Option<VoiceCasting>,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub adaptations: Vec<ChapterAdaptation>,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Deserialize, Serialize)]
@@ -117,6 +119,98 @@ pub struct AudioChapter {
     pub index: u32,
     pub title: String,
     pub path: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub burn: Option<TrackBurn>,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Deserialize, Serialize)]
+#[serde(rename_all = "kebab-case")]
+pub enum BurnMode {
+    Mono,
+    Polyphonic,
+}
+
+#[derive(Clone, Debug, PartialEq, Eq, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct BurnRole {
+    pub role: String,
+    pub kind: CastingRoleKind,
+    pub voice_id: String,
+    pub lines: u32,
+}
+
+#[derive(Clone, Debug, PartialEq, Eq, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct TrackBurn {
+    pub burned_at: u64,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub duration_seconds: Option<u32>,
+    pub mode: BurnMode,
+    pub roles: Vec<BurnRole>,
+}
+
+#[derive(Clone, Debug, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct PronunciationEntry {
+    pub name: String,
+    pub spoken: String,
+}
+
+#[derive(Clone, Debug, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ScriptRuleState {
+    pub id: String,
+    pub enabled: bool,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub substitutions: Option<Vec<PronunciationEntry>>,
+}
+
+#[derive(Clone, Debug, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct LineEdit {
+    pub source: u32,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub text: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub role: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub kind: Option<CastingRoleKind>,
+}
+
+#[derive(Clone, Debug, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ChapterAdaptation {
+    pub chapter_index: u32,
+    #[serde(default)]
+    pub rules: Vec<ScriptRuleState>,
+    #[serde(default)]
+    pub edits: Vec<LineEdit>,
+    #[serde(default)]
+    pub updated_at: u64,
+}
+
+const SCRIPT_RULE_IDS: [&str; 3] = ["strip-incises", "breath-pauses", "proper-nouns"];
+
+fn validate_adaptation(adaptation: &ChapterAdaptation) -> Result<(), String> {
+    if adaptation.chapter_index == 0 {
+        return Err("Le chapitre adapté doit être numéroté à partir de 1.".into());
+    }
+    if adaptation.rules.iter().any(|rule| !SCRIPT_RULE_IDS.contains(&rule.id.as_str())) {
+        return Err("Règle de transformation inconnue.".into());
+    }
+    if adaptation.edits.iter().any(|edit| edit.role.as_deref().is_some_and(|role| role.trim().is_empty())) {
+        return Err("Une réplique retouchée ne peut pas rester sans rôle.".into());
+    }
+    Ok(())
+}
+
+impl ChapterAdaptation {
+    fn is_pristine(&self) -> bool {
+        self.edits.is_empty()
+            && self.rules.iter().all(|rule| {
+                !rule.enabled && rule.substitutions.as_deref().is_none_or(<[PronunciationEntry]>::is_empty)
+            })
+    }
 }
 
 #[derive(Clone, Debug, Default, Deserialize, Serialize)]
@@ -857,11 +951,51 @@ pub async fn save_voice_casting(
                 generated_at: 0,
                 chapters: Vec::new(),
                 casting: Some(casting),
+                adaptations: Vec::new(),
             })
         }
     }
     write_config(&app, &config).inspect_err(|error| {
         log::error!("save voice casting write failed book_id={book_id}: {error}");
+    })?;
+    Ok(config)
+}
+
+#[tauri::command]
+pub async fn save_chapter_adaptation(
+    app: tauri::AppHandle,
+    book_id: String,
+    mut adaptation: ChapterAdaptation,
+) -> Result<LibraryConfig, String> {
+    validate_adaptation(&adaptation).inspect_err(|error| {
+        log::error!("save chapter adaptation rejected book_id={book_id}: {error}");
+    })?;
+    adaptation.updated_at = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .map_err(|error| error.to_string())?
+        .as_millis() as u64;
+    let mut config = read_config(&app)?;
+    let book = config
+        .books
+        .iter_mut()
+        .find(|book| book.id == book_id)
+        .ok_or("Ouvrage introuvable dans la bibliothèque.")?;
+    let edition = book.audio.get_or_insert_with(|| AudioEdition {
+        engine: String::new(),
+        voice_id: String::new(),
+        voice_name: String::new(),
+        generated_at: 0,
+        chapters: Vec::new(),
+        casting: None,
+        adaptations: Vec::new(),
+    });
+    edition.adaptations.retain(|saved| saved.chapter_index != adaptation.chapter_index);
+    if !adaptation.is_pristine() {
+        edition.adaptations.push(adaptation);
+        edition.adaptations.sort_by_key(|saved| saved.chapter_index);
+    }
+    write_config(&app, &config).inspect_err(|error| {
+        log::error!("save chapter adaptation write failed book_id={book_id}: {error}");
     })?;
     Ok(config)
 }
@@ -1011,8 +1145,9 @@ pub async fn add_library_book(
 #[cfg(test)]
 mod tests {
     use super::{
-        scan_directory, validate_casting, Book, CastingRoleKind, CharacterVoiceMapping,
-        LibraryConfig, LibraryFile, Shelf, VoiceCasting,
+        scan_directory, validate_adaptation, validate_casting, AudioChapter, AudioEdition, Book,
+        CastingRoleKind, ChapterAdaptation, CharacterVoiceMapping, LibraryConfig, LibraryFile,
+        LineEdit, PronunciationEntry, ScriptRuleState, Shelf, VoiceCasting,
     };
 
     fn mapping(role: &str, kind: CastingRoleKind, voice: &str) -> CharacterVoiceMapping {
@@ -1051,6 +1186,51 @@ mod tests {
             updated_at: 0,
         };
         assert!(validate_casting(&two_narrators).is_err());
+    }
+
+    fn adaptation(rules: Vec<ScriptRuleState>, edits: Vec<LineEdit>) -> ChapterAdaptation {
+        ChapterAdaptation { chapter_index: 1, rules, edits, updated_at: 0 }
+    }
+
+    fn rule(id: &str, enabled: bool) -> ScriptRuleState {
+        ScriptRuleState { id: id.into(), enabled, substitutions: None }
+    }
+
+    #[test]
+    fn adaptation_rejects_unknown_rules_and_blank_roles() {
+        assert!(validate_adaptation(&adaptation(vec![rule("strip-incises", true)], vec![])).is_ok());
+        assert!(validate_adaptation(&adaptation(vec![rule("inconnue", true)], vec![])).is_err());
+        let blank = LineEdit { source: 0, text: None, role: Some(" ".into()), kind: Some(CastingRoleKind::Character) };
+        assert!(validate_adaptation(&adaptation(vec![], vec![blank])).is_err());
+        assert!(validate_adaptation(&ChapterAdaptation { chapter_index: 0, ..adaptation(vec![], vec![]) }).is_err());
+    }
+
+    #[test]
+    fn untouched_adaptation_is_pristine_but_any_choice_keeps_it() {
+        assert!(adaptation(vec![rule("strip-incises", false)], vec![]).is_pristine());
+        assert!(!adaptation(vec![rule("breath-pauses", true)], vec![]).is_pristine());
+        let table = ScriptRuleState {
+            id: "proper-nouns".into(),
+            enabled: false,
+            substitutions: Some(vec![PronunciationEntry { name: "Aldus".into(), spoken: "Al-duss".into() }]),
+        };
+        assert!(!adaptation(vec![table], vec![]).is_pristine());
+        let edit = LineEdit { source: 2, text: Some("Bonjour.".into()), role: None, kind: None };
+        assert!(!adaptation(vec![], vec![edit]).is_pristine());
+    }
+
+    #[test]
+    fn editions_and_tracks_saved_before_the_burn_status_still_load() {
+        let edition: AudioEdition = serde_json::from_str(
+            r#"{"engine":"e","voiceId":"v","voiceName":"n","generatedAt":1,"chapters":[{"index":1,"title":"T","path":"a.mp3"}]}"#,
+        )
+        .unwrap();
+        let track: &AudioChapter = &edition.chapters[0];
+        assert!(track.burn.is_none());
+        assert!(edition.adaptations.is_empty());
+        let saved = serde_json::to_value(&edition).unwrap();
+        assert!(saved.get("adaptations").is_none());
+        assert!(saved["chapters"][0].get("burn").is_none());
     }
 
     #[test]
