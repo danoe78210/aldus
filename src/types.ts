@@ -8,7 +8,12 @@ export type ActiveMenu =
   | 'correcteur'
   | 'epreuve-plume'
   | 'export'
-  | 'studio-audio';
+  | 'studio-audio'
+  | 'banc-epreuve'
+  | 'lecteur'
+  | 'salon';
+
+export type NavPole = 'ecritoire' | 'presse' | 'oratoire' | 'bibliotheque';
 
 export type ShelfId = string;
 

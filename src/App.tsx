@@ -3,6 +3,9 @@ import './index.css';
 import { Layout } from "./components/Layout";
 import { LeftPage } from "./components/LeftPage";
 import { MenuPage } from "./components/MenuPage";
+import { SubNavHeader } from "./components/navigation/SubNavHeader";
+import { usePoleNavigation } from "./components/navigation/usePoleNavigation";
+import { FULL_WIDTH_MENUS, poleOf } from "./components/navigation/poles";
 import { PreviewFlipbook } from "./components/PreviewFlipbook";
 import { StudioProvider, type ProofTab, type StudioContextValue } from "./components/StudioContext";
 import { PlumeProvider } from "./components/epreuve-plume/PlumeContext";
@@ -163,6 +166,7 @@ const MENU_ORDER: ActiveMenu[] = [
   'ecritoire',
   'organisation',
   'correcteur',
+  'banc-epreuve',
   'epreuve-plume',
   'couverture',
   'export',
@@ -196,7 +200,7 @@ const DEFAULT_BOOK_INFO: BookInfoConfig = {
 };
 
 const App: React.FC = () => {
-  const [activeMenu, setActiveMenu] = useState<ActiveMenu>('reglages');
+  const { activeMenu, setActiveMenu, setActivePole } = usePoleNavigation('reglages');
   // Sas d'accueil → Atelier : `isTransitioning` couvre le voile d'encre (fondu
   // sortant du frontispice et du creuset), `isAtelierOpen` marque l'entrée
   // effective (démontage du sas, révélation des feuillets manuscrits).
@@ -219,7 +223,8 @@ const App: React.FC = () => {
   // Correcteur (Feuillets IX & X) : la bascule d'en-tête, les règles actives,
   // le chapitre/texte en épreuve et la pagination du banc sont **partagés** entre
   // la page gauche et la page droite du livre (les deux volets du diptyque).
-  const [proofTab, setProofTab] = useState<ProofTab>("purete");
+  // Le Correcteur et le Banc d'épreuve sont deux sous-vues du ruban : l'onglet interne en dérive.
+  const proofTab: ProofTab = activeMenu === "banc-epreuve" ? "banc" : "purete";
   const [proofEnabledRules, setProofEnabledRules] = useState<TypographyRuleId[]>(
     ALL_RULES.map((rule) => rule.id),
   );
@@ -1024,7 +1029,7 @@ const App: React.FC = () => {
       setActiveMenu('reglages');
       setIsTransitioning(false);
     }, ATELIER_TRANSITION_MS);
-  }, []);
+  }, [setActiveMenu]);
 
   /**
    * **Presse d'atelier** (Feuillet X) : cinématique cadencée en trois étapes
@@ -1288,7 +1293,7 @@ const App: React.FC = () => {
   }, [chapterFiles, handleLoadWritingChapter, sourceConfig.directory, writingChapter]);
 
   /** Bascule le diptyque du Correcteur (VII — Indice de Qualité Typographique / VIII — Banc d'Épreuve). */
-  const handleProofTabChange = useCallback((tab: ProofTab) => setProofTab(tab), []);
+  const handleProofTabChange = useCallback((tab: ProofTab) => setActiveMenu(tab === "banc" ? "banc-epreuve" : "correcteur"), [setActiveMenu]);
 
   /** Active / désactive une règle depuis « Les Règles Analysées » (page droite du Feuillet VII). */
   const handleToggleProofRule = useCallback((ruleId: TypographyRuleId) => {
@@ -1576,13 +1581,15 @@ const App: React.FC = () => {
             <LeftPage
               activeMenu={activeMenu}
               setActiveMenu={setActiveMenu}
+              onSelectPole={setActivePole}
               onExitApp={handleQuit}
-              navigationOnly={activeMenu === "bibliotheque" || activeMenu === "studio-audio"}
+              navigationOnly={FULL_WIDTH_MENUS.includes(activeMenu)}
             />
           }
+          subNavContent={isAtelierOpen ? <SubNavHeader activeMenu={activeMenu} onSelect={setActiveMenu} /> : undefined}
           bookPages={BOOK_PAGES}
-          fullWidthContent={activeMenu === "bibliotheque" || activeMenu === "studio-audio" ? <MenuPage menu={activeMenu} /> : undefined}
-          fullWidthLabel={activeMenu === "studio-audio" ? "Studio Audio" : undefined}
+          fullWidthContent={FULL_WIDTH_MENUS.includes(activeMenu) ? <MenuPage menu={activeMenu} /> : undefined}
+          fullWidthLabel={activeMenu === "bibliotheque" ? undefined : poleOf(activeMenu).views.find((view) => view.id === activeMenu)?.label}
           activeIndex={activeIndex}
           progress={progress}
           progressLabel={progressLabel}

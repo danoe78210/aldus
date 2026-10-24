@@ -1,17 +1,5 @@
 import React, { useMemo } from "react";
-import {
-  Settings,
-  Info,
-  ListTree,
-  BookMarked,
-  LibraryBig,
-  AudioLines,
-  Share2,
-  SpellCheck,
-  Sparkles,
-  LogOut,
-  Feather,
-} from "lucide-react";
+import { LibraryBig, AudioLines, Printer, LogOut, Feather } from "lucide-react";
 import aldusEmblem from "../assets/aldus-emblem.png";
 import { InfoIdentityPanel } from "./InfoView";
 import { OrganizationView } from "./OrganizationView";
@@ -24,21 +12,22 @@ import { BronzeVersionPlate } from "./navigation/BronzeVersionPlate";
 import { WritingEditor } from "./WritingStudio";
 import { useStudio } from "./StudioContext";
 import { placeChapters } from "../data/imposition";
-import type { ActiveMenu } from "../types";
+import { POLES, poleOf } from "./navigation/poles";
+import type { ActiveMenu, NavPole } from "../types";
 
 interface LeftPageProps {
-  /** Onglet actuellement sélectionné. */
+  /** Vue actuellement affichée. */
   activeMenu: ActiveMenu;
-  /** Sélectionne un onglet. */
+  /** Affiche une vue précise. */
   setActiveMenu: (menu: ActiveMenu) => void;
+  /** Bascule vers un pôle en rouvrant sa dernière sous-vue. */
+  onSelectPole: (pole: NavPole) => void;
   /** Ferme proprement l'application (cinématique 3D puis sortie native). */
   onExitApp: () => void;
   navigationOnly?: boolean;
 }
 
-interface TabItem {
-  id: ActiveMenu;
-  label: string;
+interface PoleStyle {
   icon: React.ComponentType<{ size?: number; className?: string; strokeWidth?: number }>;
   /** Dégradé de cuir du signet. */
   color: string;
@@ -46,20 +35,14 @@ interface TabItem {
   text: string;
 }
 
-// Signets de reliure : maroquin ancien ancré sur le flanc gauche du livre.
-// Chaque cuir est associé à son encre d'époque.
-const tabs: TabItem[] = [
-  { id: "reglages", label: "Réglages", icon: Settings, color: "bg-linear-to-r from-[#2c1a0e] to-[#1c1209]", text: "text-[#ecd8b0]" },
-  { id: "infos", label: "Informations", icon: Info, color: "bg-linear-to-r from-[#121c26] to-[#0b1219]", text: "text-[#d6e3f0]" },
-  { id: "ecritoire", label: "L'Écritoire", icon: Feather, color: "bg-linear-to-r from-[#183027] to-[#0d1b15]", text: "text-[#d0e5d6]" },
-  { id: "organisation", label: "Organisation", icon: ListTree, color: "bg-linear-to-r from-[#122117] to-[#0a140e]", text: "text-[#d0e5d6]" },
-  { id: "correcteur", label: "Correcteur", icon: SpellCheck, color: "bg-linear-to-r from-[#332408] to-[#1f1604]", text: "text-[#f2e2be]" },
-  { id: "epreuve-plume", label: "Épreuve de Plume", icon: Sparkles, color: "bg-linear-to-r from-[#332408] to-[#1f1604]", text: "text-[#f2e2be]" },
-  { id: "couverture", label: "Couverture", icon: BookMarked, color: "bg-linear-to-r from-[#300d0d] to-[#1f0808]", text: "text-[#eed0d0]" },
-  { id: "export", label: "Export", icon: Share2, color: "bg-linear-to-r from-[#1c1421] to-[#110c14]", text: "text-[#e0d2e8]" },
-  { id: "studio-audio", label: "Studio Audio", icon: AudioLines, color: "bg-linear-to-r from-[#10242a] to-[#0a1519]", text: "text-[#cfe6e8]" },
-  { id: "bibliotheque", label: "Bibliothèque", icon: LibraryBig, color: "bg-linear-to-r from-[#2a1d17] to-[#17100c]", text: "text-[#e5d0b1]" },
-];
+// Signets de reliure : maroquin ancien ancré sur le flanc gauche du livre,
+// un par pôle ; chaque cuir est associé à son encre d'époque.
+const poleStyles: Record<NavPole, PoleStyle> = {
+  ecritoire: { icon: Feather, color: "bg-linear-to-r from-[#183027] to-[#0d1b15]", text: "text-[#d0e5d6]" },
+  presse: { icon: Printer, color: "bg-linear-to-r from-[#332408] to-[#1f1604]", text: "text-[#f2e2be]" },
+  oratoire: { icon: AudioLines, color: "bg-linear-to-r from-[#10242a] to-[#0a1519]", text: "text-[#cfe6e8]" },
+  bibliotheque: { icon: LibraryBig, color: "bg-linear-to-r from-[#2a1d17] to-[#17100c]", text: "text-[#e5d0b1]" },
+};
 
 /**
  * Frontispice de l'atelier : médaillon laiton + titre gravé + sous-titre.
@@ -108,9 +91,11 @@ const Frontispice: React.FC<{ leaving: boolean }> = ({ leaving }) => (
 export const LeftPage: React.FC<LeftPageProps> = ({
   activeMenu,
   setActiveMenu,
+  onSelectPole,
   onExitApp,
   navigationOnly = false,
 }) => {
+  const activePole = poleOf(activeMenu).id;
   const {
     isAtelierOpen,
     isTransitioning,
@@ -148,23 +133,23 @@ export const LeftPage: React.FC<LeftPageProps> = ({
           absents du DOM** tant que l'atelier n'est pas ouvert (sas d'accueil). */}
       {isAtelierOpen && (
         <nav className="absolute top-8 left-0 z-20 flex h-[calc(100%-4rem)] w-36 -translate-x-full flex-col gap-1.5 animate-ink-reveal">
-          {tabs.map((tab) => {
-            const Icon = tab.icon;
-            const active = activeMenu === tab.id;
+          {POLES.map((pole) => {
+            const { icon: Icon, color, text } = poleStyles[pole.id];
+            const active = activePole === pole.id;
             return (
               <button
-                key={tab.id}
+                key={pole.id}
                 type="button"
-                onClick={() => setActiveMenu(tab.id)}
+                onClick={() => onSelectPole(pole.id)}
                 aria-current={active ? "page" : undefined}
-                className={`flex w-full items-center gap-2.5 rounded-l-sm border-y border-l-2 border-r border-y-[#2c2414] border-r-[#2c2414] px-3 py-2.5 text-left font-serif text-[11px] tracking-widest uppercase shadow-[-4px_2px_8px_rgba(0,0,0,0.6)] transition-all duration-150 ${tab.color} ${tab.text} ${
+                className={`flex w-full items-center gap-2.5 rounded-l-sm border-y border-l-2 border-r border-y-[#2c2414] border-r-[#2c2414] px-3 py-2.5 text-left font-serif text-[11px] tracking-widest uppercase shadow-[-4px_2px_8px_rgba(0,0,0,0.6)] transition-all duration-150 ${color} ${text} ${
                   active
-                    ? "-translate-x-1.5 border-l-[#ffd700] text-[#ffd700] shadow-[-4px_0_12px_rgba(184,147,85,0.25)]"
+                    ? "-translate-x-1.5 border-l-[#d4af37] text-[#d4af37] shadow-[-4px_0_12px_rgba(212,175,55,0.25)]"
                     : "border-l-[#b89355]/60 opacity-90 hover:-translate-x-1 hover:opacity-100"
                 }`}
               >
                 <Icon size={18} strokeWidth={1.75} />
-                <span className="tracking-wide">{tab.label}</span>
+                <span className="tracking-wide">{pole.label}</span>
               </button>
             );
           })}
@@ -228,11 +213,11 @@ export const LeftPage: React.FC<LeftPageProps> = ({
       ) : activeMenu === "couverture" ? (
         /* Feuillet VII — marbre de montage 2D/3D (le calibreur est à droite). */
         <CoverPlate />
-      ) : activeMenu === "correcteur" ? (
+      ) : activeMenu === "correcteur" || activeMenu === "banc-epreuve" ? (
         /* Feuillet IX — l'Examen Aldin (le banc d'épreuve est à droite). */
         <ProofExaminer />
       ) : activeMenu === "epreuve-plume" ? (
-        <EpreuvePlumeView onOpenCorrector={() => setActiveMenu("correcteur")} />
+        <EpreuvePlumeView onOpenCorrector={() => setActiveMenu("banc-epreuve")} />
       ) : activeMenu === "export" ? (
         /* Feuillet XI — inspection pré-presse (le tirage est à droite). */
         <PressInspection />

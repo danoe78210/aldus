@@ -11,6 +11,7 @@ import { WritingPreview } from "./WritingStudio";
 import { LibraryView } from "./LibraryView";
 import { StudioAudioView } from "./audio/StudioAudioView";
 import { IssuesList } from "./epreuve-plume/IssuesList";
+import { PendingView } from "./navigation/PendingView";
 
 /**
  * Page du livre virtuel : rend la **vue correspondant au menu** en lisant l'état
@@ -56,7 +57,12 @@ export const MenuPage: React.FC<{ menu: ActiveMenu }> = ({ menu }) => {
       /* Feuillet VIII (droite) : calibreur KDP — le marbre de montage 2D/3D est
          composé sur la page de gauche (Feuillet VII). */
       return <CoverCalibration />;
+    case "lecteur":
+      return <PendingView title="Le Lecteur" hint="Musicothèque d'atelier : un disque par livre, lu comme sur un magnétophone." />;
+    case "salon":
+      return <PendingView title="Salon de lecture" hint="Lecture immersive du livre, en pleine page ou en volume relié." />;
     case "correcteur":
+    case "banc-epreuve":
       return <ProofWorkbench />;
     case "epreuve-plume":
       return <IssuesList />;

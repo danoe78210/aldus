@@ -22,6 +22,8 @@ const LEATHER_COVER =
 interface LayoutProps {
   /** Contenu de la page de gauche (navigation & identité). */
   leftContent: ReactNode;
+  /** Ruban de sous-navigation sous le pupitre (absent avant l'entrée dans l'atelier). */
+  subNavContent?: ReactNode;
   fullWidthContent?: ReactNode;
   fullWidthLabel?: string;
   /** Pages du livre virtuel de droite (une vue par menu). */
@@ -44,6 +46,7 @@ interface LayoutProps {
 
 export const Layout: React.FC<LayoutProps> = ({
   leftContent,
+  subNavContent,
   fullWidthContent,
   fullWidthLabel = "Espace bibliothèque",
   bookPages,
@@ -77,6 +80,8 @@ export const Layout: React.FC<LayoutProps> = ({
       <header className="relative z-30 w-full shrink-0 border-b border-[#2e261c] bg-[#141210]">
         <TopBar progress={progress} label={progressLabel} running={running} />
       </header>
+
+      {subNavContent}
 
       {/* 2. Établi central portant le registre. `pl-40` réserve la gouttière
           franche à gauche où se déploient les signets (débord `-translate-x-full`). */}
