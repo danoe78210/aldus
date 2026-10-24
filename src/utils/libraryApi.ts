@@ -1,5 +1,5 @@
 import { convertFileSrc } from "@tauri-apps/api/core";
-import type { AudioChapterChoice, AudioConfig, AudioGenerationProgress, AudioInitProgressPayload, AudioVoice, Book, LibraryConfig, ScannedBook, Shelf, ShelfId, UpdateStatus } from "../types";
+import type { AudioChapterChoice, AudioConfig, AudioGenerationProgress, AudioInitProgressPayload, AudioVoice, Book, LibraryConfig, ScannedBook, Shelf, ShelfId, UpdateStatus, VoiceCasting } from "../types";
 import { invokeCommand, isInvokeAvailable, listenEvent } from "./tauri";
 
 const STORAGE_KEY = "aldus-library";
@@ -164,6 +164,19 @@ export const deleteLibraryAudioTrack = async (
   if (!isInvokeAvailable()) throw new Error("La suppression des pistes audio nécessite l'application Aldus de bureau.");
   return invokeCommand<LibraryConfig>("delete_audio_track", { bookId, chapterIndex, exportDirectory });
 };
+
+export const saveVoiceCasting = async (bookId: string, casting: VoiceCasting): Promise<LibraryConfig> => {
+  if (isInvokeAvailable()) return invokeCommand<LibraryConfig>("save_voice_casting", { bookId, casting });
+  const config = readBrowserConfig();
+  const book = config.books.find((candidate) => candidate.id === bookId);
+  if (!book) throw new Error("Ouvrage introuvable dans la bibliothèque.");
+  const stamped = { ...casting, updatedAt: Date.now() };
+  book.audio = book.audio ? { ...book.audio, casting: stamped } : { engine: "", voiceId: "", voiceName: "", generatedAt: 0, chapters: [], casting: stamped };
+  return saveBrowserConfig(config);
+};
+
+export const previewVoice = (voiceId: string, text: string): Promise<string> =>
+  invokeCommand<string>("preview_voice", { voiceId, text });
 
 export const listAudioVoices = (): Promise<AudioVoice[]> =>
   invokeCommand<AudioVoice[]>("list_audio_voices");

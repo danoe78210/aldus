@@ -475,6 +475,8 @@ pub fn run() {
             library::delete_book,
             library::delete_audio_track,
             library::list_audio_voices,
+            library::save_voice_casting,
+            library::preview_voice,
             library::get_audio_consent,
             library::save_audio_consent,
             library::start_audio_engine,

@@ -1,8 +1,10 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import type { AudioConfig, AudioVoice } from "../../types";
-import { getAudioConsent, listAudioVoices, listenAudioInitProgress, saveAudioConsent, startAudioEngine } from "../../utils/libraryApi";
+import { getAudioConsent, libraryCoverUrl, listAudioVoices, listenAudioInitProgress, previewVoice, saveAudioConsent, startAudioEngine } from "../../utils/libraryApi";
 
 export const INACTIVE_TTS_MESSAGE = "Le moteur vocal local est inactif. Veuillez lancer le wrapper TTS sur le port 8020 ou configurer ALDUS_TTS_URL.";
+
+export const WITNESS_PHRASE = "D'or et d'encre, Aldus prête voix aux feuillets silencieux.";
 
 const messageOf = (reason: unknown): string => (reason instanceof Error ? reason.message : INACTIVE_TTS_MESSAGE);
 
@@ -15,6 +17,11 @@ export const useAudioEngine = () => {
   const [engineMode, setEngineMode] = useState<AudioConfig["engine_mode"]>("external");
   const [cpmlAccepted, setCpmlAccepted] = useState(false);
   const [setupOpen, setSetupOpen] = useState(false);
+  const [previewingId, setPreviewingId] = useState<string | null>(null);
+  const [previewError, setPreviewError] = useState<string | null>(null);
+  const player = useRef<HTMLAudioElement | null>(null);
+
+  useEffect(() => () => player.current?.pause(), []);
 
   useEffect(() => {
     let active = true;
@@ -111,5 +118,22 @@ export const useAudioEngine = () => {
     }
   }, [adopt]);
 
-  return { voices, voiceId, setVoiceId, voiceError, setVoiceError, checking, initPercent, engineMode, cpmlAccepted, setupOpen, setSetupOpen, retry, acceptAndStart };
+  const preview = useCallback(async (id: string) => {
+    player.current?.pause();
+    setPreviewingId(id);
+    setPreviewError(null);
+    try {
+      const url = libraryCoverUrl(await previewVoice(id, WITNESS_PHRASE));
+      if (!url) throw new Error("La pré-écoute nécessite l'application Aldus de bureau.");
+      const audio = new Audio(url);
+      player.current = audio;
+      audio.onended = () => setPreviewingId((current) => (current === id ? null : current));
+      await audio.play();
+    } catch (reason: unknown) {
+      setPreviewError(typeof reason === "string" ? reason : reason instanceof Error ? reason.message : "Pré-écoute impossible.");
+      setPreviewingId(null);
+    }
+  }, []);
+
+  return { voices, voiceId, setVoiceId, voiceError, setVoiceError, checking, initPercent, engineMode, cpmlAccepted, setupOpen, setSetupOpen, retry, acceptAndStart, preview, previewingId, previewError };
 };

@@ -95,7 +95,7 @@ export const LibraryBookDetail = ({ book, initialFormat, shelves, busy, onBack, 
           <div className="flex flex-col items-start gap-3 border-t border-[#382f22] pt-4">
             <button type="button" disabled={busy || opening || !selectedFile} onClick={() => void open()} className="flex max-w-full items-center gap-2 rounded-sm border border-[#8f6e2b] bg-[#211c15] px-3 py-2 text-left font-cinzel text-sm text-[#d4af37] hover:bg-[#302619] disabled:opacity-40"><BookOpen size={16} className="shrink-0" /> Ouvrir le livre</button>
           </div>
-          {book.audio && <p className="flex items-center gap-2 border-t border-[#382f22] pt-4 font-serif text-sm text-[#a99a83]"><AudioLines size={15} className="shrink-0 text-[#d4af37]" /> Édition audio · {book.audio.chapters.length} piste(s) — à retrouver dans le Studio Audio.</p>}
+          {book.audio?.chapters.length ? <p className="flex items-center gap-2 border-t border-[#382f22] pt-4 font-serif text-sm text-[#a99a83]"><AudioLines size={15} className="shrink-0 text-[#d4af37]" /> Édition audio · {book.audio.chapters.length} piste(s) — à retrouver dans le Studio Audio.</p> : null}
           <section aria-label="Statistiques de l’ouvrage" className="border-t border-[#382f22] pt-4">
             <dl className="space-y-3 font-serif text-sm text-[#8c8275]">
               <div className="flex flex-wrap justify-between gap-x-3 gap-y-1"><dt>Nbre de pages :</dt><dd>{pageCount ?? "Non disponible"}</dd></div>

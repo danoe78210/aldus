@@ -594,6 +594,62 @@ pub async fn list_voices() -> Result<Vec<AudioVoice>, String> {
     Ok(voices)
 }
 
+pub async fn preview_voice(app: &tauri::AppHandle, voice_id: &str, text: &str) -> Result<String, String> {
+    use std::hash::{Hash, Hasher};
+    let text = text.trim();
+    if text.is_empty() || text.chars().count() > MAX_TTS_SEGMENT_CHARS {
+        return Err(format!("La phrase témoin doit compter entre 1 et {MAX_TTS_SEGMENT_CHARS} caractères."));
+    }
+    ensure_bundled_engine(app).await.inspect_err(|error| emit_audio_init_failure(app, error))?;
+    let voices = list_voices().await?;
+    if !voices.iter().any(|voice| voice.id == voice_id) {
+        return Err("La voix sélectionnée n'existe pas dans le moteur TTS local.".into());
+    }
+    let (client, endpoint) = client().await?;
+    let request_url = endpoint_url(&endpoint, "/synthesize");
+    let response = client
+        .post(&request_url)
+        .timeout(Duration::from_secs(120))
+        .json(&SynthesisRequest {
+            text,
+            voice_id,
+            language: "fr",
+            output_format: "mp3",
+            chapter_index: 1,
+            chapter_title: "Pré-écoute",
+            segment_index: 1,
+            segment_count: 1,
+        })
+        .send()
+        .await
+        .map_err(|error| format!("Connexion au moteur TTS local impossible sur {request_url} : {error}"))?;
+    if !response.status().is_success() {
+        let (status, body) = error_response_body(response).await;
+        let detail: String = body.chars().take(500).collect();
+        return Err(format!("Le moteur TTS a refusé la pré-écoute (HTTP {status}) : {detail}"));
+    }
+    let bytes = response
+        .bytes()
+        .await
+        .map_err(|error| format!("Lecture de l'échantillon vocal impossible : {error}"))?;
+    if bytes.is_empty() {
+        return Err("Le moteur TTS a renvoyé un échantillon vide.".into());
+    }
+    let mut hasher = std::collections::hash_map::DefaultHasher::new();
+    text.hash(&mut hasher);
+    let directory = crate::user_data::persistent_data_dir(app)?.join("voice-previews");
+    std::fs::create_dir_all(&directory)
+        .map_err(|error| format!("Dossier des pré-écoutes inaccessible : {error}"))?;
+    let path = directory.join(format!("{}-{:x}.mp3", safe_component(voice_id), hasher.finish()));
+    let temporary = path.with_extension("mp3.tmp");
+    std::fs::write(&temporary, &bytes).map_err(|error| format!("Écriture de l'échantillon impossible : {error}"))?;
+    if let Err(error) = std::fs::rename(&temporary, &path) {
+        let _ = std::fs::remove_file(&temporary);
+        return Err(format!("Enregistrement de l'échantillon impossible : {error}"));
+    }
+    Ok(path.to_string_lossy().to_string())
+}
+
 pub fn list_book_chapters(
     app: &tauri::AppHandle,
     book_id: &str,
@@ -1626,6 +1682,7 @@ pub async fn generate_book_audio(
         .iter_mut()
         .find(|book| book.id == book_id)
         .ok_or("L'ouvrage a été retiré pendant la génération audio.")?;
+    let casting = updated_book.audio.as_ref().and_then(|edition| edition.casting.clone());
     let previous_chapters = updated_book
         .audio
         .as_ref()
@@ -1637,6 +1694,7 @@ pub async fn generate_book_audio(
         voice_name: voice.name.clone(),
         generated_at,
         chapters: merge_audio_chapters(previous_chapters, audio_chapters),
+        casting,
     });
     write_config(&app, &updated)?;
     output_directory.commit();

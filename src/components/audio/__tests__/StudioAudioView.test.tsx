@@ -2,7 +2,7 @@ import { afterEach, beforeEach, beforeAll, describe, expect, it, vi } from "vite
 import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { StudioAudioView } from "../StudioAudioView";
 import type { AudioVoice } from "../../../types";
-import { addLibraryBook, deleteLibraryAudioTrack, generateLibraryAudio, getAudioConsent, getLibraryConfig, listAudioVoices, listenAudioInitProgress, listBookAudioChapters, saveAudioConsent, startAudioEngine } from "../../../utils/libraryApi";
+import { addLibraryBook, deleteLibraryAudioTrack, generateLibraryAudio, getAudioConsent, getLibraryConfig, listAudioVoices, listenAudioInitProgress, libraryCoverUrl, listBookAudioChapters, previewVoice, saveAudioConsent, startAudioEngine } from "../../../utils/libraryApi";
 
 vi.mock("../../../utils/libraryApi", async (importOriginal) => ({
   ...await importOriginal<typeof import("../../../utils/libraryApi")>(),
@@ -10,7 +10,9 @@ vi.mock("../../../utils/libraryApi", async (importOriginal) => ({
   getAudioConsent: vi.fn(),
   listAudioVoices: vi.fn(),
   listenAudioInitProgress: vi.fn().mockResolvedValue(null),
+  libraryCoverUrl: vi.fn(),
   listBookAudioChapters: vi.fn(),
+  previewVoice: vi.fn(),
   saveAudioConsent: vi.fn(),
   startAudioEngine: vi.fn(),
   generateLibraryAudio: vi.fn(),
@@ -27,6 +29,7 @@ beforeAll(() => {
 beforeEach(() => {
   localStorage.clear();
   vi.clearAllMocks();
+  vi.mocked(libraryCoverUrl).mockImplementation((path) => `asset://${path}`);
   vi.mocked(deleteLibraryAudioTrack).mockReset();
   vi.mocked(generateLibraryAudio).mockReset();
   vi.mocked(getAudioConsent).mockResolvedValue({ cpml_accepted: false, cpml_accepted_at: null, engine_mode: "external" });
@@ -225,6 +228,44 @@ describe("StudioAudioView", () => {
     expect(screen.getByRole("tab", { name: "Le Studio" }).getAttribute("aria-selected")).toBe("true");
     expect(screen.getByRole("tab", { name: "Le Chœur" }).getAttribute("aria-selected")).toBe("false");
     await screen.findByRole("option", { name: "Narrateur français · fr-FR" });
+  });
+
+  it("auditions a voice with the witness phrase through the local engine", async () => {
+    const play = vi.fn().mockResolvedValue(undefined);
+    vi.stubGlobal("Audio", vi.fn(function (this: { play: typeof play; pause: () => void }) { this.play = play; this.pause = vi.fn(); }));
+    vi.mocked(previewVoice).mockResolvedValue("C:/Data/voice-previews/fr-narrator.mp3");
+    render(<StudioAudioView exportDirectory="C:/Exports" />);
+    fireEvent.click(await screen.findByRole("button", { name: "Écouter la voix Narrateur français" }));
+    await waitFor(() => expect(play).toHaveBeenCalledOnce());
+    expect(previewVoice).toHaveBeenCalledWith("fr-narrator", "D'or et d'encre, Aldus prête voix aux feuillets silencieux.");
+    expect(Audio).toHaveBeenCalledWith("asset://C:/Data/voice-previews/fr-narrator.mp3");
+    vi.unstubAllGlobals();
+  });
+
+  it("reports a preview failure instead of failing silently", async () => {
+    vi.mocked(previewVoice).mockRejectedValue("Le moteur TTS a refusé la pré-écoute (HTTP 500).");
+    render(<StudioAudioView exportDirectory="C:/Exports" />);
+    fireEvent.click(await screen.findByRole("button", { name: "Écouter la voix Narrateur français" }));
+    expect((await screen.findByRole("alert")).textContent).toContain("refusé la pré-écoute");
+  });
+
+  it("composes the casting per book: narrator, default dialogues and manual characters", async () => {
+    await addLibraryBook({ id: "casting-book", title: "Le Roman choral", shelfId: "in_progress", files: [{ path: "C:/Exports/choral.epub", format: "epub" }] });
+    render(<StudioAudioView exportDirectory="C:/Exports" />);
+    const narrator = await screen.findByRole("combobox", { name: "Voix du rôle Narrateur" }) as HTMLSelectElement;
+    await screen.findByRole("option", { name: "Narrateur français · fr-FR" });
+    fireEvent.change(narrator, { target: { value: "fr-narrator" } });
+    await waitFor(() => expect((screen.getByRole("combobox", { name: "Voix du rôle Narrateur" }) as HTMLSelectElement).value).toBe("fr-narrator"));
+    fireEvent.change(screen.getByRole("textbox", { name: "Nom du personnage" }), { target: { value: "Élise" } });
+    fireEvent.click(screen.getByRole("button", { name: "Ajouter" }));
+    await screen.findByRole("combobox", { name: "Voix du personnage Élise" });
+    expect((await getLibraryConfig()).books[0].audio?.casting?.mappings).toEqual([
+      { role: "Narrateur", kind: "narrator", voiceId: "fr-narrator" },
+      { role: "Élise", kind: "character", voiceId: "fr-narrator" },
+    ]);
+    fireEvent.click(screen.getByRole("button", { name: "Retirer le personnage Élise" }));
+    await waitFor(() => expect(screen.queryByRole("combobox", { name: "Voix du personnage Élise" })).toBeNull());
+    expect(screen.queryByText(/Édition audio/)).toBeNull();
   });
 
   it("invites the author to add a book when the register is empty", async () => {

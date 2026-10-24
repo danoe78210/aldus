@@ -52,6 +52,21 @@ export interface AudioEdition {
   voiceName: string;
   generatedAt: number;
   chapters: AudioChapter[];
+  casting?: VoiceCasting;
+}
+
+/** Rôle de la distribution : texte courant, dialogues par défaut, ou personnage créé par l'auteur. */
+export type CastingRoleKind = "narrator" | "unattributed-dialogue" | "character";
+
+export interface CharacterVoiceMapping {
+  role: string;
+  kind: CastingRoleKind;
+  voiceId: string;
+}
+
+export interface VoiceCasting {
+  mappings: CharacterVoiceMapping[];
+  updatedAt?: number;
 }
 
 export interface AudioChapter {

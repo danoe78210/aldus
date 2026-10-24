@@ -59,6 +59,56 @@ pub struct AudioEdition {
     pub voice_name: String,
     pub generated_at: u64,
     pub chapters: Vec<AudioChapter>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub casting: Option<VoiceCasting>,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Deserialize, Serialize)]
+#[serde(rename_all = "kebab-case")]
+pub enum CastingRoleKind {
+    Narrator,
+    UnattributedDialogue,
+    Character,
+}
+
+#[derive(Clone, Debug, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct CharacterVoiceMapping {
+    pub role: String,
+    pub kind: CastingRoleKind,
+    pub voice_id: String,
+}
+
+#[derive(Clone, Debug, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct VoiceCasting {
+    pub mappings: Vec<CharacterVoiceMapping>,
+    #[serde(default)]
+    pub updated_at: u64,
+}
+
+fn validate_casting(casting: &VoiceCasting) -> Result<(), String> {
+    let mut narrators = 0;
+    let mut dialogues = 0;
+    let mut characters = std::collections::BTreeSet::new();
+    for mapping in &casting.mappings {
+        if mapping.role.trim().is_empty() || mapping.voice_id.trim().is_empty() {
+            return Err("Chaque rôle de la distribution doit avoir un nom et une voix.".into());
+        }
+        match mapping.kind {
+            CastingRoleKind::Narrator => narrators += 1,
+            CastingRoleKind::UnattributedDialogue => dialogues += 1,
+            CastingRoleKind::Character => {
+                if !characters.insert(mapping.role.trim().to_lowercase()) {
+                    return Err(format!("Le personnage « {} » est déclaré deux fois.", mapping.role.trim()));
+                }
+            }
+        }
+    }
+    if narrators > 1 || dialogues > 1 {
+        return Err("Le narrateur et les dialogues sans attribution ne peuvent avoir qu'une voix chacun.".into());
+    }
+    Ok(())
 }
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
@@ -656,7 +706,7 @@ pub async fn delete_audio_track(
     edition
         .chapters
         .retain(|chapter| chapter.index != chapter_index);
-    if edition.chapters.is_empty() {
+    if edition.chapters.is_empty() && edition.casting.is_none() {
         config.books[book_index].audio = None;
     }
     if let Err(error) = write_config(&app, &config) {
@@ -765,6 +815,55 @@ pub async fn list_book_audio_chapters(
     book_id: String,
 ) -> Result<Vec<audio::AudioChapterChoice>, String> {
     audio::list_book_chapters(&app, &book_id)
+}
+
+#[tauri::command]
+pub async fn save_voice_casting(
+    app: tauri::AppHandle,
+    book_id: String,
+    mut casting: VoiceCasting,
+) -> Result<LibraryConfig, String> {
+    validate_casting(&casting).inspect_err(|error| {
+        log::error!("save voice casting rejected book_id={book_id}: {error}");
+    })?;
+    casting.updated_at = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .map_err(|error| error.to_string())?
+        .as_millis() as u64;
+    let mut config = read_config(&app)?;
+    let book = config
+        .books
+        .iter_mut()
+        .find(|book| book.id == book_id)
+        .ok_or("Ouvrage introuvable dans la bibliothèque.")?;
+    match book.audio.as_mut() {
+        Some(edition) => edition.casting = Some(casting),
+        None => {
+            book.audio = Some(AudioEdition {
+                engine: String::new(),
+                voice_id: String::new(),
+                voice_name: String::new(),
+                generated_at: 0,
+                chapters: Vec::new(),
+                casting: Some(casting),
+            })
+        }
+    }
+    write_config(&app, &config).inspect_err(|error| {
+        log::error!("save voice casting write failed book_id={book_id}: {error}");
+    })?;
+    Ok(config)
+}
+
+#[tauri::command]
+pub async fn preview_voice(
+    app: tauri::AppHandle,
+    voice_id: String,
+    text: String,
+) -> Result<String, String> {
+    audio::preview_voice(&app, &voice_id, &text).await.inspect_err(|error| {
+        log::error!("preview voice failed voice_id={voice_id}: {error}");
+    })
 }
 
 #[tauri::command]
@@ -899,7 +998,48 @@ pub async fn add_library_book(
 
 #[cfg(test)]
 mod tests {
-    use super::{scan_directory, Book, LibraryConfig, LibraryFile, Shelf};
+    use super::{
+        scan_directory, validate_casting, Book, CastingRoleKind, CharacterVoiceMapping,
+        LibraryConfig, LibraryFile, Shelf, VoiceCasting,
+    };
+
+    fn mapping(role: &str, kind: CastingRoleKind, voice: &str) -> CharacterVoiceMapping {
+        CharacterVoiceMapping { role: role.into(), kind, voice_id: voice.into() }
+    }
+
+    #[test]
+    fn casting_accepts_a_triptych_and_rejects_duplicates_or_blanks() {
+        let valid = VoiceCasting {
+            mappings: vec![
+                mapping("Narrateur", CastingRoleKind::Narrator, "fr-a"),
+                mapping("Dialogues", CastingRoleKind::UnattributedDialogue, "fr-b"),
+                mapping("Élise", CastingRoleKind::Character, "fr-c"),
+            ],
+            updated_at: 0,
+        };
+        assert!(validate_casting(&valid).is_ok());
+        let twice = VoiceCasting {
+            mappings: vec![
+                mapping("Élise", CastingRoleKind::Character, "fr-c"),
+                mapping(" élise ", CastingRoleKind::Character, "fr-a"),
+            ],
+            updated_at: 0,
+        };
+        assert!(validate_casting(&twice).is_err());
+        let blank = VoiceCasting {
+            mappings: vec![mapping("Narrateur", CastingRoleKind::Narrator, " ")],
+            updated_at: 0,
+        };
+        assert!(validate_casting(&blank).is_err());
+        let two_narrators = VoiceCasting {
+            mappings: vec![
+                mapping("Narrateur", CastingRoleKind::Narrator, "fr-a"),
+                mapping("Narrateur bis", CastingRoleKind::Narrator, "fr-b"),
+            ],
+            updated_at: 0,
+        };
+        assert!(validate_casting(&two_narrators).is_err());
+    }
 
     #[test]
     fn groups_accented_names_with_spaces_and_underscores_and_keeps_distinct_volumes() {

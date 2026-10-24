@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { AudioLines, FolderOpen } from "lucide-react";
 import type { AudioChapter, AudioChapterChoice, AudioGenerationProgress, LibraryConfig } from "../../types";
 import { deleteLibraryAudioTrack, generateLibraryAudio, getLibraryConfig, listBookAudioChapters } from "../../utils/libraryApi";
@@ -6,6 +6,8 @@ import { AudioSetupDialog } from "../AudioSetupDialog";
 import { ChapterSynthesisTable } from "./ChapterSynthesisTable";
 import { SidecarConsole } from "./SidecarConsole";
 import { useAudioEngine } from "./useAudioEngine";
+import { useVoiceCasting } from "./useVoiceCasting";
+import { VoiceChoir } from "./VoiceChoir";
 
 interface StudioAudioViewProps {
   exportDirectory?: string | null;
@@ -40,6 +42,7 @@ export const StudioAudioView = ({ exportDirectory, onPickExportDirectory }: Stud
   const chapters = loadedChapters?.chapters ?? [];
   const tracks: AudioChapter[] = book?.audio?.chapters ?? [];
   const generating = generatingIndex !== null;
+  const casting = useVoiceCasting(bookId, book?.audio?.casting, useCallback((saved: LibraryConfig) => setConfig(saved), []));
 
   useEffect(() => {
     let active = true;
@@ -95,12 +98,19 @@ export const StudioAudioView = ({ exportDirectory, onPickExportDirectory }: Stud
   return (
     <section aria-labelledby="studio-audio-title" className="flex h-full min-w-0 flex-col gap-5 overflow-y-auto p-6">
       <h2 id="studio-audio-title" className="flex items-center gap-2 font-cinzel text-sm text-[#d4af37]"><AudioLines size={16} /> Studio Audio</h2>
+      {books.length > 0 && (
+        <label className="max-w-md text-sm text-[#c9bea9]">Livre à enregistrer
+          <select value={book?.id ?? ""} disabled={generating} onChange={(event) => setSelectedId(event.target.value)} className={selectClass}>
+            {books.map((candidate) => <option key={candidate.id} value={candidate.id}>{candidate.title}{candidate.tome ? ` · Tome ${candidate.tome}` : ""}</option>)}
+          </select>
+        </label>
+      )}
       <div role="tablist" aria-label="Pages du Studio Audio" className="flex gap-1 border-b border-[#2e261c]">
         <button type="button" role="tab" id="audio-tab-choeur" aria-selected={activeTab === "choeur"} aria-controls="audio-panel-choeur" onClick={() => setActiveTab("choeur")} className={tabClass("choeur")}>Le Chœur</button>
         <button type="button" role="tab" id="audio-tab-studio" aria-selected={activeTab === "studio"} aria-controls="audio-panel-studio" onClick={() => setActiveTab("studio")} className={tabClass("studio")}>Le Studio</button>
       </div>
       {/* Les deux pages restent montées : le moteur et la progression survivent au changement d'onglet. */}
-      <div role="tabpanel" id="audio-panel-choeur" aria-labelledby="audio-tab-choeur" className={`flex min-w-0 max-w-md flex-col gap-4 ${activeTab === "choeur" ? "" : "hidden"}`}>
+      <div role="tabpanel" id="audio-panel-choeur" aria-labelledby="audio-tab-choeur" className={`flex min-w-0 max-w-3xl flex-col gap-4 ${activeTab === "choeur" ? "" : "hidden"}`}>
         <SidecarConsole
           ready={engine.voices.length > 0}
           checking={engine.checking}
@@ -119,6 +129,7 @@ export const StudioAudioView = ({ exportDirectory, onPickExportDirectory }: Stud
             {engine.voices.map((voice) => <option key={voice.id} value={voice.id}>{voice.name}{voice.language ? ` · ${voice.language}` : ""}</option>)}
           </select>
         </label>
+        <VoiceChoir voices={engine.voices} defaultVoiceId={engine.voiceId} previewingId={engine.previewingId} previewError={engine.previewError} onPreview={(id) => { void engine.preview(id); }} casting={casting} hasBook={Boolean(bookId)} />
       </div>
       <div role="tabpanel" id="audio-panel-studio" aria-labelledby="audio-tab-studio" className={`flex min-w-0 flex-col gap-4 ${activeTab === "studio" ? "" : "hidden"}`}>
         <div className="flex items-start gap-2 font-serif text-xs text-[#8c8275]">
@@ -129,12 +140,7 @@ export const StudioAudioView = ({ exportDirectory, onPickExportDirectory }: Stud
           <p className="font-serif text-sm text-[#a99a83]">Aucun livre au Registre : ajoutez-en un depuis la Bibliothèque.</p>
         ) : (
           <>
-            <label className="text-sm text-[#c9bea9]">Livre à enregistrer
-              <select value={book?.id ?? ""} disabled={generating} onChange={(event) => setSelectedId(event.target.value)} className={selectClass}>
-                {books.map((candidate) => <option key={candidate.id} value={candidate.id}>{candidate.title}{candidate.tome ? ` · Tome ${candidate.tome}` : ""}</option>)}
-              </select>
-            </label>
-            {book?.audio && <p className="font-serif text-sm text-[#a99a83]">Édition audio · {book.audio.voiceName} · {book.audio.chapters.length} piste(s)</p>}
+            {book?.audio && book.audio.chapters.length > 0 && <p className="font-serif text-sm text-[#a99a83]">Édition audio · {book.audio.voiceName} · {book.audio.chapters.length} piste(s)</p>}
             <ChapterSynthesisTable chapters={chapters} tracks={tracks} generatingIndex={generatingIndex} progress={progress} canGenerate={canGenerate} onGenerate={generate} onDelete={remove} />
             {blockReason && <p role="status" className="max-w-xl font-serif text-sm leading-relaxed text-[#c5a059]">{blockReason}</p>}
             <p className="font-serif text-xs italic text-[#8c8275]">Édition en podcast et règles de transformation : en cours de composition.</p>
