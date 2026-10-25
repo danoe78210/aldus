@@ -29,3 +29,6 @@ src-tauri/assets/Couverture_Cuir_01.jpg
 
 # Sauvegardes d'historique Git
 *.bundle
+
+# Exports audio de démonstration (générés par le test en conditions réelles)
+scripts/demo/Audio/
