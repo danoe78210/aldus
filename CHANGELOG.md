@@ -1,4 +1,25 @@
 # Registre des Évolutions — Aldus
+## [1.4.12] - 2026-10-25 — Le Salon de lecture et l'Oratoire parachevés
+### Ajouté
+- **Oratoire** : transcription du manuscrit en script de podcast, réparti Narrateur / Dialogues, avec élagage des incises, respirations et table phonétique ; synthèse factice locale sur le port 8020 ; assemblage FFmpeg.
+- **Discothèque** : rayons, fiches de session, suppression sûre d'un enregistrement ou d'un album.
+- **Console à bande** : galvanomètres et vu-mètres alimentés par le signal réel (Web Audio).
+- **Salon de lecture** : diptyque permanent à double page, avec ombres de reliure et de tranche ; tournage de page 3D (`page-flip`) ; curseur de progression avec infobulle « Chapitre X · Page Y » ; papiers Atelier Sombre et Vélin Naturel (`#FBF7F0` / `#2A2421`).
+- Typographie du Salon : césures françaises, lettrine soudée à son mot, espace après la ponctuation forte, espaces doubles réduits, apostrophes courbes.
+- Les PDF s'ouvrent dans le Salon : texte extrait par pdf.js et recomposé (en-têtes et folios retirés, paragraphes rétablis d'une page à l'autre, chapitres détectés).
+- Guides : `docs/guide-salon-de-lecture.md` et `docs/guide-oratoire.md`.
+
+### Modifié
+- Le Salon n'a plus d'exception pour le PDF : tous les formats passent par le même volume relié.
+- Dépendances : `page-flip` ajouté ; correctifs de sécurité de `vite`, `undici` et `zod` (`npm audit` : 0 vulnérabilité).
+
+### Vérifié
+- Suite Vitest : 244 tests ; `cargo test --lib library` : 55 tests ; `tsc`, `npm run lint`, `npm run build` et `cargo check` sans avertissement.
+
+### Limites connues
+- Le Salon et la recomposition des PDF n'ont pas encore été vérifiés à l'écran dans l'application complète ; les captures de cette version restent à produire.
+- PDF : images et mise en page d'origine perdues dans le Salon, PDF numérisés sans contenu, un mot composé coupé en fin de ligne peut perdre son tiret.
+
 ## [1.4.11] - 2026-10-24 — Lecteur d'Atelier & ruban Studio Audio
 ### Ajouté
 - **Lecteur d'Atelier** : « Ouvrir le livre » du Registre ouvre désormais l'EPUB, le PDF ou le DOCX dans un lecteur immersif plein écran intégré, sans application tierce. `Échap` ou le bouton discret du coin ramène au Registre.

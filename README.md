@@ -1,5 +1,7 @@
 # ❦ ALDUS : Atelier du Livre Moderne
 
+![Version 1.4.12](https://img.shields.io/badge/version-1.4.12-d4af37)
+
 > *« Festina Lente »* — Hâte-toi lentement.
 
 **Aldus** est un environnement d'artisanat littéraire et d'ingénierie éditoriale conçu pour les
@@ -38,6 +40,20 @@ la typographie humaniste.
 - **Le Pressoir Final :** tirage cérémoniel en trois temps (encrage, serrage, massicotage) et export
   vers les formes d'édition validées — PDF d'impression prêt-à-imprimer (gabarit KDP), ePub 3
   reflowable, gabarit de jaquette.
+
+---
+
+## ✨ Nouveautés de la version 1.4.12 — Salon de lecture & Oratoire
+
+- **Oratoire :** manuscrit transcrit en script de podcast (Narrateur / Dialogues, incises élaguées,
+  respirations, table phonétique), synthèse locale sur `127.0.0.1:8020`, assemblage FFmpeg,
+  Discothèque et console à bande aux vu-mètres réactifs. Voir le [guide de l'Oratoire](docs/guide-oratoire.md).
+- **Salon de lecture :** double page permanente, tournage de page 3D, curseur « Chapitre X · Page Y »,
+  césures françaises et lettrines, papiers Atelier Sombre et Vélin Naturel ; les PDF y sont recomposés.
+  Voir le [guide du Salon](docs/guide-salon-de-lecture.md).
+
+![Salon de lecture — double page en Atelier Sombre](docs/assets/03-salon-lecture-double-page-sombre.png)
+![Oratoire — transcription du manuscrit](docs/assets/01-oratoire-studio-transcription.png)
 
 ---
 

@@ -69,18 +69,18 @@ jobs:
           tagName: ${{ github.ref_name }}
           releaseName: 'Aldus ${{ github.ref_name }}'
           releaseBody: |
-            ## Aldus 1.4.11 — Lecteur d'Atelier & ruban Studio Audio
+            ## Aldus 1.4.12 — Le Salon de lecture et l'Oratoire parachevés
 
-            - Lecteur d'Atelier : « Ouvrir le livre » lit l'EPUB, le PDF ou le DOCX en plein écran, avec trois papiers (Vélin, Parchemin, Dark Atelier), tiroir typographique, table des matières, mode Silence et signets dorés conservés dans `.aldus/bookmarks.json`.
-            - Ruban « Studio Audio » dédié : console du moteur XTTS v2 local, choix de la voix et table de synthèse par chapitre (génération, régénération, écoute, suppression des pistes MP3).
-            - Installateur MSI en français (`fr-FR`), aux couleurs d'Aldus : emblème doré, bandeau en vélin et texte lisible quel que soit le thème de Windows.
-            - Aucun changement du moteur vocal : sidecar local sur `127.0.0.1:8020`, segments de 240 caractères maximum, consentement CPML inchangé.
+            - Oratoire : transcription du manuscrit en script de podcast (Narrateur / Dialogues, incises élaguées, respirations, table phonétique), synthèse locale sur `127.0.0.1:8020`, assemblage FFmpeg, Discothèque et console à bande aux vu-mètres réactifs.
+            - Salon de lecture : double page permanente, tournage de page 3D, curseur « Chapitre X · Page Y », césures françaises, lettrines, papiers Atelier Sombre et Vélin Naturel.
+            - Les PDF se lisent dans le Salon, texte recomposé.
+            - Dépendances mises à jour : `npm audit` sans vulnérabilité.
 
             ### Captures
-            - [Lecteur d'Atelier](https://github.com/danoe78210/aldus/blob/v1.4.11/docs/assets/screenshots/lecteur-atelier-v1.4.11.png)
-            - [Studio Audio](https://github.com/danoe78210/aldus/blob/v1.4.11/docs/assets/screenshots/studio-audio-v1.4.11.png)
+            - [Oratoire — transcription](https://github.com/danoe78210/aldus/blob/v1.4.12/docs/assets/01-oratoire-studio-transcription.png)
+            - [Salon de lecture — Atelier Sombre](https://github.com/danoe78210/aldus/blob/v1.4.12/docs/assets/03-salon-lecture-double-page-sombre.png)
 
-            Voir [CHANGELOG.md](https://github.com/danoe78210/aldus/blob/v1.4.11/CHANGELOG.md).
+            Voir [CHANGELOG.md](https://github.com/danoe78210/aldus/blob/v1.4.12/CHANGELOG.md).
           releaseDraft: false
           prerelease: false
           args: ${{ matrix.args }}

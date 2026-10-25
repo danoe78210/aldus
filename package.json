@@ -3,7 +3,7 @@
   "productName": "Aldus",
   "description": "Atelier du Livre Moderne — Composition & Reliure Humaniste",
   "private": true,
-  "version": "1.4.11",
+  "version": "1.4.12",
   "type": "module",
   "scripts": {
     "build:showcase": "node scripts/build_showcase_css.mjs",
@@ -22,6 +22,7 @@
     "@tauri-apps/plugin-dialog": "^2.8.2",
     "framer-motion": "^14.0.0",
     "lucide-react": "^1.51.0",
+    "page-flip": "^2.0.7",
     "pdfjs-dist": "^6.4.299",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
