@@ -15,15 +15,25 @@ use tauri_plugin_shell::ShellExt;
 use zip::ZipArchive;
 
 const DEFAULT_TTS_ENDPOINT: &str = "http://127.0.0.1:8020";
-const MAX_TTS_SEGMENT_CHARS: usize = 240;
+const MAX_TTS_SEGMENT_CHARS: usize = 200;
 pub(super) const AUDIO_INIT_TIMEOUT: Duration = Duration::from_secs(900);
+const SYNTHESIS_TIMEOUT: Duration = Duration::from_secs(180);
 const SIDECAR_STARTUP_TIMEOUT: Duration = Duration::from_secs(60);
-const CHAPTER_AUDIO_TIMEOUT: Duration = Duration::from_secs(900);
 
-fn chapter_time_remaining(started: Instant) -> Result<Duration, String> {
-    CHAPTER_AUDIO_TIMEOUT.checked_sub(started.elapsed())
+fn chapter_timeout(segment_count: usize) -> Duration {
+    SYNTHESIS_TIMEOUT * u32::try_from(segment_count).unwrap_or(1)
+}
+
+fn chapter_time_remaining(started: Instant, segment_count: usize) -> Result<Duration, String> {
+    chapter_timeout(segment_count).checked_sub(started.elapsed())
         .filter(|remaining| !remaining.is_zero())
-        .ok_or_else(|| "Délai audio de 900 s dépassé pour le chapitre.".into())
+        .ok_or_else(|| {
+            format!(
+                "Délai audio de {} s dépassé pour le chapitre ({} segments).",
+                chapter_timeout(segment_count).as_secs(),
+                segment_count
+            )
+        })
 }
 
 #[cfg(test)]
@@ -32,9 +42,10 @@ mod chapter_deadline_tests {
 
     #[test]
     fn chapter_budget_does_not_restart_for_each_segment() {
-        let started = Instant::now() - Duration::from_secs(899);
-        assert!(chapter_time_remaining(started).expect("temps restant") <= Duration::from_secs(1));
-        assert!(chapter_time_remaining(Instant::now() - CHAPTER_AUDIO_TIMEOUT).is_err());
+        let segment_count = 5;
+        let started = Instant::now() - chapter_timeout(segment_count) + Duration::from_secs(1);
+        assert!(chapter_time_remaining(started, segment_count).expect("temps restant") <= Duration::from_secs(1));
+        assert!(chapter_time_remaining(Instant::now() - chapter_timeout(segment_count), segment_count).is_err());
     }
 }
 #[derive(Clone, Copy, Debug, Default, Deserialize, PartialEq, Serialize)]
@@ -1259,8 +1270,9 @@ fn assemble_mp3_segments(
     chapter_title: &str,
     ffmpeg_path: &Path,
     chapter_started: Instant,
+    segment_count: usize,
 ) -> Result<(), String> {
-    chapter_time_remaining(chapter_started)?;
+    chapter_time_remaining(chapter_started, segment_count)?;
     if segments.is_empty() {
         return Err(format!(
             "Aucun segment audio pour le chapitre « {chapter_title} »."
@@ -1317,7 +1329,7 @@ fn assemble_mp3_segments(
         match process.try_wait() {
             Ok(Some(status)) => break status,
             Ok(None) => {
-                if let Err(error) = chapter_time_remaining(chapter_started) {
+                if let Err(error) = chapter_time_remaining(chapter_started, segment_count) {
                     process.kill().map_err(|kill| format!("{error} Arrêt FFmpeg impossible : {kill}"))?;
                     process.wait().map_err(|wait| format!("{error} Attente FFmpeg impossible : {wait}"))?;
                     return Err(error);
@@ -1552,7 +1564,7 @@ pub async fn generate_book_audio(
                 segment_text.chars().count()
             );
             let request_started = std::time::Instant::now();
-            let remaining = chapter_time_remaining(chapter_started).map_err(|error| {
+            chapter_time_remaining(chapter_started, segment_count).map_err(|error| {
                 log::error!("audio chapter timeout book_id={book_id} chapter={chapter_number}: {error}");
                 emit_segment_failure(&app, &book_id, chapter_number, total, &chapter.title,
                     ((completed_segments * 90) / total_segments) as u32, segment_number as u32, segment_count as u32, &error);
@@ -1560,7 +1572,7 @@ pub async fn generate_book_audio(
             })?;
             let response = match client
                 .post(&request_url)
-                .timeout(remaining)
+                .timeout(SYNTHESIS_TIMEOUT)
                 .json(&SynthesisRequest {
                     text: segment_text,
                     voice_id: &segment_voice,
@@ -1787,6 +1799,7 @@ pub async fn generate_book_audio(
             &chapter.title,
             &ffmpeg_path,
             chapter_started,
+            segment_count,
         ) {
             log::error!(
                 "audio segment assembly failed book_id={} chapter={}/{} segment_count={} output={} error={}",
