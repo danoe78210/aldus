@@ -10,6 +10,7 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
+    "mock:tts": "node scripts/mock_tts.mjs",
     "preview": "vite preview",
     "tauri": "tauri"
   },
