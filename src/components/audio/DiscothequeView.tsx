@@ -1,6 +1,7 @@
 import { useState } from "react";
-import { AudioLines, Disc3 } from "lucide-react";
-import type { AudioChapter, Book, DeckSelection } from "../../types";
+import { AudioLines, Disc3, Trash2 } from "lucide-react";
+import type { AudioChapter, Book, DeckSelection, LibraryConfig } from "../../types";
+import { deleteLibraryAudioTrack } from "../../utils/libraryApi";
 import { albumCasting, albumDuration, formatClock, mixBadge } from "./burnDetails";
 import { bookLabel, discTracks, pickDisc, useDiscs } from "./discs";
 import { frenchCount } from "./frenchCount";
@@ -8,12 +9,15 @@ import { frenchCount } from "./frenchCount";
 interface DiscothequeViewProps {
   currentBookTitle?: string;
   deck: DeckSelection | null;
+  exportDirectory?: string | null;
   onPlay: (selection: DeckSelection) => void;
   onOpenStudio?: () => void;
 }
 
 const stageTitle = "font-cinzel text-xs tracking-wider text-[#d4af37] uppercase";
 const badgeClass = "rounded-sm border border-[#6b5327] px-2 py-0.5 font-cinzel text-[10px] tracking-wider whitespace-nowrap text-[#d4af37] uppercase";
+const eraseClass = "flex shrink-0 items-center gap-1.5 rounded-sm p-2 text-[#8c8275] transition-colors hover:text-[#d28b75] focus-visible:text-[#d28b75] disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:text-[#8c8275]";
+const messageOf = (reason: unknown): string => reason instanceof Error ? reason.message : typeof reason === "string" ? reason : "Suppression impossible.";
 
 const Album = ({ book, active, onSelect }: { book: Book; active: boolean; onSelect: () => void }) => {
   const tracks = discTracks(book);
@@ -59,15 +63,33 @@ const TrackCard = ({ entry, current, onSelect }: { entry: AudioChapter; current:
 };
 
 /** La Discothèque d'Atelier : un album par livre gravé, avec son livret de session. */
-export const DiscothequeView = ({ currentBookTitle, deck, onPlay, onOpenStudio }: DiscothequeViewProps) => {
-  const { discs, ready, error } = useDiscs();
+export const DiscothequeView = ({ currentBookTitle, deck, exportDirectory, onPlay, onOpenStudio }: DiscothequeViewProps) => {
+  const { discs, ready, error, apply } = useDiscs();
   const [bookId, setBookId] = useState(deck?.bookId);
+  const [erasing, setErasing] = useState(false);
+  const [eraseError, setEraseError] = useState<string | null>(null);
   const disc = pickDisc(discs, bookId, currentBookTitle);
   const tracks = disc ? discTracks(disc) : [];
   const onDeck = disc !== undefined && deck?.bookId === disc.id ? deck : null;
   const deckIndex = onDeck ? (tracks.find((track) => track.index === onDeck.chapterIndex) ?? tracks[0])?.index : undefined;
   const casting = albumCasting(tracks);
   const play = (chapterIndex: number | undefined) => disc && onPlay({ bookId: disc.id, chapterIndex, autoPlay: false });
+
+  const erase = async (targets: AudioChapter[], question: string) => {
+    if (!disc || !exportDirectory || erasing || !window.confirm(question)) return;
+    setErasing(true);
+    setEraseError(null);
+    let latest: LibraryConfig | null = null;
+    try {
+      for (const track of targets) latest = await deleteLibraryAudioTrack(disc.id, track.index, exportDirectory);
+    } catch (reason: unknown) {
+      setEraseError(messageOf(reason));
+    } finally {
+      if (latest) apply(latest);
+      setErasing(false);
+    }
+  };
+  const eraseHint = exportDirectory ? undefined : "Choisissez un dossier d’export pour supprimer un enregistrement.";
 
   return (
     <section aria-labelledby="discotheque-title" className="flex h-full min-w-0 flex-col gap-6 overflow-y-auto p-6">
@@ -96,12 +118,17 @@ export const DiscothequeView = ({ currentBookTitle, deck, onPlay, onOpenStudio }
               <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
                 <p className="text-xs text-[#a99a83]">{[frenchCount(tracks.length, "piste gravée", "pistes gravées"), albumDuration(tracks)].filter(Boolean).join(" · ")}</p>
                 {casting && <span className={badgeClass}>{casting}</span>}
+                <button type="button" disabled={!exportDirectory || erasing} title={eraseHint ?? "Supprimer l’album"} onClick={() => { void erase(tracks, `Supprimer définitivement l’album « ${bookLabel(disc)} » ? Les ${frenchCount(tracks.length, "fichier audio", "fichiers audio")} seront effacés du disque.`); }} className={`${eraseClass} ml-auto py-1 font-cinzel text-[10px] tracking-wider uppercase`}><Trash2 size={13} /> Supprimer l’album</button>
               </div>
             </header>
+            {eraseError && <p role="alert" className="text-xs text-[#d28b75]">{eraseError}</p>}
             <button type="button" onClick={() => play(deckIndex)} className="flex items-center justify-center gap-2 self-start rounded-sm border border-[#d4af37] bg-[#13110f] px-5 py-2 font-cinzel text-xs tracking-wider text-[#d4af37] uppercase transition-all hover:bg-[#211c15] hover:text-[#e6c85a] hover:shadow-[0_0_14px_rgb(212_175_55/30%)]"><Disc3 size={14} /> Poser sur la platine</button>
             <ol aria-label="Pistes gravées" className="flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto pr-1">
               {tracks.map((entry) => (
-                <li key={entry.index}><TrackCard entry={entry} current={entry.index === deckIndex} onSelect={() => play(entry.index)} /></li>
+                <li key={entry.index} className="flex items-stretch gap-1">
+                  <TrackCard entry={entry} current={entry.index === deckIndex} onSelect={() => play(entry.index)} />
+                  <button type="button" aria-label={`Supprimer l’enregistrement ${entry.title}`} title={eraseHint ?? "Supprimer l’enregistrement"} disabled={!exportDirectory || erasing} onClick={() => { void erase([entry], `Supprimer définitivement l’enregistrement « ${entry.title} » ? Le fichier audio sera effacé du disque.`); }} className={eraseClass}><Trash2 size={16} /></button>
+                </li>
               ))}
             </ol>
           </section>

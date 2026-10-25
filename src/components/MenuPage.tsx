@@ -52,7 +52,7 @@ export const MenuPage: React.FC<{ menu: ActiveMenu }> = ({ menu }) => {
     case "studio-audio":
       return <StudioAudioView exportDirectory={studio.exportDirectory} onPickExportDirectory={studio.onPickExportDirectory} />;
     case "discotheque":
-      return <DiscothequeView currentBookTitle={studio.bookInfo.title} deck={studio.audioDeck} onPlay={studio.onPlayOnDeck} onOpenStudio={studio.onOpenStudioAudio} />;
+      return <DiscothequeView currentBookTitle={studio.bookInfo.title} deck={studio.audioDeck} exportDirectory={studio.exportDirectory} onPlay={studio.onPlayOnDeck} onOpenStudio={studio.onOpenStudioAudio} />;
     case "organisation":
       /* Feuillet VI : imposition & calibrage KDP — la table des matières
          (Feuillet V) est composée sur la page de gauche. */

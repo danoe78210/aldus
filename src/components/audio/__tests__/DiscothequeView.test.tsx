@@ -1,19 +1,21 @@
 import { useState } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { cleanup, fireEvent, render, screen, within } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { AudioReaderView } from "../AudioReaderView";
 import { DiscothequeView } from "../DiscothequeView";
 import type { AudioChapter, DeckSelection } from "../../../types";
-import { addLibraryBook, libraryCoverUrl } from "../../../utils/libraryApi";
+import { addLibraryBook, deleteLibraryAudioTrack, getLibraryConfig, libraryCoverUrl } from "../../../utils/libraryApi";
 
 vi.mock("../../../utils/libraryApi", async (importOriginal) => ({
   ...await importOriginal<typeof import("../../../utils/libraryApi")>(),
   libraryCoverUrl: vi.fn(),
+  deleteLibraryAudioTrack: vi.fn(),
 }));
 
 beforeEach(() => {
   localStorage.clear();
   vi.mocked(libraryCoverUrl).mockImplementation((path) => `asset://${path}`);
+  vi.mocked(deleteLibraryAudioTrack).mockReset();
   vi.spyOn(HTMLMediaElement.prototype, "pause").mockImplementation(() => undefined);
 });
 
@@ -116,5 +118,68 @@ describe("DiscothequeView", () => {
     render(<Oratoire />);
     fireEvent.click(await screen.findByRole("button", { name: "Poser sur la platine" }));
     expect((await screen.findByLabelText("Bande Chapitre premier")).getAttribute("src")).toBe("asset://C:/Audio/first/001.mp3");
+  });
+
+  describe("suppression des enregistrements", () => {
+    const eraseTrack = async (bookId: string, chapterIndex: number) => {
+      const config = await getLibraryConfig();
+      const book = config.books.find((item) => item.id === bookId)!;
+      book.audio!.chapters = book.audio!.chapters.filter((chapter) => chapter.index !== chapterIndex);
+      localStorage.setItem("aldus-library", JSON.stringify(config));
+      return config;
+    };
+
+    it("removes one recording after confirmation and keeps the rest of the album", async () => {
+      await addBook("first", "Premier Livre", tracks("first"));
+      vi.spyOn(window, "confirm").mockReturnValue(true);
+      vi.mocked(deleteLibraryAudioTrack).mockImplementation(eraseTrack);
+      render(<DiscothequeView deck={null} exportDirectory="C:/Exports" onPlay={vi.fn()} />);
+      const trash = await screen.findByRole("button", { name: "Supprimer l’enregistrement Chapitre second" });
+      expect(trash.getAttribute("title")).toBe("Supprimer l’enregistrement");
+      fireEvent.click(trash);
+      expect(window.confirm).toHaveBeenCalledWith(expect.stringContaining("Chapitre second"));
+      await waitFor(() => expect(screen.queryByRole("button", { name: /2\. Chapitre second/ })).toBeNull());
+      expect(deleteLibraryAudioTrack).toHaveBeenCalledExactlyOnceWith("first", 2, "C:/Exports");
+      expect(screen.getByRole("button", { name: /1\. Chapitre premier/ })).toBeTruthy();
+      expect(screen.getAllByText(/1 piste gravée/)).toHaveLength(2);
+    });
+
+    it("deletes nothing when the confirmation is refused", async () => {
+      await addBook("first", "Premier Livre", tracks("first"));
+      vi.spyOn(window, "confirm").mockReturnValue(false);
+      render(<DiscothequeView deck={null} exportDirectory="C:/Exports" onPlay={vi.fn()} />);
+      fireEvent.click(await screen.findByRole("button", { name: "Supprimer l’enregistrement Chapitre premier" }));
+      fireEvent.click(screen.getByRole("button", { name: "Supprimer l’album" }));
+      expect(deleteLibraryAudioTrack).not.toHaveBeenCalled();
+      expect(screen.getByRole("button", { name: /1\. Chapitre premier/ })).toBeTruthy();
+    });
+
+    it("deletes every track of the album and empties the shelf", async () => {
+      await addBook("first", "Premier Livre", tracks("first"));
+      vi.spyOn(window, "confirm").mockReturnValue(true);
+      vi.mocked(deleteLibraryAudioTrack).mockImplementation(eraseTrack);
+      render(<DiscothequeView deck={null} exportDirectory="C:/Exports" onPlay={vi.fn()} />);
+      fireEvent.click(await screen.findByRole("button", { name: "Supprimer l’album" }));
+      expect(await screen.findByText("Aucun disque gravé dans l’atelier.")).toBeTruthy();
+      expect(vi.mocked(deleteLibraryAudioTrack).mock.calls.map(([, index]) => index)).toEqual([1, 2]);
+    });
+
+    it("keeps what was erased and reports the failure when the album deletion stops midway", async () => {
+      await addBook("first", "Premier Livre", tracks("first"));
+      vi.spyOn(window, "confirm").mockReturnValue(true);
+      vi.mocked(deleteLibraryAudioTrack).mockImplementationOnce(eraseTrack).mockRejectedValueOnce("Suppression refusée : fichier verrouillé.");
+      render(<DiscothequeView deck={null} exportDirectory="C:/Exports" onPlay={vi.fn()} />);
+      fireEvent.click(await screen.findByRole("button", { name: "Supprimer l’album" }));
+      expect((await screen.findByRole("alert")).textContent).toBe("Suppression refusée : fichier verrouillé.");
+      expect(screen.queryByRole("button", { name: /1\. Chapitre premier/ })).toBeNull();
+      expect(screen.getByRole("button", { name: /2\. Chapitre second/ })).toBeTruthy();
+    });
+
+    it("disables deletion until an export folder is chosen", async () => {
+      await addBook("first", "Premier Livre", tracks("first"));
+      render(<DiscothequeView deck={null} onPlay={vi.fn()} />);
+      expect((await screen.findByRole("button", { name: "Supprimer l’enregistrement Chapitre premier" }) as HTMLButtonElement).disabled).toBe(true);
+      expect((screen.getByRole("button", { name: "Supprimer l’album" }) as HTMLButtonElement).disabled).toBe(true);
+    });
   });
 });
