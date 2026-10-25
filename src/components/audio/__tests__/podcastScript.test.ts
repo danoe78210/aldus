@@ -55,6 +55,28 @@ describe("règle strip-incises", () => {
   });
 });
 
+describe("transcription d'un chapitre brut", () => {
+  const dialogue = "« Bonjour, dit-il, que faites-vous ? »";
+
+  it("élague l'incise d'une réplique entre guillemets", () => {
+    expect(texts(dialogue, only("strip-incises"))).toEqual(["Bonjour, que faites-vous ?"]);
+    expect(texts(dialogue, DEFAULT_RULES)).toEqual(["Bonjour, dit-il, que faites-vous ?"]);
+  });
+
+  it("sépare nettement la narration des répliques et conserve l'ordre du chapitre", () => {
+    const chapter = `Il entra sans bruit. ${dialogue} Elle se tut.\n— Rien, répondit-elle.\nLe feu crépitait.`;
+    const lines = applyRules(splitIntoLines(chapter), only("strip-incises"));
+    expect(lines.map((line) => [line.kind, line.role, line.text])).toEqual([
+      ["narrator", "Narrateur", "Il entra sans bruit."],
+      ["unattributed-dialogue", "Dialogues", "Bonjour, que faites-vous ?"],
+      ["narrator", "Narrateur", "Elle se tut."],
+      ["unattributed-dialogue", "Dialogues", "Rien."],
+      ["narrator", "Narrateur", "Le feu crépitait."],
+    ]);
+    expect(lines.map((line) => line.source)).toEqual([0, 1, 2, 3, 4]);
+  });
+});
+
 describe("règle breath-pauses", () => {
   it("normalise les points de suspension", () => {
     expect(texts("Attends ... je crois.... que non.", only("breath-pauses"))).toEqual(["Attends… je crois… que non."]);

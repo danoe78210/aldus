@@ -9,6 +9,7 @@ export type ActiveMenu =
   | 'epreuve-plume'
   | 'export'
   | 'studio-audio'
+  | 'discotheque'
   | 'banc-epreuve'
   | 'lecteur'
   | 'salon';
@@ -16,6 +17,13 @@ export type ActiveMenu =
 export interface SalonTarget {
   bookId: string;
   file: { path: string; format: 'epub' | 'pdf' | 'docx' };
+}
+
+/** Disque (et piste) posé sur la platine du Lecteur. */
+export interface DeckSelection {
+  bookId: string;
+  chapterIndex?: number;
+  autoPlay: boolean;
 }
 
 export type NavPole = 'ecritoire' | 'presse' | 'oratoire' | 'bibliotheque';
@@ -102,6 +110,8 @@ export interface LineEdit {
   text?: string;
   role?: string;
   kind?: CastingRoleKind;
+  /** Réplique écartée du script par l'auteur. */
+  removed?: boolean;
 }
 
 /** État persisté de l'adaptation d'un chapitre : règles, table phonétique et retouches. */
@@ -109,6 +119,8 @@ export interface ChapterAdaptation {
   chapterIndex: number;
   rules: ScriptRule[];
   edits: LineEdit[];
+  /** Le chapitre a été transcrit en script podcast. */
+  transcribed?: boolean;
   updatedAt?: number;
 }
 

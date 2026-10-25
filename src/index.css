@@ -531,3 +531,27 @@ body.is-resizing *,
   transition: none !important;
   animation: none !important;
 }
+
+.tape-slider {
+  appearance: none;
+  height: 0.5rem;
+  border-radius: 9999px;
+  background: #0b0a09;
+  border: 1px solid #3a2f1d;
+}
+.tape-slider::-webkit-slider-thumb {
+  appearance: none;
+  width: 1.1rem;
+  height: 1.6rem;
+  border-radius: 2px;
+  border: 1px solid #13110f;
+  background: linear-gradient(90deg, #8f6e2b, #e6c85a 50%, #8f6e2b);
+  box-shadow: 0 1px 3px rgb(0 0 0 / 70%);
+}
+.tape-slider::-moz-range-thumb {
+  width: 1.1rem;
+  height: 1.6rem;
+  border-radius: 2px;
+  border: 1px solid #13110f;
+  background: linear-gradient(90deg, #8f6e2b, #e6c85a 50%, #8f6e2b);
+}

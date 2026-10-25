@@ -4,7 +4,7 @@ import { getBookChapterText, saveChapterAdaptation } from "../../utils/libraryAp
 import { applyRules, DEFAULT_RULES, detectProperNouns, splitIntoLines } from "./podcastScript";
 import { NARRATOR_ROLE } from "./useVoiceCasting";
 
-type LinePatch = Partial<Pick<PodcastLine, "text" | "role" | "kind">>;
+type LinePatch = Partial<Pick<PodcastLine, "text" | "role" | "kind">> & { removed?: boolean };
 
 interface LoadedText {
   key: string;
@@ -15,6 +15,7 @@ interface LoadedText {
 interface Adaptation {
   rules: ScriptRule[];
   byLine: Record<number, LinePatch>;
+  transcribed: boolean;
 }
 
 interface Draft extends Adaptation {
@@ -46,11 +47,13 @@ const restore = (saved: ChapterAdaptation | undefined): Adaptation => ({
     return stored ? { ...rule, enabled: stored.enabled, ...(rule.substitutions ? { substitutions: stored.substitutions ?? [] } : {}) } : rule;
   }),
   byLine: Object.fromEntries((saved?.edits ?? []).map(({ source, ...patch }) => [source, patch])),
+  transcribed: saved?.transcribed ?? false,
 });
 
-const serialize = ({ chapterIndex, rules, byLine }: Draft): ChapterAdaptation => ({
+const serialize = ({ chapterIndex, rules, byLine, transcribed }: Draft): ChapterAdaptation => ({
   chapterIndex,
   rules,
+  transcribed,
   edits: Object.entries(byLine).map(([source, patch]) => ({ source: Number(source), ...patch })),
 });
 
@@ -73,7 +76,7 @@ export const usePodcastScript = ({ bookId, chapterIndex, saved, characters, onSa
 
   const savedChapter = chapterIndex === null ? undefined : saved?.find((candidate) => candidate.chapterIndex === chapterIndex);
   const restored = useMemo(() => restore(savedChapter), [savedChapter]);
-  const { rules, byLine } = draft && draft.key === key ? draft : restored;
+  const { rules, byLine, transcribed } = draft && draft.key === key ? draft : restored;
 
   const flush = useCallback(() => {
     const job = pending.current;
@@ -98,15 +101,16 @@ export const usePodcastScript = ({ bookId, chapterIndex, saved, characters, onSa
   const base = useMemo(() => splitIntoLines(text), [text]);
   const roster = useMemo(() => new Set(characters.map(normalize)), [characters]);
   const lines = useMemo(
-    () => applyRules(base, rules).map((line): PodcastLine => {
+    () => !transcribed ? [] : applyRules(base, rules).filter((line) => !byLine[line.source]?.removed).map((line): PodcastLine => {
       const edited = { ...line, ...byLine[line.source] };
       return edited.kind === "character" && !roster.has(normalize(edited.role)) ? { ...edited, kind: "narrator", role: NARRATOR_ROLE } : edited;
     }),
-    [base, rules, byLine, roster],
+    [base, rules, byLine, roster, transcribed],
   );
   const substitutions = useMemo(() => rules.find((rule) => rule.id === "proper-nouns")?.substitutions ?? [], [rules]);
   const suggestions = useMemo(() => detectProperNouns(text, substitutions), [text, substitutions]);
   const script: PodcastScript | null = current && !current.error && chapterIndex !== null ? { chapterIndex, lines, rules } : null;
+  const edited = Object.keys(byLine).length > 0;
 
   const update = useCallback((change: (state: Adaptation) => Partial<Adaptation>) => {
     if (!bookId || chapterIndex === null || !key) return;
@@ -129,8 +133,14 @@ export const usePodcastScript = ({ bookId, chapterIndex, saved, characters, onSa
     update((state) => ({ byLine: { ...state.byLine, [source]: { ...state.byLine[source], ...patch } } }));
   }, [update]);
 
+  /** Chapitre brut → script : applique les règles actives et repart d'un découpage vierge, sans retouches. */
+  const transcribe = useCallback(() => update(() => ({ transcribed: true, byLine: {} })), [update]);
+
   return {
     script,
+    transcribed,
+    edited,
+    transcribe,
     loading: key !== null && current === null,
     error: current?.error ?? null,
     saveError,

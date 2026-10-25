@@ -182,7 +182,7 @@ export const saveChapterAdaptation = async (bookId: string, adaptation: ChapterA
   if (!book) throw new Error("Ouvrage introuvable dans la bibliothèque.");
   const edition = book.audio ?? { engine: "", voiceId: "", voiceName: "", generatedAt: 0, chapters: [] };
   const others = (edition.adaptations ?? []).filter((saved) => saved.chapterIndex !== adaptation.chapterIndex);
-  const pristine = adaptation.edits.length === 0 && adaptation.rules.every((rule) => !rule.enabled && !rule.substitutions?.length);
+  const pristine = !adaptation.transcribed && adaptation.edits.length === 0 && adaptation.rules.every((rule) => !rule.enabled && !rule.substitutions?.length);
   book.audio = { ...edition, adaptations: pristine ? others : [...others, { ...adaptation, updatedAt: Date.now() }].sort((a, b) => a.chapterIndex - b.chapterIndex) };
   return saveBrowserConfig(config);
 };

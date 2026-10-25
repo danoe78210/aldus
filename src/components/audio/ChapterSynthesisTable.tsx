@@ -3,6 +3,7 @@ import type { AudioChapter, AudioChapterChoice, AudioGenerationProgress } from "
 import { libraryCoverUrl } from "../../utils/libraryApi";
 import { AudioTrackPlayer } from "../AudioTrackPlayer";
 import { burnDetails } from "./burnDetails";
+import { frenchCount } from "./frenchCount";
 
 interface ChapterSynthesisTableProps {
   chapters: AudioChapterChoice[];
@@ -17,7 +18,7 @@ interface ChapterSynthesisTableProps {
 const formatEstimatedDuration = (seconds: number): string => {
   const minutes = Math.floor(seconds / 60);
   const remainingSeconds = seconds % 60;
-  return remainingSeconds === 0 ? `${minutes} min` : `${minutes} min ${remainingSeconds} s`;
+  return remainingSeconds === 0 ? `${minutes}\u00a0min` : `${minutes}\u00a0min ${remainingSeconds}\u00a0s`;
 };
 
 export const ChapterSynthesisTable = ({ chapters, tracks, generatingIndex, progress, canGenerate, onGenerate, onDelete }: ChapterSynthesisTableProps) => (
@@ -40,7 +41,7 @@ export const ChapterSynthesisTable = ({ chapters, tracks, generatingIndex, progr
         return (
           <tr key={chapter.index} className="border-b border-[#2e261c] align-top">
             <td className="py-3 pr-3">{chapter.index}. {chapter.title}</td>
-            <td className="py-3 pr-3 text-xs text-[#a99a83]">{chapter.pageCount} page(s) estimée(s) · {chapter.wordCount.toLocaleString("fr-FR")} mots · ~{formatEstimatedDuration(chapter.estimatedDurationSeconds)}</td>
+            <td className="py-3 pr-3 text-xs text-[#a99a83]">{frenchCount(chapter.pageCount, "page estimée", "pages estimées")} · {frenchCount(chapter.wordCount, "mot")} · ~{formatEstimatedDuration(chapter.estimatedDurationSeconds)}</td>
             <td className="min-w-56 py-3 pr-3">
               {active ? (
                 <div className="flex flex-col gap-1.5">

@@ -14,6 +14,7 @@ describe("poleOf", () => {
     expect(poleOf("couverture").id).toBe("presse");
     expect(poleOf("export").id).toBe("presse");
     expect(poleOf("studio-audio").id).toBe("oratoire");
+    expect(poleOf("discotheque").id).toBe("oratoire");
     expect(poleOf("lecteur").id).toBe("oratoire");
     expect(poleOf("bibliotheque").id).toBe("bibliotheque");
     expect(poleOf("reglages").id).toBe("presse");
@@ -56,6 +57,15 @@ describe("SubNavHeader", () => {
     expect(screen.getByRole("button", { name: "Couverture" }).getAttribute("aria-current")).toBe("page");
     expect(screen.getByRole("button", { name: "Impression" }).getAttribute("aria-current")).toBeNull();
     expect(screen.queryByRole("button", { name: "Correcteur" })).toBeNull();
+  });
+
+  it("propose les trois onglets de l'Oratoire, sans numérotation", () => {
+    const onSelect = vi.fn();
+    render(<SubNavHeader activeMenu="discotheque" onSelect={onSelect} />);
+    expect(screen.getAllByRole("button").map((button) => button.textContent)).toEqual(["Studio Audio", "Discothèque", "Le Lecteur"]);
+    expect(screen.getByRole("button", { name: "Discothèque" }).getAttribute("aria-current")).toBe("page");
+    fireEvent.click(screen.getByRole("button", { name: "Le Lecteur" }));
+    expect(onSelect).toHaveBeenCalledWith("lecteur");
   });
 
   it("transmet la sous-vue choisie", () => {

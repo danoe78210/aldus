@@ -53,6 +53,8 @@ const audioEdition = (chapters: Pick<AudioChapter, "index" | "title" | "path" | 
   engine: "http://127.0.0.1:8020", voiceId: "fr-narrator", voiceName: "Narrateur français", generatedAt: 1, chapters,
 });
 
+const transcribe = async () => fireEvent.click(await screen.findByRole("button", { name: "Transcrire en script podcast" }));
+
 describe("StudioAudioView", () => {
   it("lists the chapters of the register's book and generates one chapter with a live timeline", async () => {
     await addLibraryBook({ id: "spoken-book", title: "Le Roman parlé", shelfId: "completed", files: [{ path: "C:/Exports/roman.docx", format: "docx" }] });
@@ -66,7 +68,7 @@ describe("StudioAudioView", () => {
       return config;
     });
     render(<StudioAudioView exportDirectory="C:/Exports" />);
-    await screen.findByRole("option", { name: "Narrateur français · fr-FR" });
+    await screen.findByRole("button", { name: "Écouter la voix Narrateur français" });
     expect(listAudioVoices).toHaveBeenCalled();
     fireEvent.click(await screen.findByRole("button", { name: "Générer le chapitre 1" }));
     const bar = await screen.findByRole("progressbar", { name: "Progression du chapitre 1" });
@@ -74,7 +76,7 @@ describe("StudioAudioView", () => {
     expect(screen.getByText("Segment 3/7")).toBeTruthy();
     await screen.findByLabelText("Écouter Chapitre premier");
     expect(screen.queryByRole("progressbar")).toBeNull();
-    expect(screen.getByText("Disque du livre · Narrateur français · 1 piste(s) gravée(s)")).toBeTruthy();
+    expect(screen.getByText("Disque du livre · Voix maîtresse : Narrateur français · 1 piste gravée")).toBeTruthy();
     expect(screen.getByText("Gravée sur le disque")).toBeTruthy();
     expect(screen.getByRole("button", { name: "Régénérer le chapitre 1" })).toBeTruthy();
     expect(screen.getByRole("button", { name: "Générer le chapitre 2" })).toBeTruthy();
@@ -96,7 +98,7 @@ describe("StudioAudioView", () => {
       return config;
     });
     render(<StudioAudioView exportDirectory="C:/Exports" />);
-    await screen.findByRole("option", { name: "Narrateur français · fr-FR" });
+    await screen.findByRole("button", { name: "Écouter la voix Narrateur français" });
     fireEvent.click(await screen.findByRole("button", { name: "Régénérer le chapitre 2" }));
     await waitFor(() => expect((screen.getByRole("button", { name: "Régénérer le chapitre 2" }) as HTMLButtonElement).disabled).toBe(false));
     expect(generateLibraryAudio).toHaveBeenCalledExactlyOnceWith("incremental-book", "C:/Exports", "fr-narrator", 2, expect.any(Function), undefined);
@@ -116,7 +118,7 @@ describe("StudioAudioView", () => {
     expect((await screen.findByRole("button", { name: "Générer le chapitre 1" }) as HTMLButtonElement).disabled).toBe(true);
     expect(generateLibraryAudio).not.toHaveBeenCalled();
     fireEvent.click(within(setup).getByRole("button", { name: "Vérifier le moteur externe" }));
-    await screen.findByRole("option", { name: "Narrateur français · fr-FR" });
+    await screen.findByRole("button", { name: "Écouter la voix Narrateur français" });
     expect(screen.queryByRole("dialog", { name: SETUP })).toBeNull();
     expect(screen.getByRole("region", { name: "Console du moteur vocal" }).textContent).toContain("Moteur prêt");
     expect((screen.getByRole("button", { name: "Générer le chapitre 1" }) as HTMLButtonElement).disabled).toBe(false);
@@ -130,9 +132,9 @@ describe("StudioAudioView", () => {
     let finish: ((voices: AudioVoice[]) => void) | undefined;
     vi.mocked(listAudioVoices).mockImplementationOnce(() => new Promise((resolve) => { finish = resolve; }));
     render(<StudioAudioView exportDirectory="C:/Exports" />);
-    await screen.findByRole("option", { name: "Chargement des profils vocaux (35%)..." });
+    await screen.findByText("Initialisation du moteur (35 %)…");
     finish?.([NARRATOR]);
-    await screen.findByRole("option", { name: "Narrateur français · fr-FR" });
+    await screen.findByRole("button", { name: "Écouter la voix Narrateur français" });
   });
 
   it("cancels CPML onboarding without persisting consent and reopens the assistant unchecked", async () => {
@@ -159,7 +161,7 @@ describe("StudioAudioView", () => {
     expect(screen.queryByRole("dialog", { name: SETUP })).toBeNull();
     expect(startAudioEngine).not.toHaveBeenCalled();
     resolveConsent({ cpml_accepted: true, cpml_accepted_at: "2026-10-18T10:45:00Z", engine_mode: "integrated" });
-    await screen.findByRole("option", { name: "Narrateur français · fr-FR" });
+    await screen.findByRole("button", { name: "Écouter la voix Narrateur français" });
     expect(saveAudioConsent).toHaveBeenCalledWith(true);
     expect(startAudioEngine).toHaveBeenCalledOnce();
     expect(vi.mocked(saveAudioConsent).mock.invocationCallOrder[0]).toBeLessThan(vi.mocked(startAudioEngine).mock.invocationCallOrder[0]);
@@ -168,7 +170,7 @@ describe("StudioAudioView", () => {
   it("starts the integrated engine automatically when CPML consent is already stored", async () => {
     vi.mocked(getAudioConsent).mockResolvedValueOnce({ cpml_accepted: true, cpml_accepted_at: "2026-10-18T10:45:00Z", engine_mode: "integrated" });
     render(<StudioAudioView exportDirectory="C:/Exports" />);
-    await screen.findByRole("option", { name: "Narrateur français · fr-FR" });
+    await screen.findByRole("button", { name: "Écouter la voix Narrateur français" });
     expect(startAudioEngine).toHaveBeenCalledOnce();
     expect(saveAudioConsent).not.toHaveBeenCalled();
     expect(screen.queryByRole("dialog", { name: SETUP })).toBeNull();
@@ -191,8 +193,8 @@ describe("StudioAudioView", () => {
       return config;
     });
     render(<StudioAudioView exportDirectory="C:/Exports" />);
-    expect(await screen.findByText("1 page(s) estimée(s) · 250 mots · ~1 min 51 s")).toBeTruthy();
-    expect(screen.getByText("2 page(s) estimée(s) · 500 mots · ~3 min 42 s")).toBeTruthy();
+    expect(await screen.findByText("1 page estimée · 250 mots · ~1 min 51 s")).toBeTruthy();
+    expect(screen.getByText("2 pages estimées · 500 mots · ~3 min 42 s")).toBeTruthy();
     fireEvent.click(screen.getByRole("button", { name: "Supprimer la piste audio Chapitre second" }));
     await waitFor(() => expect(deleteLibraryAudioTrack).toHaveBeenCalledWith("chapter-metadata", 2, "C:/Exports"));
     await waitFor(() => expect(screen.queryByRole("button", { name: "Lire Chapitre second" })).toBeNull());
@@ -202,7 +204,7 @@ describe("StudioAudioView", () => {
   it("explains that an export folder is required before generation", async () => {
     await addLibraryBook({ id: "needs-export", title: "Dossier manquant", shelfId: "in_progress", files: [{ path: "C:/Sources/livre.epub", format: "epub" }] });
     render(<StudioAudioView />);
-    await screen.findByRole("option", { name: "Narrateur français · fr-FR" });
+    await screen.findByRole("button", { name: "Écouter la voix Narrateur français" });
     expect((await screen.findByRole("button", { name: "Générer le chapitre 1" }) as HTMLButtonElement).disabled).toBe(true);
     expect(screen.getByText(/Choisissez un dossier d’export dans Export → Inspection Pré-Presse → Parcourir les archives/)).toBeTruthy();
     expect(generateLibraryAudio).not.toHaveBeenCalled();
@@ -213,12 +215,11 @@ describe("StudioAudioView", () => {
     let resolveGeneration!: (config: Awaited<ReturnType<typeof getLibraryConfig>>) => void;
     vi.mocked(generateLibraryAudio).mockImplementation(() => new Promise((resolve) => { resolveGeneration = resolve; }));
     render(<StudioAudioView exportDirectory="C:/Exports" />);
-    await screen.findByRole("option", { name: "Narrateur français · fr-FR" });
+    await screen.findByRole("button", { name: "Écouter la voix Narrateur français" });
     fireEvent.click(await screen.findByRole("button", { name: "Générer le chapitre 1" }));
     await waitFor(() => expect((screen.getByRole("button", { name: "Générer le chapitre 1" }) as HTMLButtonElement).disabled).toBe(true));
     expect((screen.getByRole("button", { name: "Générer le chapitre 2" }) as HTMLButtonElement).disabled).toBe(true);
     expect(screen.getByRole("button", { name: "Générer le chapitre 1" }).className).toContain("animate-pulse");
-    expect((screen.getByRole("combobox", { name: "Profil de voix" }) as HTMLSelectElement).disabled).toBe(true);
     expect((screen.getByRole("combobox", { name: "Livre à enregistrer" }) as HTMLSelectElement).disabled).toBe(true);
     resolveGeneration(await getLibraryConfig());
     await waitFor(() => expect((screen.getByRole("button", { name: "Générer le chapitre 2" }) as HTMLButtonElement).disabled).toBe(false));
@@ -230,7 +231,7 @@ describe("StudioAudioView", () => {
     fireEvent.click(screen.getByRole("tab", { name: "Le Studio" }));
     expect(screen.getByRole("tab", { name: "Le Studio" }).getAttribute("aria-selected")).toBe("true");
     expect(screen.getByRole("tab", { name: "Le Chœur" }).getAttribute("aria-selected")).toBe("false");
-    await screen.findByRole("option", { name: "Narrateur français · fr-FR" });
+    await screen.findByRole("button", { name: "Écouter la voix Narrateur français" });
   });
 
   it("auditions a voice with the witness phrase through the local engine", async () => {
@@ -256,7 +257,7 @@ describe("StudioAudioView", () => {
     await addLibraryBook({ id: "casting-book", title: "Le Roman choral", shelfId: "in_progress", files: [{ path: "C:/Exports/choral.epub", format: "epub" }] });
     render(<StudioAudioView exportDirectory="C:/Exports" />);
     const narrator = await screen.findByRole("combobox", { name: "Voix du rôle Narrateur" }) as HTMLSelectElement;
-    await screen.findByRole("option", { name: "Narrateur français · fr-FR" });
+    await screen.findByRole("button", { name: "Écouter la voix Narrateur français" });
     fireEvent.change(narrator, { target: { value: "fr-narrator" } });
     await waitFor(() => expect((screen.getByRole("combobox", { name: "Voix du rôle Narrateur" }) as HTMLSelectElement).value).toBe("fr-narrator"));
     fireEvent.change(screen.getByRole("textbox", { name: "Nom du personnage" }), { target: { value: "Élise" } });
@@ -282,8 +283,13 @@ describe("StudioAudioView", () => {
     fireEvent.change(await screen.findByRole("combobox", { name: "Chapitre à adapter" }), { target: { value: "2" } });
     await waitFor(() => expect(getBookChapterText).toHaveBeenCalledWith("podcast-book", 2));
     expect(screen.getByRole("heading", { name: "I. Sélection du chapitre" })).toBeTruthy();
-    expect(screen.getByRole("heading", { name: "II. Banc d’adaptation & Règles" })).toBeTruthy();
+    expect(screen.getByRole("heading", { name: "II.B Banc d’adaptation du script" })).toBeTruthy();
     expect(screen.getByRole("heading", { name: "III. Régie de synthèse" })).toBeTruthy();
+    expect(await screen.findByText("Manuscrit non transcrit")).toBeTruthy();
+    expect(screen.queryByRole("textbox", { name: "Texte de la réplique 1" })).toBeNull();
+    expect(screen.getByText(/Chapitre non transcrit : il sera lu en voix unique/)).toBeTruthy();
+    await transcribe();
+    expect(screen.getByText("Script adapté · 3 répliques")).toBeTruthy();
     expect((await screen.findByRole("textbox", { name: "Texte de la réplique 1" }) as HTMLTextAreaElement).value).toBe("Le soir tombait.");
     expect((screen.getByRole("combobox", { name: "Rôle de la réplique 1" }) as HTMLSelectElement).value).toBe("narrator|Narrateur");
     expect((screen.getByRole("combobox", { name: "Rôle de la réplique 2" }) as HTMLSelectElement).value).toBe("unattributed-dialogue|Dialogues");
@@ -301,7 +307,7 @@ describe("StudioAudioView", () => {
     fireEvent.change(screen.getByRole("textbox", { name: "Texte de la réplique 1" }), { target: { value: "La nuit tombait." } });
     fireEvent.change(screen.getByRole("combobox", { name: "Rôle de la réplique 1" }), { target: { value: "unattributed-dialogue|Dialogues" } });
     const recap = within(screen.getByRole("list", { name: "Récapitulatif des rôles" }));
-    expect(recap.getByText(/Dialogues · 3 réplique\(s\)/)).toBeTruthy();
+    expect(recap.getByText(/Dialogues · 3 répliques/)).toBeTruthy();
     expect(screen.getByText(/lu en polyphonie.*voix par défaut \(Narrateur français\)/)).toBeTruthy();
     expect((screen.getByRole("button", { name: "Générer le chapitre 2" }) as HTMLButtonElement).disabled).toBe(false);
   });
@@ -314,10 +320,11 @@ describe("StudioAudioView", () => {
     vi.mocked(getBookChapterText).mockResolvedValue("— Bonjour.");
     render(<StudioAudioView exportDirectory="C:/Exports" />);
     fireEvent.click(screen.getByRole("tab", { name: "Le Studio" }));
+    await transcribe();
     const role = await screen.findByRole("combobox", { name: "Rôle de la réplique 1" });
     fireEvent.change(role, { target: { value: "character|Élise" } });
     expect((screen.getByRole("combobox", { name: "Rôle de la réplique 1" }) as HTMLSelectElement).value).toBe("character|Élise");
-    expect(within(screen.getByRole("list", { name: "Récapitulatif des rôles" })).getByText(/Élise · 1 réplique\(s\) · Narrateur français/)).toBeTruthy();
+    expect(within(screen.getByRole("list", { name: "Récapitulatif des rôles" })).getByText(/Élise · 1 réplique · Narrateur français/)).toBeTruthy();
   });
 
   it("génère le chapitre adapté en polyphonie et les autres chapitres en voix unique", async () => {
@@ -326,8 +333,9 @@ describe("StudioAudioView", () => {
     vi.mocked(generateLibraryAudio).mockImplementation(async () => getLibraryConfig());
     render(<StudioAudioView exportDirectory="C:/Exports" />);
     fireEvent.click(screen.getByRole("tab", { name: "Le Studio" }));
+    await transcribe();
     await screen.findByRole("textbox", { name: "Texte de la réplique 2" });
-    await screen.findByRole("option", { name: "Narrateur français · fr-FR" });
+    await screen.findByRole("button", { name: "Écouter la voix Narrateur français" });
     fireEvent.change(screen.getByRole("combobox", { name: "Rôle de la réplique 2" }), { target: { value: "narrator|Narrateur" } });
     fireEvent.click(screen.getByRole("button", { name: "Générer le chapitre 1" }));
     await waitFor(() => expect(generateLibraryAudio).toHaveBeenCalledTimes(1));
@@ -357,7 +365,7 @@ describe("StudioAudioView", () => {
     vi.stubGlobal("Audio", vi.fn(function (this: { play: () => Promise<void>; pause: () => void }) { this.play = vi.fn().mockResolvedValue(undefined); this.pause = vi.fn(); }));
     await addLibraryBook({ id: "gender-book", title: "Le Roman mixte", shelfId: "in_progress", files: [{ path: "C:/Exports/mixte.epub", format: "epub" }] });
     render(<StudioAudioView exportDirectory="C:/Exports" />);
-    await screen.findByRole("option", { name: "Claribel Dervla · fr-FR" });
+    await screen.findByRole("button", { name: "Écouter la voix Claribel Dervla" });
     const voiceNames = () => within(screen.getByRole("combobox", { name: "Voix du nouveau personnage" })).getAllByRole("option").map((option) => option.textContent);
     expect(voiceNames()).toEqual(["Narrateur français", "Claribel Dervla", "Viktor Eka"]);
     fireEvent.change(screen.getByRole("combobox", { name: "Genre du nouveau personnage" }), { target: { value: "female" } });
@@ -390,6 +398,7 @@ describe("StudioAudioView", () => {
     vi.mocked(getBookChapterText).mockResolvedValue("— Bonjour.");
     render(<StudioAudioView exportDirectory="C:/Exports" />);
     fireEvent.click(screen.getByRole("tab", { name: "Le Studio" }));
+    await transcribe();
     fireEvent.change(await screen.findByRole("combobox", { name: "Rôle de la réplique 1" }), { target: { value: "character|Élise" } });
     fireEvent.click(screen.getByRole("button", { name: "Retirer le personnage Élise" }));
     await waitFor(() => expect((screen.getByRole("combobox", { name: "Rôle de la réplique 1" }) as HTMLSelectElement).value).toBe("narrator|Narrateur"));
@@ -401,6 +410,7 @@ describe("StudioAudioView", () => {
     const first = render(<StudioAudioView exportDirectory="C:/Exports" />);
     fireEvent.click(screen.getByRole("tab", { name: "Le Studio" }));
     fireEvent.click(await screen.findByRole("checkbox", { name: /Alléger les incises/ }));
+    await transcribe();
     fireEvent.click(screen.getByRole("checkbox", { name: /Noms propres/ }));
     fireEvent.change(screen.getByRole("textbox", { name: "Nom propre" }), { target: { value: "Aldus" } });
     fireEvent.change(screen.getByRole("textbox", { name: "Prononciation" }), { target: { value: "Al-duss" } });
@@ -410,6 +420,7 @@ describe("StudioAudioView", () => {
     await waitFor(async () => expect((await getLibraryConfig()).books[0].audio?.adaptations).toHaveLength(1));
     const [saved] = (await getLibraryConfig()).books[0].audio?.adaptations ?? [];
     expect(saved.chapterIndex).toBe(1);
+    expect(saved.transcribed).toBe(true);
     expect(saved.rules.filter((rule) => rule.enabled).map((rule) => rule.id)).toEqual(["strip-incises", "proper-nouns"]);
     expect(saved.rules.find((rule) => rule.id === "proper-nouns")?.substitutions).toEqual([{ name: "Aldus", spoken: "Al-duss" }]);
     expect(saved.edits).toEqual([{ source: 0, text: "Je m'en vais." }, { source: 1, role: "Narrateur", kind: "narrator" }]);
@@ -422,6 +433,41 @@ describe("StudioAudioView", () => {
     expect((screen.getByRole("combobox", { name: "Rôle de la réplique 2" }) as HTMLSelectElement).value).toBe("narrator|Narrateur");
     expect((screen.getByRole("checkbox", { name: /Alléger les incises/ }) as HTMLInputElement).checked).toBe(true);
     expect((screen.getByRole("checkbox", { name: /Respirations/ }) as HTMLInputElement).checked).toBe(false);
+  });
+
+  it("retire une réplique du script et mémorise l'écart", async () => {
+    await addLibraryBook({ id: "trim-book", title: "Le Roman élagué", shelfId: "in_progress", files: [{ path: "C:/Exports/elague.epub", format: "epub" }] });
+    vi.mocked(getBookChapterText).mockResolvedValue("Le soir tombait.\n— Je pars.\n— Reste.");
+    vi.mocked(generateLibraryAudio).mockImplementation(async () => getLibraryConfig());
+    render(<StudioAudioView exportDirectory="C:/Exports" />);
+    fireEvent.click(screen.getByRole("tab", { name: "Le Studio" }));
+    await transcribe();
+    fireEvent.click(await screen.findByRole("button", { name: "Supprimer la réplique 2" }));
+    expect((screen.getByRole("textbox", { name: "Texte de la réplique 2" }) as HTMLTextAreaElement).value).toBe("Reste.");
+    expect(screen.getByText("Script adapté · 2 répliques")).toBeTruthy();
+    await waitFor(async () => expect((await getLibraryConfig()).books[0].audio?.adaptations?.[0].edits).toEqual([{ source: 1, removed: true }]));
+  });
+
+  it("demande confirmation avant qu'une nouvelle transcription n'écrase les retouches", async () => {
+    await addLibraryBook({ id: "redo-book", title: "Le Roman repris", shelfId: "in_progress", files: [{ path: "C:/Exports/repris.epub", format: "epub" }] });
+    vi.mocked(getBookChapterText).mockResolvedValue("— Je pars.");
+    const confirm = vi.spyOn(window, "confirm").mockReturnValue(false);
+    render(<StudioAudioView exportDirectory="C:/Exports" />);
+    fireEvent.click(screen.getByRole("tab", { name: "Le Studio" }));
+    await transcribe();
+    const text = () => screen.getByRole("textbox", { name: "Texte de la réplique 1" }) as HTMLTextAreaElement;
+    await screen.findByRole("textbox", { name: "Texte de la réplique 1" });
+    fireEvent.click(screen.getByRole("button", { name: "Transcrire en script podcast" }));
+    expect(confirm).not.toHaveBeenCalled();
+
+    fireEvent.change(text(), { target: { value: "Je m'en vais." } });
+    fireEvent.click(screen.getByRole("button", { name: "Transcrire en script podcast" }));
+    expect(confirm).toHaveBeenCalledOnce();
+    expect(text().value).toBe("Je m'en vais.");
+
+    confirm.mockReturnValue(true);
+    fireEvent.click(screen.getByRole("button", { name: "Transcrire en script podcast" }));
+    await waitFor(() => expect(text().value).toBe("Je pars."));
   });
 
   it("n'enregistre rien quand l'adaptation revient à son état d'origine", async () => {

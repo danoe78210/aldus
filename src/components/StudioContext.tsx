@@ -9,6 +9,7 @@ import type {
   ManuscriptLayoutConfig,
   PaginationResult,
   SalonTarget,
+  DeckSelection,
   SourcesConfig,
   SpecialPageRole,
   StructureItem,
@@ -149,6 +150,14 @@ export interface StudioContextValue {
   onOpenSalon: (target: SalonTarget) => void;
   /** Ouvre le Studio Audio, où les disques du Lecteur sont gravés. */
   onOpenStudioAudio: () => void;
+  /** Ouvre la Discothèque, où l'on choisit le disque à écouter. */
+  onOpenDiscotheque: () => void;
+  /** Disque et piste posés sur la platine du Lecteur, ou `null`. */
+  audioDeck: DeckSelection | null;
+  /** Met à jour la piste posée sur la platine (changement de bande). */
+  onAudioDeckChange: (selection: DeckSelection) => void;
+  /** Pose un disque sur la platine et ouvre le Lecteur. */
+  onPlayOnDeck: (selection: DeckSelection) => void;
 
   // --- Journal d'atelier (StatusBar) ---
   /** Consigne un message horodaté dans le journal d'opérations. */

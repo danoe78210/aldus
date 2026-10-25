@@ -10,7 +10,7 @@ import { PreviewFlipbook } from "./components/PreviewFlipbook";
 import { StudioProvider, type ProofTab, type StudioContextValue } from "./components/StudioContext";
 import { PlumeProvider } from "./components/epreuve-plume/PlumeContext";
 import { Toast, type ToastMessage } from "./components/Toast";
-import type { ActiveMenu, AudioGenerationProgress, AudioInitProgressPayload, BookInfoConfig, CoverStudioState, ErrorLogConfig, ImageColorMode, LogDiagnosticLevel, LogEntry, LogLevel, ManuscriptLayoutConfig, SalonTarget, SourcesConfig, SpecialPageRole, StructureItem } from "./types";
+import type { ActiveMenu, AudioGenerationProgress, AudioInitProgressPayload, BookInfoConfig, CoverStudioState, DeckSelection, ErrorLogConfig, ImageColorMode, LogDiagnosticLevel, LogEntry, LogLevel, ManuscriptLayoutConfig, SalonTarget, SourcesConfig, SpecialPageRole, StructureItem } from "./types";
 import { findTrimPreset } from "./data/trimSizes";
 import { INHERIT_FONT, numberFr } from "./data/fonts";
 import { DEFAULT_SPECIAL_ROLE, specialRoleLabel } from "./data/specialPages";
@@ -225,6 +225,7 @@ const App: React.FC = () => {
   // la page gauche et la page droite du livre (les deux volets du diptyque).
   // Le Correcteur et le Banc d'épreuve sont deux sous-vues du ruban : l'onglet interne en dérive.
   const [salonTarget, setSalonTarget] = useState<SalonTarget | null>(null);
+  const [audioDeck, setAudioDeck] = useState<DeckSelection | null>(null);
   const proofTab: ProofTab = activeMenu === "banc-epreuve" ? "banc" : "purete";
   const [proofEnabledRules, setProofEnabledRules] = useState<TypographyRuleId[]>(
     ALL_RULES.map((rule) => rule.id),
@@ -1299,6 +1300,11 @@ const App: React.FC = () => {
     setActiveMenu("salon");
   }, [setActiveMenu]);
 
+  const handlePlayOnDeck = useCallback((selection: DeckSelection) => {
+    setAudioDeck(selection);
+    setActiveMenu("lecteur");
+  }, [setActiveMenu]);
+
   /** Active / désactive une règle depuis « Les Règles Analysées » (page droite du Feuillet VII). */
   const handleToggleProofRule = useCallback((ruleId: TypographyRuleId) => {
     setProofEnabledRules((current) =>
@@ -1528,6 +1534,10 @@ const App: React.FC = () => {
     salonTarget,
     onOpenSalon: handleOpenSalon,
     onOpenStudioAudio: () => setActiveMenu("studio-audio"),
+    onOpenDiscotheque: () => setActiveMenu("discotheque"),
+    audioDeck,
+    onAudioDeckChange: setAudioDeck,
+    onPlayOnDeck: handlePlayOnDeck,
     onNotify: addLog,
     manuscriptConfig,
     sourceConfig,

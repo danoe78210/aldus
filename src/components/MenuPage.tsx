@@ -12,6 +12,7 @@ import { LibraryView } from "./LibraryView";
 import { StudioAudioView } from "./audio/StudioAudioView";
 import { IssuesList } from "./epreuve-plume/IssuesList";
 import { AudioReaderView } from "./audio/AudioReaderView";
+import { DiscothequeView } from "./audio/DiscothequeView";
 import { SalonView } from "./reader/SalonView";
 
 /**
@@ -50,6 +51,8 @@ export const MenuPage: React.FC<{ menu: ActiveMenu }> = ({ menu }) => {
       return <LibraryView exportDirectory={studio.exportDirectory} sourceDirectory={studio.sourceConfig.directory} currentBookTitle={studio.bookInfo.title} currentCoverPath={studio.cover.frontPath} onPickExportDirectory={studio.onPickExportDirectory} onReadBook={studio.onOpenSalon} />;
     case "studio-audio":
       return <StudioAudioView exportDirectory={studio.exportDirectory} onPickExportDirectory={studio.onPickExportDirectory} />;
+    case "discotheque":
+      return <DiscothequeView currentBookTitle={studio.bookInfo.title} deck={studio.audioDeck} onPlay={studio.onPlayOnDeck} onOpenStudio={studio.onOpenStudioAudio} />;
     case "organisation":
       /* Feuillet VI : imposition & calibrage KDP — la table des matières
          (Feuillet V) est composée sur la page de gauche. */
@@ -59,7 +62,7 @@ export const MenuPage: React.FC<{ menu: ActiveMenu }> = ({ menu }) => {
          composé sur la page de gauche (Feuillet VII). */
       return <CoverCalibration />;
     case "lecteur":
-      return <AudioReaderView currentBookTitle={studio.bookInfo.title} onOpenStudio={studio.onOpenStudioAudio} />;
+      return <AudioReaderView currentBookTitle={studio.bookInfo.title} deck={studio.audioDeck} onDeckChange={studio.onAudioDeckChange} onOpenStudio={studio.onOpenStudioAudio} onOpenDiscotheque={studio.onOpenDiscotheque} />;
     case "salon":
       return <SalonView target={studio.salonTarget} />;
     case "correcteur":

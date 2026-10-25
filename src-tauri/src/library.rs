@@ -175,6 +175,8 @@ pub struct LineEdit {
     pub role: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub kind: Option<CastingRoleKind>,
+    #[serde(default, skip_serializing_if = "std::ops::Not::not")]
+    pub removed: bool,
 }
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
@@ -185,6 +187,8 @@ pub struct ChapterAdaptation {
     pub rules: Vec<ScriptRuleState>,
     #[serde(default)]
     pub edits: Vec<LineEdit>,
+    #[serde(default)]
+    pub transcribed: bool,
     #[serde(default)]
     pub updated_at: u64,
 }
@@ -206,7 +210,8 @@ fn validate_adaptation(adaptation: &ChapterAdaptation) -> Result<(), String> {
 
 impl ChapterAdaptation {
     fn is_pristine(&self) -> bool {
-        self.edits.is_empty()
+        !self.transcribed
+            && self.edits.is_empty()
             && self.rules.iter().all(|rule| {
                 !rule.enabled && rule.substitutions.as_deref().is_none_or(<[PronunciationEntry]>::is_empty)
             })
@@ -1189,7 +1194,7 @@ mod tests {
     }
 
     fn adaptation(rules: Vec<ScriptRuleState>, edits: Vec<LineEdit>) -> ChapterAdaptation {
-        ChapterAdaptation { chapter_index: 1, rules, edits, updated_at: 0 }
+        ChapterAdaptation { chapter_index: 1, rules, edits, transcribed: false, updated_at: 0 }
     }
 
     fn rule(id: &str, enabled: bool) -> ScriptRuleState {
@@ -1200,7 +1205,7 @@ mod tests {
     fn adaptation_rejects_unknown_rules_and_blank_roles() {
         assert!(validate_adaptation(&adaptation(vec![rule("strip-incises", true)], vec![])).is_ok());
         assert!(validate_adaptation(&adaptation(vec![rule("inconnue", true)], vec![])).is_err());
-        let blank = LineEdit { source: 0, text: None, role: Some(" ".into()), kind: Some(CastingRoleKind::Character) };
+        let blank = LineEdit { source: 0, text: None, role: Some(" ".into()), kind: Some(CastingRoleKind::Character), removed: false };
         assert!(validate_adaptation(&adaptation(vec![], vec![blank])).is_err());
         assert!(validate_adaptation(&ChapterAdaptation { chapter_index: 0, ..adaptation(vec![], vec![]) }).is_err());
     }
@@ -1215,8 +1220,9 @@ mod tests {
             substitutions: Some(vec![PronunciationEntry { name: "Aldus".into(), spoken: "Al-duss".into() }]),
         };
         assert!(!adaptation(vec![table], vec![]).is_pristine());
-        let edit = LineEdit { source: 2, text: Some("Bonjour.".into()), role: None, kind: None };
+        let edit = LineEdit { source: 2, text: Some("Bonjour.".into()), role: None, kind: None, removed: false };
         assert!(!adaptation(vec![], vec![edit]).is_pristine());
+        assert!(!ChapterAdaptation { transcribed: true, ..adaptation(vec![], vec![]) }.is_pristine());
     }
 
     #[test]

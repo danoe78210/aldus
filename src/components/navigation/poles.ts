@@ -33,6 +33,7 @@ export const POLES: PoleDefinition[] = [
     label: "Oratoire",
     views: [
       { id: "studio-audio", label: "Studio Audio" },
+      { id: "discotheque", label: "Discothèque" },
       { id: "lecteur", label: "Le Lecteur" },
     ],
   },
@@ -54,7 +55,7 @@ export const DEFAULT_VIEW_BY_POLE: Record<NavPole, ActiveMenu> = {
 };
 
 /** Vues qui occupent toute la largeur de l'établi (sans double page). */
-export const FULL_WIDTH_MENUS: readonly ActiveMenu[] = ["bibliotheque", "studio-audio", "lecteur", "salon"];
+export const FULL_WIDTH_MENUS: readonly ActiveMenu[] = ["bibliotheque", "studio-audio", "discotheque", "lecteur", "salon"];
 
 export const poleOf = (menu: ActiveMenu): PoleDefinition =>
   POLES.find((pole) => pole.views.some((view) => view.id === menu)) ?? POLES[0];

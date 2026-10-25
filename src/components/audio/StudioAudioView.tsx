@@ -4,12 +4,13 @@ import type { AudioChapter, AudioChapterChoice, AudioGenerationProgress, Library
 import { deleteLibraryAudioTrack, generateLibraryAudio, getLibraryConfig, listBookAudioChapters } from "../../utils/libraryApi";
 import { AudioSetupDialog } from "../AudioSetupDialog";
 import { ChapterSynthesisTable } from "./ChapterSynthesisTable";
+import { frenchCount } from "./frenchCount";
 import { SidecarConsole } from "./SidecarConsole";
-import { PodcastRegie, PodcastWorkbench } from "./PodcastWorkbench";
+import { PodcastBench, PodcastRegie, PodcastRules } from "./PodcastWorkbench";
 import { useAudioEngine } from "./useAudioEngine";
 import { usePodcastScript } from "./usePodcastScript";
-import { useVoiceCasting } from "./useVoiceCasting";
-import { VoiceChoir } from "./VoiceChoir";
+import { NARRATOR_ROLE, useVoiceCasting } from "./useVoiceCasting";
+import { RoleCasting, VoiceInventory } from "./VoiceChoir";
 
 interface StudioAudioViewProps {
   exportDirectory?: string | null;
@@ -50,6 +51,8 @@ export const StudioAudioView = ({ exportDirectory, onPickExportDirectory }: Stud
   const onSaved = useCallback((saved: LibraryConfig) => setConfig(saved), []);
   const casting = useVoiceCasting(bookId, book?.audio?.casting, onSaved);
   const characterRoles = useMemo(() => casting.characters.map((character) => character.role), [casting.characters]);
+  const narratorVoiceId = casting.voiceOf(NARRATOR_ROLE, "narrator");
+  const masterVoiceId = engine.voices.some((voice) => voice.id === narratorVoiceId) ? narratorVoiceId : engine.voiceId;
   const podcast = usePodcastScript({ bookId, chapterIndex: adaptChapter?.index ?? null, saved: book?.audio?.adaptations, characters: characterRoles, onSaved });
 
   useEffect(() => {
@@ -75,14 +78,14 @@ export const StudioAudioView = ({ exportDirectory, onPickExportDirectory }: Stud
 
   const polyphonicLines = podcast.script?.lines ?? [];
   const generate = (chapterIndex: number) => {
-    if (!bookId || !exportDirectory || !engine.voiceId || generating) return;
+    if (!bookId || !exportDirectory || !masterVoiceId || generating) return;
     setGeneratingIndex(chapterIndex);
     setProgress(null);
     setError(null);
     const script = chapterIndex === adaptChapter?.index && polyphonicLines.length > 0
       ? polyphonicLines.map(({ role, kind, text }) => ({ role, kind, text }))
       : undefined;
-    generateLibraryAudio(bookId, exportDirectory, engine.voiceId, chapterIndex, setProgress, script)
+    generateLibraryAudio(bookId, exportDirectory, masterVoiceId, chapterIndex, setProgress, script)
       .then(setConfig)
       .catch((reason: unknown) => setError(messageOf(reason, "Génération audio impossible.")))
       .finally(() => setGeneratingIndex(null));
@@ -98,12 +101,12 @@ export const StudioAudioView = ({ exportDirectory, onPickExportDirectory }: Stud
 
   const blockReason = generating
     ? "Génération audio en cours…"
-    : !engine.voiceId
+    : !masterVoiceId
       ? engine.voices.length === 0 ? (engine.voiceError ? null : "Chargement des profils vocaux…") : "Choisissez un profil de voix française dans Le Chœur."
       : !exportDirectory
         ? "Choisissez un dossier d’export dans Export → Inspection Pré-Presse → Parcourir les archives. Les MP3 y seront enregistrés."
         : loadedChapters?.error ?? (loadedChapters ? null : "Chargement des chapitres narratifs…");
-  const canGenerate = !generating && Boolean(engine.voiceId) && Boolean(exportDirectory) && chapters.length > 0;
+  const canGenerate = !generating && Boolean(masterVoiceId) && Boolean(exportDirectory) && chapters.length > 0;
 
   const tabClass = (tab: AudioTab) => `border-b-2 px-4 py-2 font-cinzel text-xs tracking-wider uppercase transition-colors ${activeTab === tab ? "border-[#d4af37] text-[#d4af37]" : "border-transparent text-[#a99a83] hover:text-[#d4af37]"}`;
 
@@ -122,53 +125,60 @@ export const StudioAudioView = ({ exportDirectory, onPickExportDirectory }: Stud
         <button type="button" role="tab" id="audio-tab-studio" aria-selected={activeTab === "studio"} aria-controls="audio-panel-studio" onClick={() => setActiveTab("studio")} className={tabClass("studio")}>Le Studio</button>
       </div>
       {/* Les deux pages restent montées : le moteur et la progression survivent au changement d'onglet. */}
-      <div role="tabpanel" id="audio-panel-choeur" aria-labelledby="audio-tab-choeur" className={`flex min-w-0 max-w-3xl flex-col gap-4 ${activeTab === "choeur" ? "" : "hidden"}`}>
-        <SidecarConsole
-          ready={engine.voices.length > 0}
-          checking={engine.checking}
-          initPercent={engine.initPercent}
-          engineMode={engine.engineMode}
-          cpmlAccepted={engine.cpmlAccepted}
-          error={engine.voiceError}
-          onRetry={() => { void engine.retry(); }}
-          onOpenSetup={() => engine.setSetupOpen(true)}
-        />
-        <label className="text-sm text-[#c9bea9]">Profil de voix
-          <select value={engine.voiceId} disabled={generating || engine.voices.length === 0} onChange={(event) => engine.setVoiceId(event.target.value)} className={selectClass}>
-            {engine.voices.length === 0 && <option value="">{engine.checking
-              ? `Chargement des profils vocaux (${engine.initPercent ?? 0}%)...`
-              : engine.voiceError ? "Moteur vocal inactif" : "Chargement des voix…"}</option>}
-            {engine.voices.map((voice) => <option key={voice.id} value={voice.id}>{voice.name}{voice.language ? ` · ${voice.language}` : ""}</option>)}
-          </select>
-        </label>
-        <VoiceChoir voices={engine.voices} defaultVoiceId={engine.voiceId} previewingId={engine.previewingId} previewError={engine.previewError} onPreview={(id) => { void engine.preview(id); }} casting={casting} hasBook={Boolean(bookId)} />
-      </div>
-      <div role="tabpanel" id="audio-panel-studio" aria-labelledby="audio-tab-studio" className={`flex min-w-0 flex-col gap-4 ${activeTab === "studio" ? "" : "hidden"}`}>
-        <div className="flex items-start gap-2 font-serif text-xs text-[#8c8275]">
-          <span className="min-w-0 flex-1 break-words">{exportDirectory ? `Pistes MP3 enregistrées dans ${exportDirectory}` : "Aucun dossier d’export choisi."}</span>
-          {onPickExportDirectory && <button type="button" aria-label="Choisir le dossier d’export" onClick={onPickExportDirectory} className="shrink-0 p-1 text-[#c5a059] hover:text-[#d4af37]"><FolderOpen size={16} /></button>}
+      <div role="tabpanel" id="audio-panel-choeur" aria-labelledby="audio-tab-choeur" className={activeTab === "choeur" ? "grid min-w-0 items-start gap-6 lg:grid-cols-2" : "hidden"}>
+        <div className="flex min-w-0 flex-col gap-4">
+          <SidecarConsole
+            ready={engine.voices.length > 0}
+            checking={engine.checking}
+            initPercent={engine.initPercent}
+            engineMode={engine.engineMode}
+            cpmlAccepted={engine.cpmlAccepted}
+            error={engine.voiceError}
+            onRetry={() => { void engine.retry(); }}
+            onOpenSetup={() => engine.setSetupOpen(true)}
+          />
+          <VoiceInventory voices={engine.voices} previewingId={engine.previewingId} onPreview={(id) => { void engine.preview(id); }} />
+          {engine.previewError && <p role="alert" className="text-xs text-[#d28b75]">{engine.previewError}</p>}
         </div>
+        <RoleCasting voices={engine.voices} defaultVoiceId={masterVoiceId} previewingId={engine.previewingId} onPreview={(id) => { void engine.preview(id); }} casting={casting} hasBook={Boolean(bookId)} />
+      </div>
+      <div role="tabpanel" id="audio-panel-studio" aria-labelledby="audio-tab-studio" className={`flex min-w-0 flex-col gap-6 ${activeTab === "studio" ? "" : "hidden"}`}>
         {books.length === 0 ? (
           <p className="font-serif text-sm text-[#a99a83]">Aucun livre au Registre : ajoutez-en un depuis la Bibliothèque.</p>
         ) : (
           <>
-            <section aria-labelledby="stage-chapter-title" className="flex max-w-3xl flex-col gap-2">
-              <h3 id="stage-chapter-title" className={stageTitle}>I. Sélection du chapitre</h3>
-              <label className="text-sm text-[#c9bea9]">Chapitre à adapter
-                <select value={adaptChapter?.index ?? ""} disabled={chapters.length === 0} onChange={(event) => setAdaptIndex(Number(event.target.value))} className={selectClass}>
-                  {chapters.length === 0 && <option value="">Aucun chapitre disponible</option>}
-                  {chapters.map((chapter) => <option key={chapter.index} value={chapter.index}>{chapter.index}. {chapter.title}</option>)}
-                </select>
-              </label>
-            </section>
-            <section aria-labelledby="stage-bench-title" className="flex max-w-3xl flex-col gap-2">
-              <h3 id="stage-bench-title" className={stageTitle}>II. Banc d’adaptation &amp; Règles</h3>
-              <PodcastWorkbench podcast={podcast} casting={casting} />
-            </section>
+            <div className="grid min-w-0 items-start gap-6 lg:grid-cols-2">
+              <div className="flex min-w-0 flex-col gap-6">
+                <div className="flex items-center gap-3 rounded-sm border border-[#2e261c] bg-[#151518] px-4 py-3">
+                  <div className="min-w-0 flex-1">
+                    <p className="font-cinzel text-[10px] tracking-wider text-[#8c8275] uppercase">Dossier d’export</p>
+                    <p className="font-serif text-sm break-words text-[#c9bea9]">{exportDirectory ?? "Aucun dossier d’exportation sélectionné"}</p>
+                  </div>
+                  {onPickExportDirectory && <button type="button" aria-label="Choisir le dossier d’export" onClick={onPickExportDirectory} className="shrink-0 p-1.5 text-[#c5a059] hover:text-[#d4af37]"><FolderOpen size={18} /></button>}
+                </div>
+                <section aria-labelledby="stage-chapter-title" className="flex flex-col gap-2">
+                  <h3 id="stage-chapter-title" className={stageTitle}>I. Sélection du chapitre</h3>
+                  <label className="text-sm text-[#c9bea9]">Chapitre à adapter
+                    <select value={adaptChapter?.index ?? ""} disabled={chapters.length === 0} onChange={(event) => setAdaptIndex(Number(event.target.value))} className={selectClass}>
+                      {chapters.length === 0 && <option value="">Aucun chapitre disponible</option>}
+                      {chapters.map((chapter) => <option key={chapter.index} value={chapter.index}>{chapter.index}. {chapter.title}</option>)}
+                    </select>
+                  </label>
+                </section>
+                <section aria-labelledby="stage-rules-title" className="flex flex-col gap-3">
+                  <h3 id="stage-rules-title" className={stageTitle}>II.A Règles de transformation</h3>
+                  <PodcastRules podcast={podcast} />
+                </section>
+              </div>
+              <section aria-labelledby="stage-bench-title" className="flex min-w-0 flex-col gap-3">
+                <h3 id="stage-bench-title" className={stageTitle}>II.B Banc d’adaptation du script</h3>
+                <PodcastBench podcast={podcast} casting={casting} />
+              </section>
+            </div>
             <section aria-labelledby="stage-regie-title" className="flex flex-col gap-3">
               <h3 id="stage-regie-title" className={stageTitle}>III. Régie de synthèse</h3>
-              {book?.audio && book.audio.chapters.length > 0 && <p className="font-serif text-sm text-[#d4af37]">Disque du livre · {book.audio.voiceName} · {book.audio.chapters.length} piste(s) gravée(s)</p>}
-              <PodcastRegie podcast={podcast} casting={casting} voices={engine.voices} defaultVoiceId={engine.voiceId} chapterTitle={adaptChapter?.title} />
+              {book?.audio && book.audio.chapters.length > 0 && <p className="font-serif text-sm text-[#d4af37]">Disque du livre · Voix maîtresse&nbsp;: {book.audio.voiceName} · {frenchCount(book.audio.chapters.length, "piste gravée", "pistes gravées")}</p>}
+              <PodcastRegie podcast={podcast} casting={casting} voices={engine.voices} defaultVoiceId={masterVoiceId} chapterTitle={adaptChapter?.title} />
               <ChapterSynthesisTable chapters={chapters} tracks={tracks} generatingIndex={generatingIndex} progress={progress} canGenerate={canGenerate} onGenerate={generate} onDelete={remove} />
               {blockReason && <p role="status" className="max-w-xl font-serif text-sm leading-relaxed text-[#c5a059]">{blockReason}</p>}
             </section>
