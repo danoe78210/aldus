@@ -93,11 +93,6 @@
 
             <Property Id="WIXUI_INSTALLDIR" Value="INSTALLDIR" />
 
-            <!-- Aldus: texte d'encre explicite, indépendant du thème sombre de Windows -->
-            <TextStyle Id="WixUI_Font_Normal" FaceName="Segoe UI" Size="9" Red="30" Green="30" Blue="30" />
-            <TextStyle Id="WixUI_Font_Bigger" FaceName="Segoe UI" Size="12" Red="30" Green="30" Blue="30" />
-            <TextStyle Id="WixUI_Font_Title" FaceName="Segoe UI" Size="9" Bold="yes" Red="30" Green="30" Blue="30" />
-
             {{#unless license}}
             <!-- Skip license dialog -->
             <Publish Dialog="WelcomeDlg"

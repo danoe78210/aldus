@@ -1,4 +1,25 @@
 # Registre des Évolutions — Aldus
+## [4.1.12] - 2026-10-25 — L'Oratoire et le Salon de lecture : parution majeure
+### Ajouté
+- **Oratoire** : transcription du manuscrit en script de podcast (Narrateur / Dialogues), élagage des incises, respirations, table phonétique ; synthèse factice locale sur `127.0.0.1:8020` (segments ≤ 240 caractères) ; assemblage FFmpeg par chapitre.
+- **Discothèque** : rayons, fiches de session, suppression sûre d'un enregistrement ou d'un album.
+- **Console à bande** : galvanomètres et vu-mètres temps réel alimentés par le signal Web Audio.
+- **Salon de lecture** : diptyque permanent à double page (ombres de reliure et de tranche) ; tournage de page 3D (`page-flip`) ; curseur de progression avec infobulle « Chapitre X · Page Y » ; papiers Atelier Sombre et Vélin Naturel (`#FBF7F0` / `#2A2421`).
+- Typographie du Salon : césures françaises, lettrine soudée, espace après ponctuation forte, espaces doubles réduits, apostrophes courbes.
+- Les PDF s'ouvrent dans le Salon : extraction pdf.js + recomposition (en-têtes/folios retirés, paragraphes rétablis inter-pages, chapitres détectés).
+- Guides : `docs/guide-salon-de-lecture.md` et `docs/guide-oratoire.md`.
+
+### Modifié
+- Le Salon n'a plus d'exception pour le PDF : tous les formats passent par le même volume relié.
+- Dépendances : `page-flip` ajouté ; correctifs de sécurité `vite`, `undici`, `zod` (`npm audit` : 0 vulnérabilité).
+
+### Vérifié
+- Suite Vitest : 244 tests ; `cargo test --lib library` : 55 tests ; `tsc`, `npm run lint`, `npm run build` et `cargo check` sans avertissement.
+
+### Limites connues
+- Le Salon a été vérifié à l'écran sur un seul ouvrage ; la recomposition des PDF reste peu éprouvée.
+- PDF : images et mise en page d'origine perdues dans le Salon, PDF numérisés sans contenu, mot composé coupé en fin de ligne peut perdre son tiret.
+
 ## [1.4.12] - 2026-10-25 — Le Salon de lecture et l'Oratoire parachevés
 ### Ajouté
 - **Oratoire** : transcription du manuscrit en script de podcast, réparti Narrateur / Dialogues, avec élagage des incises, respirations et table phonétique ; synthèse factice locale sur le port 8020 ; assemblage FFmpeg.

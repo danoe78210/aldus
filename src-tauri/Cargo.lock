@@ -53,7 +53,7 @@ dependencies = [
 
 [[package]]
 name = "aldus"
-version = "1.4.12"
+version = "4.1.12"
 dependencies = [
  "chrono",
  "docx-rs",
