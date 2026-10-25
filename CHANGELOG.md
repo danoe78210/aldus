@@ -17,7 +17,7 @@
 - Suite Vitest : 244 tests ; `cargo test --lib library` : 55 tests ; `tsc`, `npm run lint`, `npm run build` et `cargo check` sans avertissement.
 
 ### Limites connues
-- Le Salon et la recomposition des PDF n'ont pas encore été vérifiés à l'écran dans l'application complète ; les captures de cette version restent à produire.
+- Le Salon a été vérifié à l'écran sur un seul ouvrage ; la recomposition des PDF reste peu éprouvée.
 - PDF : images et mise en page d'origine perdues dans le Salon, PDF numérisés sans contenu, un mot composé coupé en fin de ligne peut perdre son tiret.
 
 ## [1.4.11] - 2026-10-24 — Lecteur d'Atelier & ruban Studio Audio
