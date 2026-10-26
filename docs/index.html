@@ -89,6 +89,8 @@
       pointer-events: auto;
     }
 
+    .plaque.active .plaque-summary { opacity: 0; pointer-events: none; transition: opacity 0.3s ease; }
+
     /* Sceau de cire */
     .wax-seal {
       background: radial-gradient(circle, #d4af37 0%, #b8860b 70%, #8b6508 100%);
@@ -125,8 +127,8 @@
 
     #close-btn {
       position: fixed;
-      top: 2rem;
-      right: 2rem;
+      top: calc(10vh + 1.5rem);
+      right: calc(10vw + 1.5rem);
       z-index: 110;
       opacity: 0;
       pointer-events: none;
@@ -227,16 +229,16 @@
       <h2 class="font-display text-4xl text-gold mb-6 italic">Le Grimoire de l'Atelier</h2>
       <div class="space-y-6 text-lg leading-relaxed opacity-90">
         <p>L'ensemble des savoirs et des règles qui régissent la création d'un ouvrage d'exception.</p>
-        <div class="grid grid-cols-1 gap-4">
-          <a href="specifications.html" class="flex items-center gap-3 p-4 rounded-sm border border-gold/30 bg-gold/5 hover:bg-gold/10 transition-colors text-gold">
+        <div class="grid grid-cols-1 gap-6 max-w-2xl mx-auto w-full mt-8">
+          <a href="specifications.html" class="flex items-center gap-3 p-4 rounded-sm border-y border-gold/20 hover:border-gold/60 bg-transparent hover:bg-gold/5 hover:shadow-[0_0_20px_rgba(212,175,55,0.15)] transition-colors text-gold">
             <span class="font-display italic text-2xl">✦</span>
             <span>Spécifications Techniques</span>
           </a>
-          <a href="history.html" class="flex items-center gap-3 p-4 rounded-sm border border-gold/30 bg-gold/5 hover:bg-gold/10 transition-colors text-gold">
+          <a href="history.html" class="flex items-center gap-3 p-4 rounded-sm border-y border-gold/20 hover:border-gold/60 bg-transparent hover:bg-gold/5 hover:shadow-[0_0_20px_rgba(212,175,55,0.15)] transition-colors text-gold">
             <span class="font-display italic text-2xl">✦</span>
             <span>Registre des Versions Antérieures</span>
           </a>
-          <a href="https://github.com/danoe78210/aldus/blob/main/CHANGELOG.md" target="_blank" class="flex items-center gap-3 p-4 rounded-sm border border-gold/30 bg-gold/5 hover:bg-gold/10 transition-colors text-gold">
+          <a href="https://github.com/danoe78210/aldus/blob/main/CHANGELOG.md" target="_blank" class="flex items-center gap-3 p-4 rounded-sm border-y border-gold/20 hover:border-gold/60 bg-transparent hover:bg-gold/5 hover:shadow-[0_0_20px_rgba(212,175,55,0.15)] transition-colors text-gold">
             <span class="font-display italic text-2xl">✦</span>
             <span>Journal des Modifications (GitHub)</span>
           </a>
