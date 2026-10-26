@@ -1,14 +1,281 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="view-transition" content="same-origin">
-  <meta name="theme-color" content="#13110f">
-  <title>Registre des versions antérieures — Aldus</title>
-  <link rel="stylesheet" href="../styles.css">
+  <title>Registre des versions antérieures — Aldus, Atelier du Livre Moderne</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,700;1,400&family=Playfair+Display:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --color-bg: #0a0a0a;
+      --color-parchment: #eaddc5;
+      --color-gold: #d4af37;
+      --color-gold-bright: #f9df91;
+      --font-display: 'Playfair Display', serif;
+      --font-body: 'Lora', serif;
+    }
+
+    body {
+      background-color: var(--color-bg);
+      color: var(--color-parchment);
+      font-family: var(--font-body);
+      height: 100vh;
+      overflow: hidden;
+      margin: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+
+    /* Texture de fond fractal SVG */
+    .texture-overlay {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 10;
+      opacity: 0.4;
+      mix-blend-mode: overlay;
+    }
+
+    .font-display { font-family: var(--font-display); }
+    .text-gold { color: var(--color-gold); }
+    .bg-gold { background-color: var(--color-gold); }
+
+    /* Animation de pulsation de l'emblème */
+    .emblem-pulse {
+      animation: pulse-gold 4s infinite ease-in-out;
+    }
+
+    @keyframes pulse-gold {
+      0%, 100% { box-shadow: 0 0 20px rgba(212, 175, 55, 0.3); transform: scale(1); }
+      50% { box-shadow: 0 0 60px rgba(212, 175, 55, 0.6); transform: scale(1.05); }
+    }
+
+    /* Style des plaques */
+    .plaque {
+      position: absolute;
+      cursor: pointer;
+      transition: all 0.6s cubic-bezier(0.23, 1, 0.32, 1);
+      z-index: 20;
+      border: 1px solid rgba(212, 175, 55, 0.3);
+      background: linear-gradient(135deg, #1a1a1a 0%, #0a0a0a 100%);
+      box-shadow: 0 10px 30px rgba(0,0,0,0.8), inset 0 0 15px rgba(212, 175, 55, 0.1);
+      overflow: hidden;
+    }
+
+    .plaque-content {
+      opacity: 0;
+      transition: opacity 0.4s ease;
+      pointer-events: none;
+    }
+
+    .plaque.active {
+      width: 80vw !important;
+      height: 80vh !important;
+      left: 10vw !important;
+      top: 10vh !important;
+      z-index: 100;
+      transform: scale(1) !important;
+      border-color: var(--color-gold);
+      box-shadow: 0 0 100px rgba(0,0,0,1), 0 0 40px rgba(212, 175, 55, 0.2);
+    }
+
+    .plaque.active .plaque-content {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .plaque.active .plaque-summary { opacity: 0; pointer-events: none; transition: opacity 0.3s ease; }
+
+    /* Sceau de cire */
+    .wax-seal {
+      background: radial-gradient(circle, #d4af37 0%, #b8860b 70%, #8b6508 100%);
+      border: 3px solid #8b6508;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.5), inset 0 0 10px rgba(0,0,0,0.3);
+      border-radius: 50%;
+      transition: transform 0.2s ease;
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      font-family: var(--font-display);
+      font-weight: bold;
+      text-transform: uppercase;
+      font-size: 0.75rem;
+      color: #4a3500;
+      width: 120px;
+      height: 120px;
+      user-select: none;
+    }
+
+    .wax-seal:hover {
+      transform: scale(1.1) rotate(3deg);
+    }
+
+    .wax-seal::after {
+      content: "";
+      position: absolute;
+      inset: 5px;
+      border: 1px solid rgba(255,255,255,0.2);
+      border-radius: 50%;
+    }
+
+    #close-btn {
+      position: fixed;
+      top: calc(10vh + 1.5rem);
+      right: calc(10vw + 1.5rem);
+      z-index: 110;
+      opacity: 0;
+      pointer-events: none;
+      transition: all 0.3s ease;
+      background: rgba(10, 10, 10, 0.9);
+      border: 1px solid rgba(212, 175, 55, 0.4);
+      border-radius: 50%;
+      padding: 12px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.8);
+      color: var(--color-gold);
+    }
+    #close-btn:hover {
+      background: rgba(212, 175, 55, 0.15);
+      border-color: rgba(212, 175, 55, 1);
+      transform: scale(1.1) rotate(90deg);
+    }
+
+    #close-btn.visible {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .hidden-spatial {
+      opacity: 0;
+      pointer-events: none;
+      transform: scale(0.9);
+    }
+
+    .hide-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+    .hide-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .fade-mask {
+      mask-image: linear-gradient(to bottom, transparent 0%, black 10%, black 90%, transparent 100%);
+      -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 10%, black 90%, transparent 100%);
+    }
+
+    @keyframes spin-astrolabe {
+      from { transform: translate(-50%, -50%) rotate(0deg); }
+      to { transform: translate(-50%, -50%) rotate(360deg); }
+    }
+    .orbite-ellipse {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 84vw;
+      height: 84vh;
+      border: 2px solid rgba(212, 175, 55, 0.35);
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 15;
+    }
+    .orbite-cercle {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 70vmin;
+      height: 70vmin;
+      border: 2px dashed rgba(212, 175, 55, 0.45);
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 15;
+      animation: spin-astrolabe 120s linear infinite;
+    }
+
+    /* Styles spécifiques pour le registre des versions */
+    .version-entry {
+      border-left: 2px solid rgba(212, 175, 55, 0.3);
+      padding-left: 1.5rem;
+      margin-bottom: 2rem;
+    }
+    .version-entry:last-child {
+      margin-bottom: 0;
+    }
+    .version-header {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: baseline;
+      gap: 1rem;
+      margin-bottom: 1rem;
+    }
+    .version-badge {
+      font-family: var(--font-display);
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.15em;
+      color: var(--color-gold);
+      background: rgba(212, 175, 55, 0.1);
+      padding: 0.25rem 0.75rem;
+      border: 1px solid rgba(212, 175, 55, 0.3);
+      border-radius: 2px;
+    }
+    .version-title {
+      font-family: var(--font-display);
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--color-parchment);
+    }
+    .version-features {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+    .version-features li {
+      position: relative;
+      padding-left: 1.5rem;
+      margin-bottom: 0.5rem;
+      opacity: 0.85;
+      line-height: 1.7;
+    }
+    .version-features li::before {
+      content: "✦";
+      position: absolute;
+      left: 0;
+      color: var(--color-gold);
+      font-size: 0.8rem;
+    }
+    .version-links {
+      display: flex;
+      gap: 1.5rem;
+      margin-top: 1rem;
+      flex-wrap: wrap;
+    }
+    .version-links a {
+      color: var(--color-gold);
+      text-decoration: none;
+      border-bottom: 1px solid transparent;
+      transition: all 0.2s ease;
+      font-size: 0.9rem;
+    }
+    .version-links a:hover {
+      border-bottom-color: var(--color-gold);
+      color: var(--color-gold-bright);
+    }
+    .version-divider {
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(212, 175, 55, 0.3), transparent);
+      margin: 2rem 0;
+    }
+  </style>
 </head>
-<body class="min-h-screen bg-atelier-ebony text-atelier-ivory">
+<body>
 
   <!-- Compas Orbital (Navigation) -->
   <div class="fixed top-8 left-8 z-[120] group font-display">
@@ -24,148 +291,211 @@
     </div>
   </div>
 
-  <main class="mx-auto max-w-5xl px-6 py-16 sm:px-10">
-    <header class="my-12 text-center">
-      <span class="text-atelier-gold text-xl" aria-hidden="true">❦</span>
-      <h1 class="mt-3 font-cinzel text-3xl uppercase tracking-[0.18em]">Registre des versions antérieures</h1>
-      <p class="mt-4 text-atelier-muted">Historique des nouveautés et des captures d'Aldus.</p>
-    </header>
-    <section class="mb-8 rounded-sm border border-atelier-border bg-atelier-card p-6 sm:p-8">
-      <p class="font-cinzel text-xs uppercase tracking-widest text-atelier-gold">Version 1.4.11 · 24 octobre 2026</p>
-      <h2 class="mt-2 font-serif text-2xl">Lecteur d'Atelier &amp; ruban Studio Audio</h2>
-      <ul class="mt-5 list-disc space-y-2 pl-5 text-sm leading-relaxed text-atelier-bistre">
-        <li>« Ouvrir le livre » lit l'EPUB, le PDF ou le DOCX en plein écran, avec trois papiers, un tiroir typographique, une table des matières et le mode Silence.</li>
-        <li>Les signets dorés sont écrits de façon atomique dans <code>.aldus/bookmarks.json</code>.</li>
-        <li>Ruban « Studio Audio » dédié : console XTTS v2 local, choix de la voix et table de synthèse par chapitre.</li>
-        <li>Installateur MSI en français (<code>fr-FR</code>), aux couleurs d'Aldus.</li>
-      </ul>
-      <h3 class="mt-8 font-cinzel text-sm uppercase tracking-widest text-atelier-gold">Captures de la version</h3>
-      <div class="mt-4 grid grid-cols-1 gap-5 sm:grid-cols-2">
-        <figure class="overflow-hidden rounded-sm border border-atelier-border bg-atelier-ebony">
-          <a href="assets/screenshots/lecteur-atelier-v1.4.11.png" data-gallery><img class="w-full" src="assets/screenshots/lecteur-atelier-v1.4.11.png" alt="Aldus v1.4.11 — Lecteur d'Atelier : page en vélin avec le texte démo « Le Phare de Kerlann »." loading="lazy" decoding="async"></a>
-          <figcaption>Lecteur d'Atelier sur le papier vélin, texte de démonstration.</figcaption>
-        </figure>
-        <figure class="overflow-hidden rounded-sm border border-atelier-border bg-atelier-ebony">
-          <a href="assets/screenshots/studio-audio-v1.4.11.png" data-gallery><img class="w-full" src="assets/screenshots/studio-audio-v1.4.11.png" alt="Aldus v1.4.11 — Studio Audio : ruban dédié, table de synthèse par chapitre du livre démo." loading="lazy" decoding="async"></a>
-          <figcaption>Studio Audio : table de synthèse par chapitre.</figcaption>
-        </figure>
-      </div>
-      <p class="mt-6 text-sm">
-        <a class="text-atelier-gold underline" href="https://github.com/danoe78210/aldus/releases/tag/v1.4.11">Notes de version v1.4.11</a>
-        <span class="px-2 text-atelier-muted">·</span>
-        <a class="text-atelier-gold underline" href="../CHANGELOG.md">Journal complet</a>
-      </p>
-    </section>
-    <section class="mb-8 rounded-sm border border-atelier-border bg-atelier-card p-6 sm:p-8">
-      <p class="font-cinzel text-xs uppercase tracking-widest text-atelier-gold">Version 1.4.10 · 20 octobre 2026</p>
-      <h2 class="mt-2 font-serif text-2xl">Épreuve de Plume, pupitre de remaniement</h2>
-      <ul class="mt-5 list-disc space-y-2 pl-5 text-sm leading-relaxed text-atelier-bistre">
-        <li>L'Épreuve de Plume se consacre exclusivement au style : cadence isométrique, tics de transition, triades rhétoriques, entropie et distribution de Zipf.</li>
-        <li>Chaque alerte cite le passage, explique le diagnostic et propose une reformulation de la Forge.</li>
-        <li>Le manuscrit annoté surligne les passages signalés ; un clic ouvre la carte associée, le survol d'une carte éclaire le texte.</li>
-        <li>Appliquer une reformation crée un instantané dans <code>.aldus/history</code>, écrit le fichier de façon atomique et recalcule le score.</li>
-        <li>Texte justifié avec césures françaises en Literata, titres Markdown mis en forme, cartes en police d'interface et contrastes renforcés.</li>
-        <li>La plaque de version vérifie les mises à jour à la demande, avec cache de deux heures.</li>
-      </ul>
-      <h3 class="mt-8 font-cinzel text-sm uppercase tracking-widest text-atelier-gold">Captures de la version</h3>
-      <div class="mt-4 grid grid-cols-1 gap-5 sm:grid-cols-2">
-        <figure class="overflow-hidden rounded-sm border border-atelier-border bg-atelier-ebony">
-          <a href="assets/screenshots/epreuve-de-plume-v1.4.10.png" data-gallery><img class="w-full" src="assets/screenshots/epreuve-de-plume-v1.4.10.png" alt="Aldus v1.4.10 — Épreuve de Plume : manuscrit justifié et surligné, registre des remaniements." loading="lazy" decoding="async"></a>
-          <figcaption>Manuscrit annoté et cartes d'alerte avec proposition de la Forge.</figcaption>
-        </figure>
-      </div>
-      <p class="mt-6 text-sm">
-        <a class="text-atelier-gold underline" href="https://github.com/danoe78210/aldus/releases/tag/v1.4.10">Notes de version v1.4.10</a>
-        <span class="px-2 text-atelier-muted">·</span>
-        <a class="text-atelier-gold underline" href="../CHANGELOG.md">Journal complet</a>
-      </p>
-    </section>
-    <section class="mb-8 rounded-sm border border-atelier-border bg-atelier-card p-6 sm:p-8">
-      <p class="font-cinzel text-xs uppercase tracking-widest text-atelier-gold">Version 1.4.9 · 20 octobre 2026</p>
-      <h2 class="mt-2 font-serif text-2xl">Épreuve de Plume &amp; Usage Aldin</h2>
-      <ul class="mt-5 list-disc space-y-2 pl-5 text-sm leading-relaxed text-atelier-bistre">
-        <li>Audit stylométrique local : cadence, tics de liaison, triades et régularités lexicales, avec extraits et suggestions éditoriales.</li>
-        <li>Règles de détection et d'humanisation personnalisables ; le score reste un indice heuristique, jamais une preuve d'origine.</li>
-        <li>Usage Aldin à l'ouvrage : aperçu puis normalisation en une passe des apostrophes, espaces typographiques, tirets et ligatures.</li>
-        <li>Instantanés restaurables par chapitre et écritures atomiques pour protéger les manuscrits.</li>
-        <li>Dark Atelier unifié : jetons de couleur partagés et contraste renforcé sur les pupitres.</li>
-      </ul>
-      <h3 class="mt-8 font-cinzel text-sm uppercase tracking-widest text-atelier-gold">Captures de la version</h3>
-      <div class="mt-4 grid grid-cols-1 gap-5 sm:grid-cols-2">
-        <figure class="overflow-hidden rounded-sm border border-atelier-border bg-atelier-ebony">
-          <a href="assets/screenshots/epreuve-de-plume-v1.4.9.png" data-gallery><img class="w-full" src="assets/screenshots/epreuve-de-plume-v1.4.9.png" alt="Aldus v1.4.9 — modale Dark Atelier de gestion des règles de l'Épreuve de Plume." loading="lazy" decoding="async"></a>
-          <figcaption>Gestion des règles de l'Épreuve de Plume.</figcaption>
-        </figure>
-      </div>
-      <p class="mt-6 text-sm">
-        <a class="text-atelier-gold underline" href="https://github.com/danoe78210/aldus/releases/tag/v1.4.9">Notes de version v1.4.9</a>
-        <span class="px-2 text-atelier-muted">·</span>
-        <a class="text-atelier-gold underline" href="../CHANGELOG.md">Journal complet</a>
-      </p>
-    </section>
-    <section class="mb-8 rounded-sm border border-atelier-border bg-atelier-card p-6 sm:p-8">
-      <p class="font-cinzel text-xs uppercase tracking-widest text-atelier-gold">Version 1.4.8 · 19 octobre 2026</p>
-      <h2 class="mt-2 font-serif text-2xl">Pagination mesurée &amp; sécurité du manuscrit</h2>
-      <ul class="mt-5 list-disc space-y-2 pl-5 text-sm leading-relaxed text-atelier-bistre">
-        <li>Pagination physique mesurée par Typst à la composition PDF, conservée dans le projet et invalidée après changement des sources ou des réglages.</li>
-        <li>Épaisseur du dos basée sur la mesure, avec estimation avant composition et parité du bloc relié explicitée.</li>
-        <li>Historique de 15 snapshots par chapitre sous <code>.aldus/history</code>, restauration confirmée et rechargement des éditeurs.</li>
-        <li>Libellés d'export clarifiés pour le PDF haute définition et l'EPUB standard, sans revendiquer de certification normative.</li>
-        <li>Budget de 900 secondes partagé par chapitre pour la synthèse audio et l'assemblage, distinct du délai d'initialisation XTTS.</li>
-      </ul>
-      <h3 class="mt-8 font-cinzel text-sm uppercase tracking-widest text-atelier-gold">Captures de la version</h3>
-      <div class="mt-4 grid grid-cols-1 gap-5 sm:grid-cols-2">
-        <figure class="overflow-hidden rounded-sm border border-atelier-border bg-atelier-ebony">
-          <a href="assets/screenshots/imposition-typst-spine.png" data-gallery><img class="w-full" src="assets/screenshots/imposition-typst-spine.png" alt="Imposition de la version 1.4.8 : pagination Typst mesurée et calcul du dos." loading="lazy" decoding="async"></a>
-          <figcaption>Pagination mesurée et calcul du dos.</figcaption>
-        </figure>
-        <figure class="overflow-hidden rounded-sm border border-atelier-border bg-atelier-ebony">
-          <a href="assets/screenshots/banc-epreuve-history.png" data-gallery><img class="w-full" src="assets/screenshots/banc-epreuve-history.png" alt="Historique de chapitre avec instantanés restaurables." loading="lazy" decoding="async"></a>
-          <figcaption>Historique de chapitre et restauration.</figcaption>
-        </figure>
-        <figure class="overflow-hidden rounded-sm border border-atelier-border bg-atelier-ebony">
-          <a href="assets/screenshots/organisation-workspace.png" data-gallery><img class="w-full" src="assets/screenshots/organisation-workspace.png" alt="Organisation des sources en sous-dossiers." loading="lazy" decoding="async"></a>
-          <figcaption>Sources récursives dans le workspace.</figcaption>
-        </figure>
-        <figure class="overflow-hidden rounded-sm border border-atelier-border bg-atelier-ebony">
-          <a href="assets/screenshots/studio-audio-player.png" data-gallery><img class="w-full" src="assets/screenshots/studio-audio-player.png" alt="Lecteur audio intégré d'Aldus." loading="lazy" decoding="async"></a>
-          <figcaption>Studio Audio XTTS v2.</figcaption>
-        </figure>
-      </div>
-      <p class="mt-6 text-sm">
-        <a class="text-atelier-gold underline" href="https://github.com/danoe78210/aldus/releases/tag/v1.4.8">Notes de version v1.4.8</a>
-        <span class="px-2 text-atelier-muted">·</span>
-        <a class="text-atelier-gold underline" href="../CHANGELOG.md">Journal complet</a>
-      </p>
-    </section>
-  </main>
-  <dialog id="lightbox" class="m-auto max-h-[92vh] max-w-[92vw] rounded-sm border border-atelier-brass bg-atelier-card p-3 text-atelier-ivory shadow-2xl backdrop:bg-black/80">
-    <button type="button" class="mb-2 block ml-auto text-xs text-atelier-gold" onclick="document.getElementById('lightbox').close()">Fermer ×</button>
-    <img id="lightbox-image" class="max-h-[82vh] max-w-[88vw] object-contain" alt="">
-    <p id="lightbox-caption" class="mt-2 text-center text-sm text-atelier-muted"></p>
-  </dialog>
-  <script>
-    const lightbox = document.getElementById("lightbox");
-    document.querySelectorAll("[data-gallery]").forEach((link) => {
-      link.addEventListener("click", (event) => {
-        event.preventDefault();
-        const image = link.querySelector("img");
-        document.getElementById("lightbox-image").src = image.src;
-        document.getElementById("lightbox-image").alt = image.alt;
-        document.getElementById("lightbox-caption").textContent = image.alt;
-        lightbox.showModal();
-      });
-    });
-    lightbox.addEventListener("click", (event) => {
-      if (event.target === lightbox) lightbox.close();
-    });
+  <!-- Fond texturé -->
+  <svg class="texture-overlay">
+    <filter id="grain">
+      <feTurbulence type="fractalNoise" baseFrequency="0.8" numOctaves="3" stitchTiles="stitch" />
+      <feColorMatrix type="saturate" values="0" />
+      <feComponentTransfer>
+        <feFuncR type="linear" slope="0.2" />
+        <feFuncG type="linear" slope="0.2" />
+        <feFuncB type="linear" slope="0.2" />
+      </feComponentTransfer>
+    </filter>
+    <rect width="100%" height="100%" filter="url(#grain)" />
+  </svg>
 
-    // Fermeture universelle (Échap / clic vide) — sécurisée si closePlaques n'existe pas
+  <!-- Anneaux de l'Astrolabe -->
+  <div class="orbite-ellipse" id="orbite-1"></div>
+  <div class="orbite-cercle" id="orbite-2"></div>
+
+  <!-- Emblème Central & Présentation -->
+  <div id="emblem-container" class="relative z-10 flex flex-col items-center justify-center text-center max-w-2xl px-6 transition-all duration-700">
+    <div id="emblem" class="emblem-pulse w-32 h-32 rounded-full border-2 border-[#d4af37] flex items-center justify-center bg-black mb-6 overflow-hidden">
+      <img src="../aldus-emblem.png" class="w-full h-full object-cover" alt="Logo Aldus">
+    </div>
+    <div id="intro-text" class="space-y-4">
+      <p class="font-display text-2xl text-gold italic">« Festina Lente »</p>
+      <h1 class="font-display text-4xl font-bold text-[#f3f0ea] tracking-wide">Registre des versions antérieures</h1>
+      <p class="text-lg leading-relaxed opacity-80 font-serif">Historique des impressions successives de l'Officine d'Aldus</p>
+    </div>
+  </div>
+
+  <!-- Bouton Fermer -->
+  <button id="close-btn" onclick="closePlaques()" class="p-2 text-gold hover:text-white transition-colors">
+    <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+  </button>
+
+  <!-- Plaque Centrale : Le Registre des Versions -->
+  <div id="plaque-history"
+       onclick="openPlaque('plaque-history')"
+       class="plaque w-72 h-48 rounded-sm flex items-center justify-center text-center p-4"
+       style="bottom: 8%; left: 50%; transform: translateX(-50%); z-index: 25;">
+    <div class="plaque-summary flex flex-col items-center gap-1">
+      <span class="font-display italic text-xl text-gold">Le Registre</span>
+      <span class="text-xs italic opacity-60 font-serif">Chroniques de l'Œuvre</span>
+    </div>
+    <div class="plaque-content absolute inset-0 p-12 flex flex-col items-start overflow-hidden">
+      <div class="h-full overflow-y-auto hide-scrollbar fade-mask py-16 pr-6 w-full">
+        <h2 class="font-display text-4xl text-gold mb-12 italic">Chroniques de l'Officine</h2>
+
+        <!-- Version 1.4.13 -->
+        <article class="version-entry">
+          <header class="version-header">
+            <span class="version-badge">Édition courante</span>
+            <span class="version-badge" style="background: rgba(212,175,55,0.2); border-color: var(--color-gold);">v1.4.13</span>
+          </header>
+          <h3 class="version-title mb-4">L'Atelier Vénitien — Refonte immersive</h3>
+          <ul class="version-features">
+            <li>Site vitrine entièrement repensé en « Atelier Vénitien » : interface SPA immersive, zéro scroll, navigation par plaques spatiales.</li>
+            <li>Compas Orbital unifié sur toutes les pages avec View Transitions natives pour une navigation sans flash.</li>
+            <li>Diptyque de l'Imprimeur interactif sur la page Spécifications (split-screen avec aperçu d'images au survol).</li>
+            <li>Effet Parchemin Évanescent : masquage des barres de défilement et masques de fondu verticaux.</li>
+            <li>Bouton de fermeture en médaillon doré animé (rotation 90° au survol).</li>
+            <li>Échappement universel : touche Échap et clic dans le vide (texture, orbites) ferment les plaques.</li>
+            <li>Harmonisation complète de la page Spécifications et de la page Historique au standard vénitien.</li>
+          </ul>
+          <div class="version-links">
+            <a href="https://github.com/danoe78210/aldus/releases/tag/v1.4.13" target="_blank">Notes de version GitHub</a>
+            <a href="../CHANGELOG.md" target="_blank">Journal complet</a>
+          </div>
+        </article>
+
+        <div class="version-divider"></div>
+
+        <!-- Version 1.4.11 -->
+        <article class="version-entry">
+          <header class="version-header">
+            <span class="version-badge">v1.4.11</span>
+            <span class="text-xs opacity-60">24 octobre 2026</span>
+          </header>
+          <h3 class="version-title mb-4">Lecteur d'Atelier & Ruban Studio Audio</h3>
+          <ul class="version-features">
+            <li>Lecteur unifié EPUB, PDF, DOCX en plein écran : trois papiers, tiroir typographique, table des matières, mode Silence.</li>
+            <li>Signets dorés persistants (écriture atomique dans <code>.aldus/bookmarks.json</code>).</li>
+            <li>Ruban « Studio Audio » dédié : console XTTS v2 locale, choix de la voix, table de synthèse par chapitre.</li>
+            <li>Installateur MSI en français (fr-FR) aux couleurs d'Aldus.</li>
+          </ul>
+          <div class="version-links">
+            <a href="https://github.com/danoe78210/aldus/releases/tag/v1.4.11" target="_blank">Notes de version GitHub</a>
+            <a href="../CHANGELOG.md" target="_blank">Journal complet</a>
+          </div>
+        </article>
+
+        <div class="version-divider"></div>
+
+        <!-- Version 1.4.10 -->
+        <article class="version-entry">
+          <header class="version-header">
+            <span class="version-badge">v1.4.10</span>
+            <span class="text-xs opacity-60">20 octobre 2026</span>
+          </header>
+          <h3 class="version-title mb-4">Épreuve de Plume — Pupitre de remaniement</h3>
+          <ul class="version-features">
+            <li>Analyse stylométrique exclusive : cadence isométrique, tics de transition, triades rhétoriques, entropie, distribution de Zipf.</li>
+            <li>Chaque alerte cite le passage, explique le diagnostic et propose une reformulation de la Forge.</li>
+            <li>Manuscrit annoté avec surlignage des passages signalés ; interaction bidirectionnelle texte ↔ cartes.</li>
+            <li>Application d'une reformulation : instantané dans <code>.aldus/history</code>, écriture atomique, recalcul du score.</li>
+            <li>Composition justifiée avec césures françaises (Literata), titres Markdown mis en forme, contrastes renforcés.</li>
+            <li>Vérification des mises à jour à la demande (cache 2h) depuis la plaque de version.</li>
+          </ul>
+          <div class="version-links">
+            <a href="https://github.com/danoe78210/aldus/releases/tag/v1.4.10" target="_blank">Notes de version GitHub</a>
+            <a href="../CHANGELOG.md" target="_blank">Journal complet</a>
+          </div>
+        </article>
+
+        <div class="version-divider"></div>
+
+        <!-- Version 1.4.9 -->
+        <article class="version-entry">
+          <header class="version-header">
+            <span class="version-badge">v1.4.9</span>
+            <span class="text-xs opacity-60">20 octobre 2026</span>
+          </header>
+          <h3 class="version-title mb-4">Épreuve de Plume & Usage Aldin</h3>
+          <ul class="version-features">
+            <li>Audit stylométrique local : cadence, tics de liaison, triades, régularités lexicales, extraits et suggestions éditoriales.</li>
+            <li>Règles de détection et d'humanisation personnalisables ; score heuristique, jamais preuve d'origine.</li>
+            <li>Usage Aldin : aperçu puis normalisation en une passe (apostrophes, espaces typographiques, tirets, ligatures).</li>
+            <li>Instantanés restaurables par chapitre, écritures atomiques pour protéger les manuscrits.</li>
+            <li>Dark Atelier unifié : jetons de couleur partagés, contraste renforcé sur les pupitres.</li>
+          </ul>
+          <div class="version-links">
+            <a href="https://github.com/danoe78210/aldus/releases/tag/v1.4.9" target="_blank">Notes de version GitHub</a>
+            <a href="../CHANGELOG.md" target="_blank">Journal complet</a>
+          </div>
+        </article>
+
+        <div class="version-divider"></div>
+
+        <!-- Version 1.4.8 -->
+        <article class="version-entry">
+          <header class="version-header">
+            <span class="version-badge">v1.4.8</span>
+            <span class="text-xs opacity-60">19 octobre 2026</span>
+          </header>
+          <h3 class="version-title mb-4">Pagination mesurée & Sécurité du manuscrit</h3>
+          <ul class="version-features">
+            <li>Pagination physique mesurée par Typst à la composition PDF, conservée dans le projet, invalidée après changement des sources ou réglages.</li>
+            <li>Épaisseur du dos basée sur la mesure réelle, avec estimation pré-composition et parité du bloc relié explicitée.</li>
+            <li>Historique de 15 snapshots par chapitre sous <code>.aldus/history</code>, restauration confirmée et rechargement des éditeurs.</li>
+            <li>Libellés d'export clarifiés (PDF Haute Définition, EPUB Standard) sans revendication de certification normative.</li>
+            <li>Budget de 900 secondes partagé par chapitre pour synthèse audio et assemblage, distinct du délai d'initialisation XTTS.</li>
+          </ul>
+          <div class="version-links">
+            <a href="https://github.com/danoe78210/aldus/releases/tag/v1.4.8" target="_blank">Notes de version GitHub</a>
+            <a href="../CHANGELOG.md" target="_blank">Journal complet</a>
+          </div>
+        </article>
+
+        <div class="mt-12 pt-8 border-t border-gold/20 text-center">
+          <p class="opacity-60 font-serif italic">« Chaque version est une nouvelle impression,<br>chaque correction un nouveau tirage. »</p>
+          <p class="text-xs text-gold/60 mt-2 tracking-widest uppercase">— Officine d'Aldus</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function openPlaque(id) {
+      const target = document.getElementById(id);
+      if (target.classList.contains('active')) return;
+
+      // Désactivation et disparition de la présentation centrale
+      document.getElementById('emblem-container').classList.add('hidden-spatial');
+
+      document.querySelectorAll('.plaque').forEach(p => {
+        if (p.id !== id) {
+          p.classList.add('hidden-spatial');
+        }
+      });
+
+      // Activation de la plaque
+      target.classList.add('active');
+      target.classList.remove('hidden-spatial');
+
+      // Affichage du bouton fermer
+      document.getElementById('close-btn').classList.add('visible');
+    }
+
+    function closePlaques() {
+      document.getElementById('emblem-container').classList.remove('hidden-spatial');
+      document.getElementById('close-btn').classList.remove('visible');
+
+      document.querySelectorAll('.plaque').forEach(p => {
+        p.classList.remove('active');
+        p.classList.remove('hidden-spatial');
+      });
+    }
+
+    // Fermeture avec Échap
     document.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape' && typeof closePlaques === 'function') closePlaques();
+      if (e.key === 'Escape') closePlaques();
     });
-    document.querySelector('.texture-overlay')?.addEventListener('click', () => { if (typeof closePlaques === 'function') closePlaques(); });
-    document.getElementById('orbite-1')?.addEventListener('click', () => { if (typeof closePlaques === 'function') closePlaques(); });
+    // Fermeture au clic dans le vide (sur la texture ou les orbites)
+    document.querySelector('.texture-overlay').addEventListener('click', closePlaques);
+    document.getElementById('orbite-1')?.addEventListener('click', closePlaques);
   </script>
 </body>
 </html>
