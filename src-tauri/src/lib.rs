@@ -446,6 +446,7 @@ pub fn run() {
             commands::finalize_exit,
             commands::open_proofs_directory,
             commands::open_author_website,
+            commands::export_audio_file,
             logger::get_log_config,
             logger::set_log_config,
             logger::open_log_file,

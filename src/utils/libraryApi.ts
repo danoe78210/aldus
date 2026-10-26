@@ -151,18 +151,29 @@ export const addLibraryBook = async (input: Omit<Book, "chapterCount"> & { chapt
   return saveBrowserConfig(config);
 };
 
-export const deleteLibraryBook = async (bookId: string, exportDirectory: string): Promise<LibraryConfig> => {
+export const deleteLibraryBook = async (
+  bookId: string,
+  exportDirectory?: string,
+): Promise<LibraryConfig> => {
   if (!isInvokeAvailable()) throw new Error("La suppression définitive des fichiers nécessite l'application Aldus de bureau.");
-  return invokeCommand<LibraryConfig>("delete_book", { bookId, exportDirectory });
+  return invokeCommand<LibraryConfig>("delete_book", { bookId, exportDirectory: exportDirectory ?? null });
 };
 
 export const deleteLibraryAudioTrack = async (
   bookId: string,
   chapterIndex: number,
-  exportDirectory: string,
+  exportDirectory?: string,
 ): Promise<LibraryConfig> => {
   if (!isInvokeAvailable()) throw new Error("La suppression des pistes audio nécessite l'application Aldus de bureau.");
-  return invokeCommand<LibraryConfig>("delete_audio_track", { bookId, chapterIndex, exportDirectory });
+  return invokeCommand<LibraryConfig>("delete_audio_track", { bookId, chapterIndex, exportDirectory: exportDirectory ?? null });
+};
+
+export const exportLibraryAudioTrack = async (
+  sourcePath: string,
+  targetPath: string,
+): Promise<void> => {
+  if (!isInvokeAvailable()) throw new Error("L'exportation de pistes audio nécessite l'application Aldus de bureau.");
+  return invokeCommand<void>("export_audio_file", { sourcePath, targetPath });
 };
 
 export const saveVoiceCasting = async (bookId: string, casting: VoiceCasting): Promise<LibraryConfig> => {

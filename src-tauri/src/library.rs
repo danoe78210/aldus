@@ -2,6 +2,7 @@ use serde::{Deserialize, Serialize};
 use std::collections::{BTreeMap, BTreeSet};
 use std::path::{Path, PathBuf};
 use std::time::{SystemTime, UNIX_EPOCH};
+use tauri::Manager;
 
 
 mod audio;
@@ -671,16 +672,23 @@ pub async fn get_library_config(app: tauri::AppHandle) -> Result<LibraryConfig, 
 pub async fn delete_book(
     app: tauri::AppHandle,
     book_id: String,
-    export_directory: String,
+    export_directory: Option<String>,
 ) -> Result<LibraryConfig, String> {
     let mut config = read_config(&app)?;
-    if export_directory.trim().is_empty() {
-        return Err("Choisissez le dossier d'export avant de supprimer l'ouvrage.".into());
-    }
+    let export_root = if let Some(dir) = export_directory.filter(|d| !d.trim().is_empty()) {
+        Path::new(&dir)
+            .canonicalize()
+            .map_err(|error| format!("Dossier d'export inaccessible : {error}"))?
+    } else {
+        app.path()
+            .app_local_data_dir()
+            .map_err(|error| format!("Dossier de données local introuvable : {error}"))?
+            .join("Exports")
+    };
     deletion::delete(
         &mut config,
         &book_id,
-        Path::new(&export_directory),
+        &export_root,
         |next| write_config(&app, next),
     )?;
     Ok(config)
@@ -691,18 +699,24 @@ pub async fn delete_audio_track(
     app: tauri::AppHandle,
     book_id: String,
     chapter_index: u32,
-    export_directory: String,
+    export_directory: Option<String>,
 ) -> Result<LibraryConfig, String> {
-    if export_directory.trim().is_empty() {
-        return Err("Choisissez le dossier d'export avant de supprimer une piste audio.".into());
-    }
-    let export_root = Path::new(&export_directory)
-        .canonicalize()
-        .map_err(|error| format!("Dossier d'export inaccessible : {error}"))?;
-    let audio_root = export_root
-        .join("Audio")
-        .canonicalize()
-        .map_err(|error| format!("Dossier des pistes audio inaccessible : {error}"))?;
+    let export_root = if let Some(dir) = export_directory.filter(|d| !d.trim().is_empty()) {
+        Path::new(&dir)
+            .canonicalize()
+            .map_err(|error| format!("Dossier d'export inaccessible : {error}"))?
+    } else {
+        app.path()
+            .app_local_data_dir()
+            .map_err(|error| format!("Dossier de données local introuvable : {error}"))?
+            .join("Exports")
+    };
+    let audio_root_path = export_root.join("Audio");
+    let audio_root = if audio_root_path.exists() {
+        Some(audio_root_path.canonicalize().map_err(|error| format!("Dossier des pistes audio inaccessible : {error}"))?)
+    } else {
+        None
+    };
     let mut config = read_config(&app)?;
     let book_index = config
         .books
@@ -736,8 +750,10 @@ pub async fn delete_audio_track(
         .ok_or("Dossier parent de la piste audio invalide.")?
         .canonicalize()
         .map_err(|error| format!("Dossier parent de la piste inaccessible : {error}"))?;
-    if !parent.starts_with(&audio_root) {
-        return Err("Suppression refusée : la piste est hors du dossier Audio configuré.".into());
+    if let Some(root) = audio_root {
+        if !parent.starts_with(&root) {
+            return Err("Suppression refusée : la piste est hors du dossier Audio configuré.".into());
+        }
     }
     let track_path = parent.join(filename);
     let track_exists = match std::fs::symlink_metadata(&track_path) {

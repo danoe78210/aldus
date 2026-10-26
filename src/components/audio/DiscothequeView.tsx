@@ -1,10 +1,11 @@
 import { useState } from "react";
-import { AudioLines, Disc3, Trash2 } from "lucide-react";
+import { AudioLines, Disc3, Trash2, Download } from "lucide-react";
 import type { AudioChapter, Book, DeckSelection, LibraryConfig } from "../../types";
-import { deleteLibraryAudioTrack } from "../../utils/libraryApi";
+import { deleteLibraryAudioTrack, exportLibraryAudioTrack } from "../../utils/libraryApi";
 import { albumCasting, albumDuration, formatClock, mixBadge } from "./burnDetails";
 import { bookLabel, discTracks, pickDisc, useDiscs } from "./discs";
 import { frenchCount } from "./frenchCount";
+import { save } from "@tauri-apps/plugin-dialog";
 
 interface DiscothequeViewProps {
   currentBookTitle?: string;
@@ -76,7 +77,7 @@ export const DiscothequeView = ({ currentBookTitle, deck, exportDirectory, onPla
   const play = (chapterIndex: number | undefined) => disc && onPlay({ bookId: disc.id, chapterIndex, autoPlay: false });
 
   const erase = async (targets: AudioChapter[], question: string) => {
-    if (!disc || !exportDirectory || erasing || !window.confirm(question)) return;
+    if (!disc || erasing || !window.confirm(question)) return;
     setErasing(true);
     setEraseError(null);
     let latest: LibraryConfig | null = null;
@@ -89,6 +90,23 @@ export const DiscothequeView = ({ currentBookTitle, deck, exportDirectory, onPla
       setErasing(false);
     }
   };
+
+  const exportTrack = async (entry: AudioChapter) => {
+    try {
+      const path = await save({
+        title: `Exporter l'enregistrement : ${entry.title}`,
+        defaultPath: `${entry.title}.mp3`,
+        filters: [{ name: "Fichier audio MP3", extensions: ["mp3"] }],
+      });
+      if (path) {
+        await exportLibraryAudioTrack(entry.path, path);
+        alert(`Fichier exporté avec succès : ${entry.title}`);
+      }
+    } catch (error: unknown) {
+      alert(`Erreur lors de l'exportation : ${messageOf(error)}`);
+    }
+  };
+
   const eraseHint = exportDirectory ? undefined : "Choisissez un dossier d’export pour supprimer un enregistrement.";
 
   return (
@@ -118,7 +136,7 @@ export const DiscothequeView = ({ currentBookTitle, deck, exportDirectory, onPla
               <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
                 <p className="text-xs text-[#a99a83]">{[frenchCount(tracks.length, "piste gravée", "pistes gravées"), albumDuration(tracks)].filter(Boolean).join(" · ")}</p>
                 {casting && <span className={badgeClass}>{casting}</span>}
-                <button type="button" disabled={!exportDirectory || erasing} title={eraseHint ?? "Supprimer l’album"} onClick={() => { void erase(tracks, `Supprimer définitivement l’album « ${bookLabel(disc)} » ? Les ${frenchCount(tracks.length, "fichier audio", "fichiers audio")} seront effacés du disque.`); }} className={`${eraseClass} ml-auto py-1 font-cinzel text-[10px] tracking-wider uppercase`}><Trash2 size={13} /> Supprimer l’album</button>
+                <button type="button" disabled={erasing} title="Supprimer l’album" onClick={() => { void erase(tracks, `Supprimer définitivement l’album « ${bookLabel(disc)} » ? Les ${frenchCount(tracks.length, "fichier audio", "fichiers audio")} seront effacés du disque.`); }} className={`${eraseClass} ml-auto py-1 font-cinzel text-[10px] tracking-wider uppercase`}><Trash2 size={13} /> Supprimer l’album</button>
               </div>
             </header>
             {eraseError && <p role="alert" className="text-xs text-[#d28b75]">{eraseError}</p>}
@@ -127,7 +145,8 @@ export const DiscothequeView = ({ currentBookTitle, deck, exportDirectory, onPla
               {tracks.map((entry) => (
                 <li key={entry.index} className="flex items-stretch gap-1">
                   <TrackCard entry={entry} current={entry.index === deckIndex} onSelect={() => play(entry.index)} />
-                  <button type="button" aria-label={`Supprimer l’enregistrement ${entry.title}`} title={eraseHint ?? "Supprimer l’enregistrement"} disabled={!exportDirectory || erasing} onClick={() => { void erase([entry], `Supprimer définitivement l’enregistrement « ${entry.title} » ? Le fichier audio sera effacé du disque.`); }} className={eraseClass}><Trash2 size={16} /></button>
+                  <button type="button" aria-label={`Exporter l’enregistrement ${entry.title}`} title="Exporter l'enregistrement" onClick={() => void exportTrack(entry)} className={eraseClass}><Download size={16} /></button>
+                  <button type="button" aria-label={`Supprimer l’enregistrement ${entry.title}`} title="Supprimer l’enregistrement" disabled={erasing} onClick={() => { void erase([entry], `Supprimer définitivement l’enregistrement « ${entry.title} » ? Le fichier audio sera effacé du disque.`); }} className={eraseClass}><Trash2 size={16} /></button>
                 </li>
               ))}
             </ol>

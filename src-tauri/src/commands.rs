@@ -22,6 +22,23 @@ use crate::project::{estimate_page_count, OrganizationNode, ProjectPayload};
 pub mod aldin_typography;
 pub mod stylometry;
 
+/// Exporte un fichier audio vers l'emplacement choisi par l'utilisateur.
+#[tauri::command]
+pub async fn export_audio_file(
+    source_path: std::path::PathBuf,
+    target_path: std::path::PathBuf,
+) -> Result<(), String> {
+    println!("──────── export_audio_file ────────");
+    println!("source : {}", source_path.display());
+    println!("cible : {}", target_path.display());
+
+    std::fs::copy(&source_path, &target_path)
+        .map_err(|e| format!("Copie du fichier audio impossible : {e}"))?;
+
+    println!("fichier audio exporté avec succès");
+    Ok(())
+}
+
 /// Nom de fichier de sortie proposé (slug du titre, extension `.pdf`).
 pub fn default_pdf_name(payload: &ProjectPayload) -> String {
     let slug: String = payload

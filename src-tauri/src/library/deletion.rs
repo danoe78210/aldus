@@ -34,6 +34,9 @@ fn targets(
         .find(|book| book.id == book_id)
         .ok_or("Ouvrage introuvable.")?;
     let names = base_names(book);
+    if !export_directory.exists() {
+        return Ok(Vec::new());
+    }
     let root = export_directory
         .canonicalize()
         .map_err(|error| format!("Dossier d'export inaccessible : {error}"))?;
