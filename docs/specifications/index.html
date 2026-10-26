@@ -3,443 +3,416 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="theme-color" content="#181614">
-  <meta name="description" content="Découvrez les huit Bancs d'Aldus, dont L'Écritoire, son atelier de couverture KDP et ses moteurs de composition et d'export.">
-  <link rel="canonical" href="https://aldus.danoeecrivain.net/specifications/">
-  <link rel="icon" type="image/x-icon" href="../favicon.ico">
   <title>Spécifications — Aldus, Atelier du Livre Moderne</title>
+  <script src="https://cdn.tailwindcss.com"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,700;1,400&family=Playfair+Display:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet">
   <style>
     :root {
-      color-scheme: dark;
-      --ebony: #181614;
-      --ebony-deep: #11100e;
-      --panel: #201d19;
-      --panel-soft: #24211c;
-      --brass: #8f6e2b;
-      --gold: #d4af37;
-      --gold-pale: #ecd99c;
-      --ivory: #f2ecdf;
-      --bistre: #b1a898;
-      --muted: #817969;
-      --line: rgba(197, 160, 89, 0.25);
-      --sans: "Plus Jakarta Sans", "Segoe UI", sans-serif;
-      --serif: "Cormorant Garamond", Georgia, serif;
+      --color-bg: #0a0a0a;
+      --color-parchment: #eaddc5;
+      --color-gold: #d4af37;
+      --color-gold-bright: #f9df91;
+      --font-display: 'Playfair Display', serif;
+      --font-body: 'Lora', serif;
     }
 
-    * { box-sizing: border-box; }
-    html { scroll-behavior: smooth; scroll-padding-top: 6.5rem; }
     body {
+      background-color: var(--color-bg);
+      color: var(--color-parchment);
+      font-family: var(--font-body);
+      height: 100vh;
+      overflow: hidden;
       margin: 0;
-      min-width: 320px;
-      background-color: var(--ebony);
-      background-image:
-        linear-gradient(rgba(255,255,255,0.012) 1px, transparent 1px),
-        radial-gradient(ellipse at 48% -15%, #292319 0%, var(--ebony) 64%);
-      background-size: 100% 5px, auto;
-      color: var(--ivory);
-      font-family: var(--sans);
-      font-size: 15px;
-      line-height: 1.7;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
     }
-    a { color: inherit; }
-    a:focus-visible, button:focus-visible { outline: 2px solid var(--gold); outline-offset: 4px; }
-    img { display: block; max-width: 100%; }
-    .serif { font-family: var(--serif); }
-    .wrap { width: min(1160px, calc(100% - 48px)); margin-inline: auto; }
 
-    .masthead {
-      position: sticky;
+    /* Texture de fond fractal SVG */
+    .texture-overlay {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
       z-index: 10;
-      top: 0;
-      border-bottom: 1px solid var(--line);
-      background: rgba(19, 17, 14, 0.94);
-      backdrop-filter: blur(14px);
+      opacity: 0.4;
+      mix-blend-mode: overlay;
     }
-    .masthead-inner {
-      min-height: 72px;
+
+    .font-display { font-family: var(--font-display); }
+    .text-gold { color: var(--color-gold); }
+    .bg-gold { background-color: var(--color-gold); }
+
+    /* Animation de pulsation de l'emblème */
+    .emblem-pulse {
+      animation: pulse-gold 4s infinite ease-in-out;
+    }
+
+    @keyframes pulse-gold {
+      0%, 100% { box-shadow: 0 0 20px rgba(212, 175, 55, 0.3); transform: scale(1); }
+      50% { box-shadow: 0 0 60px rgba(212, 175, 55, 0.6); transform: scale(1.05); }
+    }
+
+    /* Style des plaques */
+    .plaque {
+      position: absolute;
+      cursor: pointer;
+      transition: all 0.6s cubic-bezier(0.23, 1, 0.32, 1);
+      z-index: 20;
+      border: 1px solid rgba(212, 175, 55, 0.3);
+      background: linear-gradient(135deg, #1a1a1a 0%, #0a0a0a 100%);
+      box-shadow: 0 10px 30px rgba(0,0,0,0.8), inset 0 0 15px rgba(212, 175, 55, 0.1);
+      overflow: hidden;
+    }
+
+    .plaque-content {
+      opacity: 0;
+      transition: opacity 0.4s ease;
+      pointer-events: none;
+    }
+
+    .plaque.active {
+      width: 80vw !important;
+      height: 80vh !important;
+      left: 10vw !important;
+      top: 10vh !important;
+      z-index: 100;
+      transform: scale(1) !important;
+      border-color: var(--color-gold);
+      box-shadow: 0 0 100px rgba(0,0,0,1), 0 0 40px rgba(212, 175, 55, 0.2);
+    }
+
+    .plaque.active .plaque-content {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .plaque.active .plaque-summary { opacity: 0; pointer-events: none; transition: opacity 0.3s ease; }
+
+    /* Sceau de cire */
+    .wax-seal {
+      background: radial-gradient(circle, #d4af37 0%, #b8860b 70%, #8b6508 100%);
+      border: 3px solid #8b6508;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.5), inset 0 0 10px rgba(0,0,0,0.3);
+      border-radius: 50%;
+      transition: transform 0.2s ease;
+      position: relative;
       display: flex;
       align-items: center;
-      justify-content: space-between;
-      gap: 28px;
-    }
-    .brand {
-      display: inline-flex;
-      align-items: center;
-      gap: 12px;
-      color: var(--ivory);
-      text-decoration: none;
-      white-space: nowrap;
-    }
-    .brand img { width: 34px; height: 34px; object-fit: contain; }
-    .brand-name { font-family: var(--serif); font-size: 22px; font-weight: 700; letter-spacing: 0.16em; }
-    .brand-note { color: var(--muted); font-size: 10px; letter-spacing: 0.15em; text-transform: uppercase; }
-    .nav {
-      display: flex;
-      align-items: center;
-      gap: clamp(12px, 2.2vw, 28px);
-      font-size: 11px;
-      font-weight: 600;
-      letter-spacing: 0.08em;
+      justify-content: center;
+      text-align: center;
+      font-family: var(--font-display);
+      font-weight: bold;
       text-transform: uppercase;
+      font-size: 0.75rem;
+      color: #4a3500;
+      width: 120px;
+      height: 120px;
+      user-select: none;
     }
-    .nav a { color: var(--bistre); text-decoration: none; transition: color 160ms ease; }
-    .nav a:hover, .nav a[aria-current="page"] { color: var(--gold-pale); }
-    .nav .back-link { color: var(--gold-pale); }
 
-    .intro {
-      padding: 70px 0 54px;
-      display: grid;
-      grid-template-columns: minmax(0, 1.04fr) minmax(320px, 0.96fr);
-      align-items: center;
-      gap: clamp(36px, 7vw, 88px);
-      border-bottom: 1px solid var(--line);
+    .wax-seal:hover {
+      transform: scale(1.1) rotate(3deg);
     }
-    .eyebrow, .section-kicker {
-      color: var(--gold);
-      font-size: 10px;
-      font-weight: 700;
-      letter-spacing: 0.22em;
-      text-transform: uppercase;
-    }
-    h1, h2, h3, p { margin-top: 0; }
-    h1 {
-      max-width: 650px;
-      margin-bottom: 18px;
-      font-family: var(--serif);
-      font-size: 56px;
-      font-weight: 600;
-      line-height: 0.98;
-      color: var(--ivory);
-    }
-    .intro-copy {
-      max-width: 590px;
-      margin-bottom: 23px;
-      color: var(--bistre);
-      font-size: 16px;
-      line-height: 1.85;
-    }
-    .intro-rule { width: 76px; height: 1px; margin: 0 0 20px; background: var(--gold); }
-    .intro-meta { display: flex; flex-wrap: wrap; gap: 8px 18px; color: var(--muted); font-size: 11px; }
-    .intro-meta span::before { content: "✦"; margin-right: 8px; color: var(--brass); }
-    .intro-figure { margin: 0; position: relative; }
-    .intro-figure img {
-      width: 100%;
-      aspect-ratio: 1.12 / 1;
-      object-fit: cover;
-      object-position: center;
-      border: 1px solid var(--line);
-      filter: saturate(0.84);
-    }
-    .intro-figure figcaption {
-      display: flex;
-      justify-content: space-between;
-      gap: 14px;
-      padding-top: 9px;
-      color: var(--muted);
-      font-size: 10px;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-    }
-    .intro-figure figcaption span:last-child { color: var(--gold-pale); }
 
-    .section { padding: 76px 0; border-bottom: 1px solid var(--line); }
-    .section-heading { max-width: 720px; margin-bottom: 34px; }
-    .section-heading h2 {
-      margin: 5px 0 10px;
-      font-family: var(--serif);
-      font-size: 40px;
-      font-weight: 600;
-      line-height: 1.05;
+    .wax-seal::after {
+      content: "";
+      position: absolute;
+      inset: 5px;
+      border: 1px solid rgba(255,255,255,0.2);
+      border-radius: 50%;
     }
-    .section-heading p { margin-bottom: 0; color: var(--bistre); }
 
-    .banc-grid {
-      display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 22px;
+    #close-btn {
+      position: fixed;
+      top: calc(10vh + 1.5rem);
+      right: calc(10vw + 1.5rem);
+      z-index: 110;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
     }
-    .banc-card {
-      min-width: 0;
-      border: 1px solid var(--line);
-      background: linear-gradient(145deg, rgba(41, 36, 28, 0.72), rgba(23, 21, 18, 0.94));
-    }
-    .banc-card:last-child { grid-column: 1 / -1; display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr); }
-    .banc-visual { position: relative; overflow: hidden; background: var(--ebony-deep); }
-    .banc-visual img { width: 100%; aspect-ratio: 16 / 9; object-fit: cover; object-position: top center; }
-    .writing-visual { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; padding: 12px; aspect-ratio: 16 / 9; }
-    .writing-visual::after { display: none; }
-    .writing-pane { min-width: 0; overflow: hidden; padding: 12px; font-size: 11px; line-height: 1.55; }
-    .writing-pane-label { display: block; margin-bottom: 10px; font-family: var(--sans); font-size: 8px; font-weight: 700; letter-spacing: 0.15em; text-transform: uppercase; }
-    .writing-source { border: 1px solid var(--line); background: #13110f; color: var(--ivory); font-family: var(--serif); }
-    .writing-source .writing-pane-label { color: var(--gold); }
-    .writing-source pre { margin: 0; white-space: pre-wrap; font: inherit; }
-    .writing-output { border: 1px solid rgba(166,139,90,0.6); background: #f5efe4; color: #29251f; font-family: var(--serif); }
-    .writing-output .writing-pane-label { color: #8f6e2b; }
-    .writing-output h4 { margin: 0 0 10px; font-size: 16px; font-weight: 600; text-align: center; }
-    .writing-output p { margin: 0 0 5px; color: inherit; font-size: inherit; }
-    .writing-output blockquote { margin: 10px 0 0; padding-left: 8px; border-left: 2px solid #a68b5a; font-style: italic; }
-    .banc-card:last-child .banc-visual img { height: 100%; aspect-ratio: auto; object-fit: cover; }
-    .banc-visual::after { content: ""; position: absolute; inset: 55% 0 0; background: linear-gradient(transparent, rgba(17,16,14,0.4)); pointer-events: none; }
-    .banc-content { padding: 22px 24px 25px; }
-    .banc-index { color: var(--gold); font-size: 10px; font-weight: 700; letter-spacing: 0.2em; text-transform: uppercase; }
-    .banc-card h3 { margin: 5px 0 8px; font-family: var(--serif); font-size: 27px; font-weight: 600; line-height: 1.05; }
-    .banc-menu { display: block; margin-bottom: 12px; color: var(--gold-pale); font-size: 10px; letter-spacing: 0.13em; text-transform: uppercase; }
-    .banc-card p { margin-bottom: 0; color: var(--bistre); font-size: 13px; line-height: 1.75; }
-    .banc-card:last-child .banc-content { align-self: center; padding: 30px clamp(24px, 4vw, 48px); }
 
-    .cover-layout { display: grid; grid-template-columns: minmax(0, 1fr) minmax(260px, 0.72fr); gap: 38px; align-items: start; }
-    .cover-copy { color: var(--bistre); }
-    .cover-copy p { max-width: 690px; }
-    .formula {
-      margin: 24px 0;
-      padding: 18px 20px;
-      border-left: 2px solid var(--gold);
-      background: rgba(35, 31, 24, 0.78);
-      color: var(--gold-pale);
+    #close-btn.visible {
+      opacity: 1;
+      pointer-events: auto;
     }
-    .formula strong { display: block; color: var(--ivory); font-family: var(--serif); font-size: 22px; font-weight: 600; }
-    .formula span { color: var(--bistre); font-size: 12px; }
-    .paper-table { width: 100%; border-collapse: collapse; margin: 20px 0; font-size: 12px; }
-    .paper-table th, .paper-table td { padding: 10px 12px; border-bottom: 1px solid var(--line); text-align: left; }
-    .paper-table th { color: var(--gold-pale); font-weight: 600; }
-    .paper-table td { color: var(--bistre); }
-    .paper-table td:last-child { color: var(--ivory); font-variant-numeric: tabular-nums; }
-    .cover-visual { margin: 0; }
-    .cover-visual img { width: 100%; border: 1px solid var(--line); }
-    .cover-visual figcaption { margin-top: 8px; color: var(--muted); font-size: 10px; letter-spacing: 0.06em; }
-    .spec-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px 22px; margin: 25px 0 0; padding: 0; list-style: none; }
-    .spec-list li { position: relative; padding-left: 17px; color: var(--bistre); font-size: 12px; }
-    .spec-list li::before { content: ""; position: absolute; top: 0.7em; left: 0; width: 6px; height: 1px; background: var(--gold); }
-    .spec-list strong { color: var(--ivory); font-weight: 600; }
 
-    .formats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
-    .format { padding: 22px 20px 24px; border-right: 1px solid var(--line); }
-    .format:last-child { border-right: 0; }
-    .format-number { color: var(--brass); font-size: 10px; letter-spacing: 0.16em; }
-    .format h3 { margin: 8px 0; font-family: var(--serif); font-size: 24px; font-weight: 600; line-height: 1.05; }
-    .format p { margin: 0; color: var(--bistre); font-size: 12px; line-height: 1.7; }
-    .format-tag { display: inline-block; margin-top: 12px; color: var(--gold-pale); font-size: 9px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; }
-    .notice {
-      margin-top: 22px;
-      padding: 15px 18px;
-      border: 1px solid rgba(143, 110, 43, 0.45);
-      background: rgba(33, 29, 22, 0.7);
-      color: var(--bistre);
-      font-size: 11px;
+    .hidden-spatial {
+      opacity: 0;
+      pointer-events: none;
+      transform: scale(0.9);
     }
-    .notice strong { color: var(--gold-pale); }
 
-    .tech-row { display: grid; grid-template-columns: 170px 1fr; gap: 20px; padding: 19px 0; border-top: 1px solid var(--line); }
-    .tech-row:last-child { border-bottom: 1px solid var(--line); }
-    .tech-label { color: var(--gold-pale); font-family: var(--serif); font-size: 22px; }
-    .tech-row p { margin: 0; color: var(--bistre); font-size: 13px; }
-    .closing { padding: 52px 0 64px; text-align: center; }
-    .closing-mark { color: var(--gold); font-size: 23px; }
-    .closing p { margin: 5px 0 0; color: var(--muted); font-size: 11px; }
-    .closing a { color: var(--gold-pale); text-decoration-color: var(--brass); text-underline-offset: 4px; }
-    footer { border-top: 1px solid var(--line); background: var(--ebony-deep); }
-    .footer-inner { min-height: 76px; display: flex; align-items: center; justify-content: space-between; gap: 18px; color: var(--muted); font-size: 10px; }
-    .footer-inner a { color: var(--bistre); text-decoration: none; }
-    .footer-inner a:hover { color: var(--gold-pale); }
-
-    @media (max-width: 820px) {
-      .wrap { width: min(100% - 36px, 680px); }
-      .masthead-inner { min-height: 64px; gap: 14px; }
-      .brand-note { display: none; }
-      .nav { gap: 14px; font-size: 9px; }
-      .intro { grid-template-columns: 1fr 0.82fr; gap: 28px; padding: 54px 0 44px; }
-      h1 { font-size: 46px; }
-      .banc-grid { gap: 14px; }
-      .banc-content { padding: 18px; }
-      .banc-card h3 { font-size: 24px; }
-      .formats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-      .format:nth-child(2) { border-right: 0; }
-      .format:nth-child(-n+2) { border-bottom: 1px solid var(--line); }
+    @keyframes spin-astrolabe {
+      from { transform: translate(-50%, -50%) rotate(0deg); }
+      to { transform: translate(-50%, -50%) rotate(360deg); }
     }
-    @media (max-width: 600px) {
-      .wrap { width: calc(100% - 32px); }
-      .masthead-inner { align-items: flex-start; flex-direction: column; gap: 0; padding: 10px 0 11px; }
-      .brand img { width: 27px; height: 27px; }
-      .brand-name { font-size: 19px; }
-      .nav { width: 100%; justify-content: space-between; gap: 7px; font-size: 8px; letter-spacing: 0.045em; }
-      .intro { grid-template-columns: 1fr; gap: 26px; padding: 42px 0 38px; }
-      h1 { max-width: 440px; font-size: 42px; }
-      .intro-copy { margin-bottom: 16px; font-size: 14px; }
-      .intro-figure { max-width: 500px; }
-      .intro-figure img { aspect-ratio: 16 / 10; }
-      .section { padding: 56px 0; }
-      .section-heading h2 { font-size: 34px; }
-      .banc-grid { grid-template-columns: 1fr; }
-      .banc-card:last-child { grid-column: auto; display: block; }
-      .banc-card:last-child .banc-visual img { aspect-ratio: 16 / 9; }
-      .banc-card:last-child .banc-content { padding: 20px; }
-      .cover-layout { grid-template-columns: 1fr; gap: 26px; }
-      .spec-list { grid-template-columns: 1fr; gap: 8px; }
-      .formats { grid-template-columns: 1fr; }
-      .format, .format:nth-child(2) { border-right: 0; border-bottom: 1px solid var(--line); }
-      .format:last-child { border-bottom: 0; }
-      .tech-row { grid-template-columns: 1fr; gap: 4px; }
-      .footer-inner { align-items: flex-start; flex-direction: column; justify-content: center; padding: 18px 0; }
+    .orbite-ellipse {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 84vw;
+      height: 84vh;
+      border: 2px solid rgba(212, 175, 55, 0.35);
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 15;
     }
-    @media (prefers-reduced-motion: reduce) {
-      *, *::before, *::after { scroll-behavior: auto !important; transition-duration: 0.01ms !important; }
+    .orbite-cercle {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 70vmin;
+      height: 70vmin;
+      border: 2px dashed rgba(212, 175, 55, 0.45);
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 15;
+      animation: spin-astrolabe 120s linear infinite;
     }
   </style>
 </head>
 <body>
-  <header class="masthead">
-    <div class="wrap masthead-inner">
-      <a class="brand" href="../index.html" aria-label="Aldus, retour à l'accueil">
-        <img src="../aldus-emblem.png" alt="">
-        <span class="brand-name">ALDUS</span>
-        <span class="brand-note">Atelier du Livre Moderne</span>
-      </a>
-      <nav class="nav" aria-label="Navigation des spécifications">
-        <a class="back-link" href="../index.html">Accueil</a>
-        <a href="#bancs">Bancs</a>
-        <a href="#couverture">Couverture</a>
-        <a href="#sorties">Exports</a>
-        <a href="#technologie">Technologie</a>
-      </nav>
+
+  <!-- Bouton Retour -->
+  <a href="../index.html" class="absolute top-8 left-8 text-gold hover:text-white z-[110] font-display italic text-xl">⟵ Retour à l'Atelier</a>
+
+  <!-- Fond texturé -->
+  <svg class="texture-overlay">
+    <filter id="grain">
+      <feTurbulence type="fractalNoise" baseFrequency="0.8" numOctaves="3" stitchTiles="stitch" />
+      <feColorMatrix type="saturate" values="0" />
+      <feComponentTransfer>
+        <feFuncR type="linear" slope="0.2" />
+        <feFuncG type="linear" slope="0.2" />
+        <feFuncB type="linear" slope="0.2" />
+      </feComponentTransfer>
+    </filter>
+    <rect width="100%" height="100%" filter="url(#grain)" />
+  </svg>
+
+  <!-- Anneaux de l'Astrolabe -->
+  <div class="orbite-ellipse" id="orbite-1"></div>
+  <div class="orbite-cercle" id="orbite-2"></div>
+
+  <!-- Emblème Central & Présentation -->
+  <div id="emblem-container" class="relative z-10 flex flex-col items-center justify-center text-center max-w-2xl px-6 transition-all duration-700">
+    <div id="emblem" class="emblem-pulse w-32 h-32 rounded-full border-2 border-[#d4af37] flex items-center justify-center bg-black mb-6 overflow-hidden">
+      <img src="../aldus-emblem.png" class="w-full h-full object-cover" alt="Logo Aldus">
     </div>
-  </header>
+    <div id="intro-text" class="space-y-4">
+      <p class="font-display text-2xl text-gold italic">« Festina Lente »</p>
+      <h1 class="font-display text-4xl font-bold text-[#f3f0ea] tracking-wide">Le Registre des Spécifications</h1>
+      <p class="text-lg leading-relaxed opacity-80 font-serif">Édition 1.3.0</p>
+    </div>
+  </div>
 
-  <main class="wrap">
-    <section class="intro" aria-labelledby="page-title">
-      <div>
-        <p class="eyebrow">Registre public · Édition 1.3.0</p>
-        <h1 id="page-title">L'atelier qui façonne le livre.</h1>
-        <div class="intro-rule"></div>
-        <p class="intro-copy">Aldus réunit dans un même atelier la préparation d'un manuscrit, sa composition, sa relecture et la fabrication de ses fichiers de publication. Chaque étape se déroule sur un Banc d'atelier, du premier réglage jusqu'au tirage.</p>
-        <div class="intro-meta"><span>Composition éditoriale</span><span>Reliure KDP</span><span>Atelier de bureau</span></div>
-      </div>
-      <figure class="intro-figure">
-        <img src="../assets/screenshots/Couverture01.png" alt="Marbre de montage 2D d'une couverture complète, avec les plats, le dos, les repères et la réserve ISBN" fetchpriority="high">
-        <figcaption><span>Le marbre de montage</span><span>Feuillet VII · Épreuve 2D</span></figcaption>
-      </figure>
-    </section>
+  <!-- Bouton Fermer -->
+  <button id="close-btn" onclick="closePlaques()" class="p-2 text-gold hover:text-white transition-colors">
+    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+  </button>
 
-    <section class="section" id="bancs" aria-labelledby="bancs-title">
-      <div class="section-heading">
-        <span class="section-kicker">Du manuscrit au volume</span>
-        <h2 id="bancs-title">Les huit Bancs de l'atelier</h2>
-        <p>Sept menus organisent le travail; les huit Bancs décrivent le parcours complet, avec certaines étapes réparties sur les deux feuillets du registre.</p>
+  <!-- Plaque Nord : Les Huit Bancs -->
+  <div id="plaque-bancs"
+       onclick="openPlaque('plaque-bancs')"
+       class="plaque w-72 h-48 rounded-sm flex items-center justify-center text-center p-4"
+       style="top: 8%; left: 50%; transform: translateX(-50%); z-index: 25;">
+    <div class="plaque-summary flex flex-col items-center gap-1">
+      <span class="font-display italic text-xl text-gold">Les Huit Bancs</span>
+      <span class="text-xs italic opacity-60 font-serif">Du manuscrit au volume</span>
+    </div>
+    <div class="plaque-content absolute inset-0 p-12 flex flex-col justify-center overflow-y-auto">
+      <h2 class="font-display text-4xl text-gold mb-6 italic">Le Cycle de Création</h2>
+      <div class="space-y-6 text-lg leading-relaxed opacity-90">
+        <div class="space-y-4">
+          <div>
+            <h4 class="font-display font-bold text-gold">Banc I : Calibrage &amp; Gabarits</h4>
+            <p class="opacity-80 ml-4">Choix immédiat du gabarit parmi les formats canoniques de l'édition (du format poche 5×8 po au grand in-octavo 7×10 po pour un confort de lecture supérieur). Sélection du caractère d'imprimerie (Garamond), étalonnage du corps (11 pt), de l'interlignage (1,15) et des hauteurs optiques de titrage. Déclaration fluide des répertoires du manuscrit (chapitres Markdown) et du dossier des ornements et illustrations. Paramétrage des seuils de vigilance et de l'analyse orthotypographique.</p>
+          </div>
+          <div>
+            <h4 class="font-display font-bold text-gold">Banc II : Identité &amp; Colophon</h4>
+            <p class="opacity-80 ml-4">État-civil du livre, mentions légales KDP et colophon historique. Renseignement des métadonnées éditoriales, du titre, de la signature d'auteur et de l'achevé d'imprimer.</p>
+          </div>
+          <div>
+            <h4 class="font-display font-bold text-gold">Banc III : L'Écritoire</h4>
+            <p class="opacity-80 ml-4">Sélectionnez un fichier Markdown existant ou créez un nouveau chapitre .md dans le dossier source du projet ; les modifications sont sauvegardées automatiquement. Éditez sur le feuillet gauche, dans une page ébène et or, et suivez la prévisualisation typographique en temps réel sur le feuillet droit. Insérez guillemets français, espaces insécables, cadratins, apostrophes courbes et ligatures ; consultez les exemples Markdown de narration romanesque.</p>
+          </div>
+          <div>
+            <h4 class="font-display font-bold text-gold">Banc IV : Imposition &amp; Architecture</h4>
+            <p class="opacity-80 ml-4">Orchestration de la structure narrative (actes, chapitres), intégration rigoureuse des pièces liminaires (dédicaces, épigraphes, prologue) et placement des illustrations. Respect des seuils de pagination et des contraintes techniques d'impression à la demande pour garantir une conformité irréprochable des épreuves.</p>
+          </div>
+          <div>
+            <h4 class="font-display font-bold text-gold">Banc V : Qualité Typographique &amp; d'Épreuve</h4>
+            <p class="opacity-80 ml-4">Évaluation globale du chapitre. Affiche la jauge de conformité aldine, le tableau de bord par chapitre, la classification pondérée des anomalies (critiques, style, mineures) et le regroupement par familles typographiques. Navigation feuillet par feuillet à travers l'ensemble des règles orthotypographiques : fiches explicatives détaillées, exemples avant/après, niveau de sévérité et décompte précis des occurrences détectées. Vue double synchrone associant le feuillet de lecture au pupitre des conseils de l'imprimeur. Les anomalies sont surlignées d'or sur la page vivante, avec repérage instantané et recommandations de correction. Édition directe du texte vivant au format Markdown pour appliquer des corrections orthotypographiques immédiates — insertion d'espaces insécables, tirets cadratins et ligatures — sans jamais quitter l'établi.</p>
+          </div>
+          <div>
+            <h4 class="font-display font-bold text-gold">Banc VI : Mise en couverture</h4>
+            <p class="opacity-80 ml-4">Paramétrage mathématique de l'enveloppe extérieure. Déclaration de la pagination et choix rigoureux du papier d'imprimerie (crème, blanc ou couleur) pour calculer automatiquement l'épaisseur du dos au centième de millimètre. Sélection du pelliculage (mat velouté ou brillant éclatant), import des visuels des plats en haute définition (305 DPI) et composition du texte de la tranche.</p>
+          </div>
+          <div>
+            <h4 class="font-display font-bold text-gold">Banc VII : L'Inspection Pré-Presse</h4>
+            <p class="opacity-80 ml-4">Constitution du dossier de fabrication : PDF Imprimeur (Haute Définition), EPUB (Standard), jaquette 300 DPI et DOCX révisé.</p>
+          </div>
+          <div>
+            <h4 class="font-display font-bold text-gold">Banc VIII : Le Tirage sous Presse</h4>
+            <p class="opacity-80 ml-4">L'acte solennel de l'Officine d'Aldus. Affiche le justificatif de tirage traditionnel, permet d'actionner la presse pour figer le volume dans ses 60 feuillets, et offre un accès direct au dossier des épreuves et au feuilletage du livre composé.</p>
+          </div>
+        </div>
       </div>
-      <div class="banc-grid">
-        <article class="banc-card">
-          <figure class="banc-visual"><img src="../assets/screenshots/banc-1-parametres.png" alt="Écran de réglage du format du livre, du corps de texte et des titres" loading="lazy"></figure>
-          <div class="banc-content"><span class="banc-index">Banc I</span><h3>Calibrage &amp; Gabarits</h3><span class="banc-menu">Menu Réglages</span><p>Choisissez le format de coupe, les polices et les règles de mise en page. Les réglages s'appliquent au livre exporté, tandis que l'interface de l'atelier conserve sa présentation.</p></div>
-        </article>
-        <article class="banc-card">
-          <figure class="banc-visual"><img src="../assets/screenshots/banc-2-identite.png" alt="Formulaire d'identité du livre avec titre, série, auteur et collaborateurs" loading="lazy"></figure>
-          <div class="banc-content"><span class="banc-index">Banc II</span><h3>Identité &amp; Colophon</h3><span class="banc-menu">Menu Informations</span><p>Rassemblez le titre, la série, les auteurs et les mentions d'édition. Ces informations alimentent les pages liminaires et le justificatif d'achevé d'imprimer.</p></div>
-        </article>
-        <article class="banc-card">
-          <figure class="banc-visual writing-visual" role="img" aria-label="Aperçu du diptyque L'Écritoire : édition Markdown et page composée">
-            <div class="writing-pane writing-source"><span class="writing-pane-label">L'Écritoire · Markdown</span><pre># Le passage
+    </div>
+  </div>
 
-— Vous voilà enfin.
-— Je vous l'avais promis.</pre></div>
-            <div class="writing-pane writing-output"><span class="writing-pane-label">La Feuille Composée</span><h4>Le passage</h4><p>— Vous voilà enfin.</p><p>— Je vous l'avais promis.</p><blockquote>« La nuit tombe. »</blockquote></div>
-          </figure>
-          <div class="banc-content"><span class="banc-index">Banc III</span><h3>L'Écritoire</h3><span class="banc-menu">Menu Écritoire · Feuillets III &amp; IV</span><p>Sélectionnez ou créez un chapitre Markdown dans le dossier source. Le feuillet gauche réunit l'éditeur ébène et le réglet typographique ; le feuillet droit affiche la composition en temps réel. Le Manuel du Scribe accompagne titres, dialogues, exergues, notes et séparateurs de scène.</p></div>
-        </article>
-        <article class="banc-card">
-          <figure class="banc-visual"><img src="../assets/screenshots/banc-3-architecture.png" alt="Organisation narrative des actes, chapitres et pièces liminaires" loading="lazy"></figure>
-          <div class="banc-content"><span class="banc-index">Banc IV</span><h3>Imposition &amp; Architecture</h3><span class="banc-menu">Menu Organisation · Feuillets V &amp; VI</span><p>Structurez actes, chapitres, illustrations et pages spéciales, puis réordonnez-les. Les outils contrôlent pagination, cahiers et ouvertures de chapitre sur une belle page.</p></div>
-        </article>
-        <article class="banc-card">
-          <figure class="banc-visual"><img src="../assets/screenshots/Correcteur03.png" alt="Diptyque de lecture et de conseils, avec une anomalie typographique repérée en or" loading="lazy"></figure>
-          <div class="banc-content"><span class="banc-index">Banc V</span><h3>Qualité Typographique &amp; d'Épreuve</h3><span class="banc-menu">Menu Correcteur · Feuillets IX &amp; X</span><p>Examinez l'indice de qualité et les 18 règles typographiques, puis lisez le chapitre face à ses annotations. Localisez les anomalies, appliquez une suggestion ou retouchez le Markdown en direct.</p></div>
-        </article>
-        <article class="banc-card">
-          <figure class="banc-visual"><img src="../assets/screenshots/Couverture03.png" alt="Aperçu tridimensionnel orbital d'un livre relié" loading="lazy"></figure>
-          <div class="banc-content"><span class="banc-index">Banc VI</span><h3>Mise en couverture</h3><span class="banc-menu">Menu Couverture · Feuillets VII &amp; VIII</span><p>Calibrez le papier et le dos, importez les plats, puis inspectez la planche à plat ou le volume relié en 3D. Les repères et alertes aident à vérifier le gabarit avant export.</p></div>
-        </article>
-        <article class="banc-card">
-          <figure class="banc-visual"><img src="../assets/screenshots/Export01.png" alt="Dossier de fabrication et sélection des formes d'édition" loading="lazy"></figure>
-          <div class="banc-content"><span class="banc-index">Banc VII</span><h3>Inspection Pré-Presse</h3><span class="banc-menu">Menu Export · Feuillet XI</span><p>Préparez le dossier de fabrication, sélectionnez une ou plusieurs formes de sortie et consultez le bilan d'intégrité avant de lancer la génération.</p></div>
-        </article>
-        <article class="banc-card">
-          <figure class="banc-visual"><img src="../assets/screenshots/Export02.png" alt="Feuillet de tirage avec justificatif, action de presse et ouverture des épreuves" loading="lazy"></figure>
-          <div class="banc-content"><span class="banc-index">Banc VIII</span><h3>Tirage sous Presse</h3><span class="banc-menu">Menu Export · Feuillet XII</span><p>Relisez le justificatif, actionnez la presse et ouvrez le dossier des épreuves ou le volume composé. Le tirage clôt le parcours sans modifier le manuscrit source.</p></div>
-        </article>
-      </div>
-    </section>
+  <!-- Plaque Ouest : Le Cover Studio -->
+  <div id="plaque-cover"
+       onclick="openPlaque('plaque-cover')"
+       class="plaque w-72 h-48 rounded-sm flex items-center justify-center text-center p-4"
+       style="top: 50%; left: 8%; transform: translateY(-50%);">
+    <div class="plaque-summary flex flex-col items-center gap-1">
+      <span class="font-display italic text-xl text-gold">Le Cover Studio</span>
+      <span class="text-xs italic opacity-60 font-serif">La couverture au millimètre</span>
+    </div>
+    <div class="plaque-content absolute inset-0 p-12 flex flex-col justify-center overflow-y-auto">
+      <h2 class="font-display text-4xl text-gold mb-6 italic">Le Cover Studio</h2>
+      <div class="space-y-6 text-lg leading-relaxed opacity-90">
+        <p>Le Cover Studio calcule la jaquette complète à partir du format de coupe, de la pagination et du type de papier choisi. L'épaisseur du dos est estimée à partir du nombre de pages et du coefficient de papier. Le moteur de génération arrondit la pagination utilisée au nombre pair supérieur, conformément au calcul de géométrie du module couverture.</p>
 
-    <section class="section" id="couverture" aria-labelledby="cover-title">
-      <div class="section-heading">
-        <span class="section-kicker">Cover Studio · Banc VI</span>
-        <h2 id="cover-title">La couverture, au millimètre.</h2>
-        <p>Le Cover Studio calcule la jaquette complète à partir du format de coupe, de la pagination et du type de papier choisi.</p>
-      </div>
-      <div class="cover-layout">
-        <div class="cover-copy">
-          <p>L'épaisseur du dos est estimée à partir du nombre de pages et du coefficient de papier. Le moteur de génération arrondit la pagination utilisée au nombre pair supérieur, conformément au calcul de géométrie du module couverture.</p>
-          <div class="formula"><strong>Largeur du dos = pages retenues × coefficient papier</strong><span>Valeurs en millimètres par page; le résultat s'actualise avec les paramètres du projet.</span></div>
-          <table class="paper-table" aria-label="Coefficients d'épaisseur du dos selon le papier">
-            <thead><tr><th scope="col">Papier</th><th scope="col">Coefficient</th></tr></thead>
-            <tbody>
-              <tr><td>Crème</td><td>0,0635 mm / page</td></tr>
-              <tr><td>Blanc</td><td>0,0572 mm / page</td></tr>
-              <tr><td>Couleur</td><td>0,0596 mm / page</td></tr>
-            </tbody>
-          </table>
-          <ul class="spec-list">
-            <li><strong>Fonds perdus :</strong> 3,2 mm sur les bords.</li>
-            <li><strong>Dos :</strong> texte éligible à partir de 80 pages.</li>
-            <li><strong>Marbre 2D :</strong> plis, sécurité et réserve ISBN 50,8 × 30,5 mm.</li>
-            <li><strong>Dérive :</strong> alerte si pagination ou structure change après validation.</li>
-            <li><strong>Volume 3D :</strong> rotation pour inspecter le livre relié.</li>
-            <li><strong>Finition choisie :</strong> Mat Velouté ou Brillant Éclatant.</li>
+        <div class="p-4 rounded-sm border border-gold/30 bg-gold/5 text-center">
+          <strong class="font-display text-xl text-gold block mb-2">Largeur du dos = pages retenues × coefficient papier</strong>
+          <span class="text-sm opacity-70">Valeurs en millimètres par page; le résultat s'actualise avec les paramètres du projet.</span>
+        </div>
+
+        <div class="space-y-4">
+          <h4 class="font-display font-bold text-gold italic">Coefficients de papier</h4>
+          <ul class="list-none space-y-2 opacity-80">
+            <li class="flex justify-between border-b border-gold/10 pb-1"><span>Crème</span> <span class="text-gold">0,0635 mm / page</span></li>
+            <li class="flex justify-between border-b border-gold/10 pb-1"><span>Blanc</span> <span class="text-gold">0,0572 mm / page</span></li>
+            <li class="flex justify-between border-b border-gold/10 pb-1"><span>Couleur</span> <span class="text-gold">0,0596 mm / page</span></li>
           </ul>
         </div>
-        <figure class="cover-visual">
-          <img src="../assets/screenshots/Couverture02.png" alt="Calibrage du dos, choix du papier et finition de pelliculage" loading="lazy">
-          <figcaption>Contrôle de la couverture complète avant le fichier PDF.</figcaption>
-        </figure>
-      </div>
-    </section>
 
-    <section class="section" id="sorties" aria-labelledby="outputs-title">
-      <div class="section-heading">
-        <span class="section-kicker">Dossier de fabrication</span>
-        <h2 id="outputs-title">Quatre formes de sortie</h2>
-        <p>Les formes peuvent être retenues séparément ou ensemble depuis l'inspection pré-presse.</p>
+        <div class="space-y-4">
+          <h4 class="font-display font-bold text-gold italic">Spécifications KDP</h4>
+          <ul class="list-disc list-inside space-y-2 opacity-80">
+            <li><strong class="text-gold">Fonds perdus :</strong> 3,2 mm sur les bords.</li>
+            <li><strong class="text-gold">Dos :</strong> texte éligible à partir de 80 pages.</li>
+            <li><strong class="text-gold">Marbre 2D :</strong> plis, sécurité et réserve ISBN 50,8 × 30,5 mm.</li>
+            <li><strong class="text-gold">Dérive :</strong> alerte si pagination ou structure change après validation.</li>
+            <li><strong class="text-gold">Volume 3D :</strong> rotation pour inspecter le livre relié.</li>
+            <li><strong class="text-gold">Finition choisie :</strong> Mat Velouté ou Brillant Éclant.</li>
+          </ul>
+        </div>
       </div>
-      <div class="formats">
-        <article class="format"><span class="format-number">01 · INTÉRIEUR</span><h3>PDF prêt-à-imprimer</h3><p>Composition du manuscrit par Typst embarqué, avec format de coupe et règles de mise en page du projet.</p><span class="format-tag">PDF · moteur Typst</span></article>
-        <article class="format"><span class="format-number">02 · NUMÉRIQUE</span><h3>ePub</h3><p>Lecture reflowable adaptée aux liseuses, générée par le moteur EPUB intégré.</p><span class="format-tag">Libellé d'interface : 3.2</span></article>
-        <article class="format"><span class="format-number">03 · COUVERTURE</span><h3>Jaquette KDP</h3><p>PDF déplié avec plats, dos calculé, fonds perdus et réserve de code-barres. Les visuels sont contrôlés selon leur résolution effective.</p><span class="format-tag">PDF · seuil d'inspection 300 DPI</span></article>
-        <article class="format"><span class="format-number">04 · RELECTURE</span><h3>DOCX révisé</h3><p>Manuscrit consolidé pour la relecture éditoriale, produit par le moteur DOCX natif.</p><span class="format-tag">DOCX · moteur docx-rs</span></article>
-      </div>
-      <aside class="notice"><strong>État des formats :</strong> l'export EPUB est actuellement une première version du moteur; le code ne déclare pas explicitement la conformité EPUB 3.2. Le PDF intérieur est prêt-à-imprimer, mais le dépôt ne contient pas de préflight PDF/X dédié. Les 300 DPI concernent l'inspection effective des images de couverture, pas une résolution ajoutée artificiellement par le PDF.</aside>
-    </section>
+    </div>
+  </div>
 
-    <section class="section" id="technologie" aria-labelledby="tech-title">
-      <div class="section-heading">
-        <span class="section-kicker">Sous la reliure</span>
-        <h2 id="tech-title">Une architecture de bureau, des moteurs dédiés.</h2>
+  <!-- Plaque Est : L'Architecture -->
+  <div id="plaque-arch"
+       onclick="openPlaque('plaque-arch')"
+       class="plaque w-72 h-48 rounded-sm flex items-center justify-center text-center p-4"
+       style="top: 50%; right: 8%; transform: translateY(-50%);">
+    <div class="plaque-summary flex flex-col items-center gap-1">
+      <span class="font-display italic text-xl text-gold">L'Architecture</span>
+      <span class="text-xs italic opacity-60 font-serif">Sous la reliure</span>
+    </div>
+    <div class="plaque-content absolute inset-0 p-12 flex flex-col justify-center overflow-y-auto">
+      <h2 class="font-display text-4xl text-gold mb-6 italic">L'Architecture Technique</h2>
+      <div class="space-y-6 text-lg leading-relaxed opacity-90">
         <p>Aldus associe une interface de travail graphique à des moteurs locaux pour la composition et la fabrication des fichiers.</p>
+        <div class="space-y-4">
+          <div>
+            <h4 class="font-display font-bold text-gold">Tauri v2</h4>
+            <p class="opacity-80 ml-4">Enveloppe l'application de bureau et relie l'interface aux fonctions natives de fichiers et de fenêtre.</p>
+          </div>
+          <div>
+            <h4 class="font-display font-bold text-gold">Rust</h4>
+            <p class="opacity-80 ml-4">Exécute les commandes locales, les calculs de couverture et les pipelines d'export. Les erreurs sont remontées à l'interface au lieu d'être masquées.</p>
+          </div>
+          <div>
+            <h4 class="font-display font-bold text-gold">Typst</h4>
+            <p class="opacity-80 ml-4">Moteur de composition compilé dans l'application pour générer les PDF du manuscrit et de la jaquette.</p>
+          </div>
+          <div>
+            <h4 class="font-display font-bold text-gold">Interface</h4>
+            <p class="opacity-80 ml-4">React, TypeScript et Tailwind CSS organisent les pages du registre, les contrôles et les aperçus. Le redimensionnement est stabilisé par une garde dédiée et des mesures réactives.</p>
+          </div>
+        </div>
       </div>
-      <div class="tech-row"><div class="tech-label">Tauri v2</div><p>Enveloppe l'application de bureau et relie l'interface aux fonctions natives de fichiers et de fenêtre.</p></div>
-      <div class="tech-row"><div class="tech-label">Rust</div><p>Exécute les commandes locales, les calculs de couverture et les pipelines d'export. Les erreurs sont remontées à l'interface au lieu d'être masquées.</p></div>
-      <div class="tech-row"><div class="tech-label">Typst</div><p>Moteur de composition compilé dans l'application pour générer les PDF du manuscrit et de la jaquette.</p></div>
-      <div class="tech-row"><div class="tech-label">Interface</div><p>React, TypeScript et Tailwind CSS organisent les pages du registre, les contrôles et les aperçus. Le redimensionnement est stabilisé par une garde dédiée et des mesures réactives.</p></div>
-    </section>
+    </div>
+  </div>
 
-    <section class="closing" aria-label="Retour à la vitrine">
-      <div class="closing-mark">❦</div>
-      <p>Le registre des spécifications s'arrête ici; l'atelier, lui, reste ouvert.</p>
-      <p><a href="../index.html">Retourner à la vitrine Aldus</a></p>
-    </section>
-  </main>
+  <!-- Plaque Sud : L'Inspection Pré-Presse -->
+  <div id="plaque-presse"
+       onclick="openPlaque('plaque-presse')"
+       class="plaque w-72 h-48 rounded-sm flex items-center justify-center text-center p-4"
+       style="bottom: 8%; left: 50%; transform: translateX(-50%);">
+    <div class="plaque-summary flex flex-col items-center gap-1">
+      <span class="font-display italic text-xl text-gold">L'Inspection Pré-Presse</span>
+      <span class="text-xs italic opacity-60 font-serif">Formes de sortie</span>
+    </div>
+    <div class="plaque-content absolute inset-0 p-12 flex flex-col justify-center overflow-y-auto">
+      <h2 class="font-display text-4xl text-gold mb-6 italic">L'Inspection Pré-Presse</h2>
+      <div class="space-y-6 text-lg leading-relaxed opacity-90">
+        <p>Les formes peuvent être retenues séparément ou ensemble depuis l'inspection pré-presse.</p>
+        <ul class="space-y-4">
+          <li class="flex flex-col p-3 rounded-sm border border-gold/20 bg-gold/5">
+            <strong class="text-gold font-display italic">PDF prêt-à-imprimer</strong>
+            <span class="text-sm opacity-80">Composition du manuscrit par Typst embarqué, avec format de coupe et règles de mise en page du projet.</span>
+          </li>
+          <li class="flex flex-col p-3 rounded-sm border border-gold/20 bg-gold/5">
+            <strong class="text-gold font-display italic">ePub</strong>
+            <span class="text-sm opacity-80">Lecture reflowable adaptée aux liseuses, générée par le moteur EPUB intégré.</span>
+          </li>
+          <li class="flex flex-col p-3 rounded-sm border border-gold/20 bg-gold/5">
+            <strong class="text-gold font-display italic">Jaquette KDP</strong>
+            <span class="text-sm opacity-80">PDF déplié avec plats, dos calculé, fonds perdus et réserve de code-barres. Les visuels sont contrôlés selon leur résolution effective.</span>
+          </li>
+          <li class="flex flex-col p-3 rounded-sm border border-gold/20 bg-gold/5">
+            <strong class="text-gold font-display italic">DOCX révisé</strong>
+            <span class="text-sm opacity-80">Manuscrit consolidé pour la relecture éditoriale, produit par le moteur DOCX natif.</span>
+          </li>
+        </ul>
+        <div class="p-4 rounded-sm border border-gold/30 bg-gold/10 text-sm italic opacity-70">
+          Note : l'export EPUB est actuellement une première version du moteur; le code ne déclare pas explicitement la conformité EPUB 3.2. Le PDF intérieur est prêt-à-imprimer, mais le dépôt ne contient pas de préflight PDF/X dédié. Les 300 DPI concernent l'inspection effective des images de couverture, pas une résolution ajoutée artificiellement par le PDF.
+        </div>
+      </div>
+    </div>
+  </div>
 
-  <footer>
-    <div class="wrap footer-inner"><span>Aldus · Officina Aldina · 2026</span><a href="../index.html">Accueil de la vitrine</a></div>
-  </footer>
+  <script>
+    function openPlaque(id) {
+      const target = document.getElementById(id);
+      if (target.classList.contains('active')) return;
+
+      // Désactivation et disparition de la présentation centrale
+      document.getElementById('emblem-container').classList.add('hidden-spatial');
+
+      document.querySelectorAll('.plaque').forEach(p => {
+        if (p.id !== id) {
+          p.classList.add('hidden-spatial');
+        }
+      });
+
+      // Activation de la plaque
+      target.classList.add('active');
+      target.classList.remove('hidden-spatial');
+
+      // Affichage du bouton fermer
+      document.getElementById('close-btn').classList.add('visible');
+    }
+
+    function closePlaques() {
+      document.getElementById('emblem-container').classList.remove('hidden-spatial');
+      document.getElementById('close-btn').classList.remove('visible');
+
+      document.querySelectorAll('.plaque').forEach(p => {
+        p.classList.remove('active');
+        p.classList.remove('hidden-spatial');
+      });
+    }
+  </script>
 </body>
 </html>
