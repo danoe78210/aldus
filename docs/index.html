@@ -1,1521 +1,384 @@
 <!DOCTYPE html>
-<html lang="fr" class="scroll-smooth">
+<html lang="fr">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ALDUS ❦ Atelier du Livre Moderne</title>
-  <meta name="description" content="Environnement d'artisanat littéraire et d'ingénierie éditoriale aux normes Amazon KDP. Inspiré par les maîtres imprimeurs de la Renaissance vénitienne.">
-  <link rel="icon" type="image/x-icon" href="favicon.ico">
-
-  <link rel="stylesheet" href="styles.css">
+  <title>Aldus — Atelier Vénitien</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,700;1,400&family=Playfair+Display:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet">
   <style>
+    :root {
+      --color-bg: #0a0a0a;
+      --color-parchment: #eaddc5;
+      --color-gold: #d4af37;
+      --color-gold-bright: #f9df91;
+      --font-display: 'Playfair Display', serif;
+      --font-body: 'Lora', serif;
+    }
+
     body {
-      background-color: #13110f;
-      color: #f5efe4;
-      background-image: radial-gradient(circle at 50% 20%, #1e1913 0%, #13110f 75%);
-    }
-    .brass-border {
-      border: 1px solid #382f22;
-      box-shadow: inset 0 0 15px rgba(212, 175, 55, 0.03);
-    }
-    .brass-border:hover {
-      border-color: #8f6e2b;
-      box-shadow: inset 0 0 20px rgba(212, 175, 55, 0.08);
-    }
-    /* Section « Les Bancs de l'Atelier » */
-    .banc-card {
-      font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-      line-height: 1.5;
-    }
-    .banc-preview {
-      position: relative;
-      width: 100%;
-      aspect-ratio: 16 / 10;
-      background-color: #0a0907;
-      border: 1px solid #382f22;
-      border-radius: 2px;
+      background-color: var(--color-bg);
+      color: var(--color-parchment);
+      font-family: var(--font-body);
+      height: 100vh;
       overflow: hidden;
+      margin: 0;
       display: flex;
       align-items: center;
       justify-content: center;
-    }
-    .banc-card:hover .banc-preview {
-      border-color: #8f6e2b;
-    }
-    .banc-preview img {
-      position: absolute;
-      inset: 0;
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      display: block;
-    }
-    .banc-preview-placeholder {
-      font-family: ui-monospace, SFMono-Regular, "Courier New", monospace;
-      font-size: 0.6875rem;
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-      color: #786c59;
-    }
-    .banc-menu {
-      margin-top: 0.5rem;
-      font-size: 0.6875rem;
-      text-transform: uppercase;
-      letter-spacing: 0.18em;
-      color: #8f6e2b;
-    }
-    .banc-role {
-      margin-top: 0.75rem;
-      font-size: 0.8125rem;
-      color: #a89f91;
-    }
-    .banc-role-key {
-      color: #f5efe4;
-      font-weight: 600;
-    }
-    .banc-legende {
-      margin-top: 0.5rem;
-      font-size: 0.9375rem;
-      color: #a89f91;
-    }
-    /* Banc I — présentation enrichie (diptyque de captures) */
-    .banc-featured {
-      background-image: radial-gradient(circle at 50% 0%, rgba(143, 110, 43, 0.07) 0%, rgba(0, 0, 0, 0) 62%);
-    }
-    .banc-subtitle {
-      margin-top: 0.25rem;
-      font-size: 0.8125rem;
-      font-style: italic;
-      letter-spacing: 0.02em;
-      color: #a08342;
-    }
-    .banc-points {
-      margin-top: 1rem;
-      display: flex;
-      flex-direction: column;
-      gap: 0.5rem;
-      font-size: 0.875rem;
-      color: #a89f91;
-    }
-    .banc-points li {
       position: relative;
-      padding-left: 1.15rem;
     }
-    .banc-points li::before {
-      content: "✦";
+
+    /* Texture de fond fractal SVG */
+    .texture-overlay {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 10;
+      opacity: 0.4;
+      mix-blend-mode: overlay;
+    }
+
+    .font-display { font-family: var(--font-display); }
+    .text-gold { color: var(--color-gold); }
+    .bg-gold { background-color: var(--color-gold); }
+
+    /* Animation de pulsation de l'emblème */
+    .emblem-pulse {
+      animation: pulse-gold 4s infinite ease-in-out;
+    }
+
+    @keyframes pulse-gold {
+      0%, 100% { box-shadow: 0 0 20px rgba(212, 175, 55, 0.3); transform: scale(1); }
+      50% { box-shadow: 0 0 60px rgba(212, 175, 55, 0.6); transform: scale(1.05); }
+    }
+
+    /* Style des plaques */
+    .plaque {
       position: absolute;
-      left: 0;
-      top: 0.05rem;
-      color: #8f6e2b;
-      font-size: 0.7rem;
-    }
-    .banc-point-key {
-      color: #f5efe4;
-      font-weight: 600;
-    }
-    /* Pupitre d'exposition à onglets — proportions équilibrées 40% texte / 60% visuel */
-    .banc-showcase {
-      display: grid;
-      grid-template-columns: minmax(0, 1fr);
-      gap: 1.5rem;
-      align-items: start;
-    }
-    .banc-showcase > * { min-width: 0; }
-    @media (min-width: 1024px) {
-      .banc-showcase {
-        grid-template-columns: 40fr 60fr;
-        gap: 2rem;
-      }
-    }
-    .banc-tabs {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.5rem;
-      margin-bottom: 0.85rem;
-    }
-    /* Barre d'onglets fluide sur une seule ligne horizontale */
-    .banc-tabs-single-line {
-      display: flex;
-      flex-direction: row;
-      flex-wrap: nowrap;
-      gap: 0.5rem;
-      width: 100%;
-      margin-bottom: 0.85rem;
-    }
-    .banc-tabs-single-line .banc-tab {
-      flex: 1 1 0;
-      min-width: 0;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      text-align: center;
-      padding: 0.55rem 0.35rem;
-      white-space: nowrap;
-    }
-    .banc-tab {
-      font-family: "Cinzel", serif;
-      font-size: 0.6875rem;
-      text-transform: uppercase;
-      letter-spacing: 0.12em;
-      padding: 0.5rem 0.95rem;
-      background-color: #14110e;
-      border: 1px solid #382f22;
-      border-radius: 2px;
-      color: #a89f91;
       cursor: pointer;
-      transition: color 0.25s ease, border-color 0.25s ease, background-color 0.25s ease, box-shadow 0.25s ease;
-    }
-    .banc-tab:hover {
-      border-color: #8f6e2b;
-      color: #f5efe4;
-      background-color: #1c1813;
-    }
-    .banc-tab.active {
-      border-color: #d4af37;
-      background-color: #241c14;
-      color: #f3e5ab;
-      box-shadow: 0 0 18px rgba(212, 175, 55, 0.22), inset 0 0 10px rgba(212, 175, 55, 0.05);
-    }
-    .banc-narrative-box {
-      transition: opacity 0.25s ease;
-    }
-    .banc-narrative-box.is-fading {
-      opacity: 0;
-    }
-    .banc-viewer {
-      position: relative;
-      width: 100%;
-      height: 520px;
-      background-color: #0b0a09;
-      border: 1px solid #382f22;
-      border-radius: 3px;
+      transition: all 0.6s cubic-bezier(0.23, 1, 0.32, 1);
+      z-index: 20;
+      border: 1px solid rgba(212, 175, 55, 0.3);
+      background: linear-gradient(135deg, #1a1a1a 0%, #0a0a0a 100%);
+      box-shadow: 0 10px 30px rgba(0,0,0,0.8), inset 0 0 15px rgba(212, 175, 55, 0.1);
       overflow: hidden;
-      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.5), inset 0 0 24px rgba(212, 175, 55, 0.04);
     }
-    @media (max-width: 640px) {
-      .banc-viewer {
-        height: 380px;
-      }
-      .banc-tabs-single-line {
-        overflow-x: auto;
-      }
-      .banc-tabs-single-line .banc-tab {
-        flex: 0 0 auto;
-        padding: 0.5rem 0.75rem;
-      }
-    }
-    .site-header-inner {
-      min-height: 4rem;
-    }
-    @media (max-width: 900px) {
-      .site-header-inner {
-        height: auto;
-        min-height: 4rem;
-        padding-top: 0.55rem;
-        padding-bottom: 0.55rem;
-        flex-wrap: wrap;
-        row-gap: 0.45rem;
-      }
-      .site-main-nav {
-        margin-left: auto;
-        flex-wrap: wrap;
-        justify-content: flex-end;
-        gap: 0.5rem 1rem;
-        font-size: 0.68rem;
-      }
-    }
-    @media (max-width: 640px) {
-      .site-header-inner {
-        align-items: center;
-        justify-content: center;
-        gap: 0.35rem;
-      }
-      .site-main-nav {
-        width: 100%;
-        justify-content: center;
-        gap: 0.25rem 0.8rem;
-        font-size: 0.58rem;
-      }
-    }
-    .banc-viewer::after {
-      content: "";
-      position: absolute;
-      inset: 0;
-      border: 1px solid rgba(143, 110, 43, 0.55);
-      border-radius: 3px;
-      pointer-events: none;
-    }
-    .banc-viewer-img {
-      position: absolute;
-      inset: 0;
-      width: 100%;
-      height: 100%;
-      object-fit: contain;
-      object-position: center;
-      background-color: #0b0a09;
+
+    .plaque-content {
       opacity: 0;
+      transition: opacity 0.4s ease;
       pointer-events: none;
-      transition: opacity 0.35s ease;
     }
-    .banc-viewer-img.is-active {
+
+    .plaque.active {
+      width: 80vw !important;
+      height: 80vh !important;
+      left: 10vw !important;
+      top: 10vh !important;
+      z-index: 100;
+      transform: scale(1) !important;
+      border-color: var(--color-gold);
+      box-shadow: 0 0 100px rgba(0,0,0,1), 0 0 40px rgba(212, 175, 55, 0.2);
+    }
+
+    .plaque.active .plaque-content {
       opacity: 1;
       pointer-events: auto;
     }
-    .banc-viewer-placeholder {
-      position: absolute;
-      inset: 0;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 1.5rem;
-      font-family: ui-monospace, SFMono-Regular, "Courier New", monospace;
-      font-size: 0.6875rem;
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-      text-align: center;
-      color: #786c59;
-    }
-    .banc-viewer-placeholder.is-hidden {
-      display: none;
-    }
-    /* Capture non déposée : l'élément reste dans le DOM (on connaît son nom)
-       mais n'affiche ni icône cassée ni zone cliquable. */
-    .banc-viewer-img[data-broken] {
-      opacity: 0 !important;
-      pointer-events: none !important;
-    }
-    .banc-viewer-caption {
-      margin-top: 0.6rem;
-      font-size: 0.625rem;
-      text-transform: uppercase;
-      letter-spacing: 0.18em;
-      color: #786c59;
-      text-align: center;
-    }
-    .banc-zoom {
-      align-self: center;
-      display: inline-flex;
-      align-items: center;
-      gap: 0.4rem;
-      margin-top: 0.75rem;
-      font-family: "Cinzel", serif;
-      font-size: 0.625rem;
-      text-transform: uppercase;
-      letter-spacing: 0.16em;
-      color: #a08342;
-      background: transparent;
-      border: 0;
-      cursor: pointer;
-      transition: color 0.2s ease;
-    }
-    .banc-zoom:hover {
-      color: #f3e5ab;
-    }
-    .banc-card {
-      scroll-margin-top: 5.5rem;
-    }
-    /* Sommaire flottant des 7 Bancs (Navigation Rapide — Renaissance, ébène et ors) */
-    .bancs-floating-nav {
-      position: fixed;
-      right: 1.25rem;
-      top: 50%;
-      transform: translateY(-50%);
-      z-index: 40;
-      display: none;
-      flex-direction: column;
-      align-items: center;
-      background: rgba(11, 10, 9, 0.95);
-      backdrop-filter: blur(10px);
-      -webkit-backdrop-filter: blur(10px);
-      border: 1px solid rgba(197, 160, 89, 0.3);
-      border-radius: 4px;
-      padding: 0.65rem 0.4rem;
-      box-shadow: 0 16px 36px rgba(0, 0, 0, 0.75), inset 0 0 16px rgba(212, 175, 55, 0.06);
-      transition: opacity 0.3s ease, transform 0.3s ease;
-    }
-    @media (min-width: 1024px) {
-      .bancs-floating-nav {
-        display: flex;
-      }
-    }
-    .bancs-nav-header {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      margin-bottom: 0.45rem;
-      padding-bottom: 0.35rem;
-      border-bottom: 1px solid rgba(197, 160, 89, 0.2);
-      width: 100%;
-    }
-    .bancs-nav-fleuron {
-      font-size: 0.75rem;
-      color: #c5a059;
-      line-height: 1;
-    }
-    .bancs-nav-title {
-      font-family: "Cinzel", serif;
-      font-size: 0.5rem;
-      text-transform: uppercase;
-      letter-spacing: 0.2em;
-      color: #8f6e2b;
-      margin-top: 0.15rem;
-    }
-    .bancs-nav-list {
-      display: flex;
-      flex-direction: column;
-      gap: 0.35rem;
-      list-style: none;
-      margin: 0;
-      padding: 0;
-    }
-    .bancs-nav-item {
+
+    /* Sceau de cire */
+    .wax-seal {
+      background: radial-gradient(circle, #d4af37 0%, #b8860b 70%, #8b6508 100%);
+      border: 3px solid #8b6508;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.5), inset 0 0 10px rgba(0,0,0,0.3);
+      border-radius: 50%;
+      transition: transform 0.2s ease;
       position: relative;
       display: flex;
       align-items: center;
       justify-content: center;
-      width: 2.35rem;
-      height: 2.15rem;
-      border: 1px solid rgba(197, 160, 89, 0.2);
-      border-radius: 2px;
-      background: rgba(20, 17, 14, 0.85);
-      color: #a89f91;
-      text-decoration: none;
-      cursor: pointer;
-      font-family: "Cinzel", serif;
-      font-size: 0.6875rem;
-      font-weight: 600;
-      letter-spacing: 0.06em;
-      transition: color 0.25s ease, border-color 0.25s ease, background-color 0.25s ease, box-shadow 0.25s ease, transform 0.2s ease;
-    }
-    .bancs-nav-item:hover {
-      color: #f5efe4;
-      border-color: #8f6e2b;
-      background: rgba(36, 28, 20, 0.95);
-      box-shadow: 0 0 12px rgba(212, 175, 55, 0.25);
-      transform: translateX(-2px);
-    }
-    .bancs-nav-item.active {
-      color: #f3e5ab;
-      border-color: #d4af37;
-      background: #241c14;
-      box-shadow: 0 0 16px rgba(212, 175, 55, 0.4), inset 0 0 8px rgba(212, 175, 55, 0.12);
-    }
-    .bancs-nav-tooltip {
-      position: absolute;
-      right: calc(100% + 0.75rem);
-      top: 50%;
-      transform: translateY(-50%) translateX(6px);
-      background: rgba(11, 10, 9, 0.96);
-      backdrop-filter: blur(8px);
-      -webkit-backdrop-filter: blur(8px);
-      border: 1px solid rgba(197, 160, 89, 0.4);
-      border-radius: 3px;
-      padding: 0.4rem 0.75rem;
-      font-family: "Cinzel", serif;
-      font-size: 0.625rem;
+      text-align: center;
+      font-family: var(--font-display);
+      font-weight: bold;
       text-transform: uppercase;
-      letter-spacing: 0.14em;
-      white-space: nowrap;
-      color: #f5efe4;
-      pointer-events: none;
-      opacity: 0;
-      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.75), inset 0 0 10px rgba(212, 175, 55, 0.05);
-      transition: opacity 0.2s ease, transform 0.2s ease;
+      font-size: 0.75rem;
+      color: #4a3500;
+      width: 120px;
+      height: 120px;
+      user-select: none;
     }
-    .bancs-nav-tooltip::after {
+
+    .wax-seal:hover {
+      transform: scale(1.1) rotate(3deg);
+    }
+
+    .wax-seal::after {
       content: "";
       position: absolute;
-      left: 100%;
-      top: 50%;
-      transform: translateY(-50%);
-      border: 4px solid transparent;
-      border-left-color: rgba(197, 160, 89, 0.5);
+      inset: 5px;
+      border: 1px solid rgba(255,255,255,0.2);
+      border-radius: 50%;
     }
-    .bancs-nav-item:hover .bancs-nav-tooltip {
+
+    #close-btn {
+      position: fixed;
+      top: 2rem;
+      right: 2rem;
+      z-index: 110;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+    }
+
+    #close-btn.visible {
       opacity: 1;
-      transform: translateY(-50%) translateX(0);
+      pointer-events: auto;
     }
-    .showcase-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(min(100%, 420px), 1fr));
-      gap: 2rem;
-    }
-    .pillar-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr));
-      gap: 2rem;
-    }
-    .pillar-card {
-      display: flex;
-      flex-direction: column;
-      gap: 1rem;
-      padding: 2.5rem 2rem;
-      border: 1px solid rgba(212, 175, 55, 0.3);
-      border-radius: 4px;
-      background: #161310;
-      line-height: 1.7;
-      text-align: center;
-    }
-    .pillar-mark {
-      font-family: var(--font-cinzel);
-      color: #8f6e2b;
-      letter-spacing: 0.3em;
-    }
-    .showcase-shot {
-      margin: 0;
-      overflow: hidden;
-      border: 1px solid rgba(212, 175, 55, 0.3);
-      border-radius: 4px;
-      background: #161310;
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8);
-      transition: transform 0.3s ease, border-color 0.3s ease;
-    }
-    .showcase-shot:hover, .showcase-shot:focus-within {
-      border-color: #d4af37;
-      transform: translateY(-3px);
-    }
-    .showcase-shot a { display: block; }
-    .showcase-shot img {
-      width: 100%;
-      aspect-ratio: 16 / 10;
-      object-fit: contain;
-      background: #13110f;
-      transition: transform 0.3s ease;
-    }
-    .showcase-shot a:hover img { transform: scale(1.025); }
-    .showcase-shot figcaption {
-      padding: 1rem 1.25rem;
-      color: #f3e5ab;
-      font-style: italic;
-      text-align: center;
-    }
-    :focus-visible { outline: 2px solid #d4af37; outline-offset: 4px; }
-    #lightbox {
-      width: min(96vw, 1400px);
-      max-width: 96vw;
-      max-height: 96dvh;
-      margin: auto;
-      padding: 1rem;
-      border: 1px solid #8f6e2b;
-      border-radius: 4px;
-      color: #f5efe4;
-      background: #13110f;
-    }
-    #lightbox::backdrop { background: rgba(0, 0, 0, 0.92); }
-    #lightbox img { display: block; max-width: 100%; max-height: 78dvh; margin: auto; object-fit: contain; }
-    #lightbox-caption { margin-top: 0.75rem; text-align: center; color: #f3e5ab; font-style: italic; }
-    #lightbox-close {
-      display: block;
-      margin: 0 0 0.75rem auto;
-      padding: 0.5rem 1rem;
-      border: 1px solid #8f6e2b;
-      cursor: pointer;
-    }
-    html:has(#lightbox[open]) { overflow: hidden; }
-    @media (prefers-reduced-motion: reduce) {
-      *, *::before, *::after { scroll-behavior: auto !important; transition: none !important; }
+
+    .hidden-spatial {
+      opacity: 0;
+      pointer-events: none;
+      transform: scale(0.9);
     }
   </style>
 </head>
-<body class="font-serif antialiased selection:bg-[#8f6e2b]/30 selection:text-[#f3e5ab]">
+<body>
 
-  <!-- Bandeau Supérieur -->
-  <header class="border-b border-atelier-border bg-atelier-ebony/90 backdrop-blur-md sticky top-0 z-50">
-    <div class="site-header-inner max-w-6xl mx-auto px-6 flex items-center justify-between">
-      <div class="flex items-center gap-3">
-        <span class="text-atelier-gold text-xl">❦</span>
-        <span class="font-cinzel text-lg tracking-[0.25em] text-atelier-ivory font-semibold">ALDUS</span>
-        <span class="text-xs uppercase tracking-widest text-atelier-muted hidden sm:inline-block">· Officina Aldina</span>
-      </div>
-      <nav class="site-main-nav flex items-center gap-6 text-sm tracking-widest uppercase">
-        <a href="#philosophie" class="text-atelier-bistre hover:text-atelier-gold transition-colors">L'Atelier</a>
-        <a href="#bancs" class="text-atelier-bistre hover:text-atelier-gold transition-colors">Les Bancs</a>
-        <a href="#nouveautes" class="text-atelier-bistre hover:text-atelier-gold transition-colors">Nouveautés</a>
-        <a href="specifications.html" class="text-atelier-bistre border-b border-transparent hover:border-atelier-brass hover:text-atelier-gold transition-colors">Spécifications</a>
-        <a href="#telechargement" class="text-atelier-gold border border-atelier-brass px-3 py-1 rounded-xs hover:bg-[#221b14] hover:text-atelier-goldhover transition-all">Télécharger</a>
-      </nav>
+  <!-- Fond texturé -->
+  <svg class="texture-overlay">
+    <filter id="grain">
+      <feTurbulence type="fractalNoise" baseFrequency="0.8" numOctaves="3" stitchTiles="stitch" />
+      <feColorMatrix type="saturate" values="0" />
+      <feComponentTransfer>
+        <feFuncR type="linear" slope="0.2" />
+        <feFuncG type="linear" slope="0.2" />
+        <feFuncB type="linear" slope="0.2" />
+      </feComponentTransfer>
+    </filter>
+    <rect width="100%" height="100%" filter="url(#grain)" />
+  </svg>
+
+  <!-- Emblème Central & Présentation -->
+  <div id="emblem-container" class="relative z-10 flex flex-col items-center justify-center text-center max-w-2xl px-6 transition-all duration-700">
+    <div id="emblem" class="emblem-pulse w-32 h-32 rounded-full border-2 border-[#d4af37] flex items-center justify-center bg-black mb-6 overflow-hidden">
+      <img src="aldus-emblem.png" class="w-20 h-20 object-contain" alt="Logo Aldus">
     </div>
-  </header>
-
-  <!-- Hero Section -->
-  <main class="max-w-5xl mx-auto px-6 pt-24 pb-20 text-center">
-
-    <!-- Devise -->
-    <div class="inline-block mb-6">
-      <p class="font-cinzel text-xs uppercase tracking-[0.3em] text-atelier-gold">« Festina Lente » — Hâte-toi lentement</p>
-      <div class="h-px w-32 bg-gradient-to-r from-transparent via-atelier-brass to-transparent mx-auto mt-2"></div>
+    <div id="intro-text" class="space-y-4">
+      <p class="font-display text-2xl text-gold italic">« Festina Lente »</p>
+      <h1 class="font-display text-4xl font-bold text-[#f3f0ea] tracking-wide">Aldus — L'Atelier du Livre Moderne</h1>
+      <p class="text-lg leading-relaxed opacity-80 font-serif">
+        Environnement d'artisanat littéraire et d'ingénierie éditoriale aux normes Amazon KDP.
+        L'alliance de la typographie humaniste de la Renaissance vénitienne et d'une précision technique millimétrique.
+      </p>
     </div>
+  </div>
 
-    <!-- Titre Royal -->
-    <h1 class="font-cinzel text-4xl sm:text-6xl tracking-[0.15em] text-atelier-ivory mb-6 font-semibold">
-      L'Atelier du Livre Moderne
-    </h1>
+  <!-- Bouton Fermer -->
+  <button id="close-btn" onclick="closePlaques()" class="p-2 text-gold hover:text-white transition-colors">
+    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+  </button>
 
-    <p class="text-lg sm:text-2xl text-atelier-bistre max-w-2xl mx-auto italic mb-10 leading-relaxed">
-      L'alliance de la typographie humaniste de la Renaissance vénitienne et de l'ingénierie éditoriale millimétrique pour Amazon KDP.
-    </p>
-
-    <!-- Emblème officiel Aldus -->
-    <div class="my-12 flex flex-col items-center justify-center">
-      <div class="relative group">
-        <img
-          src="aldus-emblem.png"
-          alt="Emblème officiel Aldus — Édition Vénitienne"
-          class="w-48 h-48 sm:w-56 sm:h-56 object-contain rounded-full drop-shadow-[0_0_35px_rgba(212,175,55,0.22)] transition-all duration-700 ease-out group-hover:scale-105 group-hover:drop-shadow-[0_0_50px_rgba(212,175,55,0.4)]"
-          loading="eager"
-        />
-        <div class="absolute -bottom-3 left-1/2 -translate-x-1/2 px-4 py-0.5 bg-atelier-ebony border border-atelier-brass rounded-xs text-[10px] font-cinzel tracking-widest uppercase text-atelier-gold shadow-md whitespace-nowrap">
-          Édition Vénitienne
+  <!-- Plaque : Le Grimoire (Documentation) -->
+  <div id="plaque-grimoire"
+       onclick="openPlaque('plaque-grimoire')"
+       class="plaque w-72 h-48 rounded-sm flex items-center justify-center text-center p-4"
+       style="top: 8%; left: 50%; transform: translateX(-50%); z-index: 25;">
+    <div class="plaque-summary flex flex-col items-center gap-1">
+      <span class="font-display italic text-xl text-gold">Le Grimoire</span>
+      <span class="text-xs italic opacity-60 font-serif">Savoirs & Règles</span>
+    </div>
+    <div class="plaque-content absolute inset-0 p-12 flex flex-col justify-center overflow-y-auto">
+      <h2 class="font-display text-4xl text-gold mb-6 italic">Le Grimoire de l'Atelier</h2>
+      <div class="space-y-6 text-lg leading-relaxed opacity-90">
+        <p>L'ensemble des savoirs et des règles qui régissent la création d'un ouvrage d'exception.</p>
+        <div class="grid grid-cols-1 gap-4">
+          <a href="specifications.html" class="flex items-center gap-3 p-4 rounded-sm border border-gold/30 bg-gold/5 hover:bg-gold/10 transition-colors text-gold">
+            <span class="font-display italic text-2xl">✦</span>
+            <span>Spécifications Techniques</span>
+          </a>
+          <a href="history.html" class="flex items-center gap-3 p-4 rounded-sm border border-gold/30 bg-gold/5 hover:bg-gold/10 transition-colors text-gold">
+            <span class="font-display italic text-2xl">✦</span>
+            <span>Registre des Versions Antérieures</span>
+          </a>
+          <a href="https://github.com/danoe78210/aldus/blob/main/CHANGELOG.md" target="_blank" class="flex items-center gap-3 p-4 rounded-sm border border-gold/30 bg-gold/5 hover:bg-gold/10 transition-colors text-gold">
+            <span class="font-display italic text-2xl">✦</span>
+            <span>Journal des Modifications (GitHub)</span>
+          </a>
         </div>
       </div>
     </div>
+  </div>
 
-    <!-- CTA Principal -->
-    <div class="flex flex-col sm:flex-row items-center justify-center gap-4 mt-8">
-      <a href="https://github.com/danoe78210/aldus/releases/download/v1.4.13/Aldus_1.4.13_x64_fr-FR.msi" class="w-full sm:w-auto px-8 py-3.5 bg-gradient-to-r from-[#221b14] via-[#2d241a] to-[#221b14] border border-atelier-brass text-atelier-ivory font-cinzel text-xs uppercase tracking-[0.2em] rounded-xs hover:border-atelier-gold hover:text-atelier-gold transition-all shadow-lg">
-        Télécharger Aldus v1.4.13 pour Windows
-      </a>
-      <a href="https://github.com/danoe78210/aldus" target="_blank" rel="noopener noreferrer" class="w-full sm:w-auto px-8 py-3.5 border border-atelier-border text-atelier-bistre font-cinzel text-xs uppercase tracking-[0.2em] rounded-xs hover:border-atelier-brass hover:text-atelier-ivory transition-all">
-        Code Source GitHub ↗
-      </a>
+  <!-- Plaque 1 : L'Atelier -->
+  <div id="plaque-atelier"
+       onclick="openPlaque('plaque-atelier')"
+       class="plaque w-72 h-48 rounded-sm flex items-center justify-center text-center p-4"
+       style="top: 50%; left: 8%; transform: translateY(-50%);">
+    <div class="plaque-summary flex flex-col items-center gap-1">
+      <span class="font-display italic text-xl text-gold">L'Atelier</span>
+      <span class="text-xs italic opacity-60 font-serif">Architecture & Code</span>
     </div>
-
-    <!-- Section Interactive : Le Grand Pupitre d'Épreuve -->
-<section id="philosophie" class="pt-28 pb-16 text-center max-w-6xl mx-auto px-4">
-
-  <div class="mb-12">
-    <span class="text-atelier-gold text-2xl">❦</span>
-    <h2 class="font-cinzel text-3xl sm:text-4xl tracking-[0.2em] uppercase text-atelier-ivory mt-2">
-      Le Pupitre d'Épreuve
-    </h2>
-    <div class="h-px w-24 bg-gradient-to-r from-transparent via-atelier-brass to-transparent mx-auto mt-3"></div>
-    <p class="text-atelier-muted text-xs sm:text-sm mt-3 uppercase tracking-widest">
-      Explorez le pilier fondateur d'Aldus à travers l'estampe de l'Atelier
-    </p>
-  </div>
-
-  <!-- Barre de Sélection des Planches (Commandes d'Atelier) -->
-  <div class="flex flex-wrap justify-center gap-3 sm:gap-4 mb-8">
-    <button
-      onclick="selectPlate(0)"
-      id="tab-btn-0"
-      class="tab-btn active px-5 py-3 rounded-xs border font-cinzel text-xs uppercase tracking-widest transition-all duration-300 flex items-center gap-2 cursor-pointer border-atelier-gold bg-[#221b14] text-atelier-goldhover shadow-[0_0_20px_rgba(212,175,55,0.18)]"
-    >
-      <span class="text-atelier-gold">✦</span>
-      <span>I. Ébène & Cuir</span>
-    </button>
-  </div>
-
-  <!-- Grand Marbre Panoramique -->
-  <div class="relative rounded-xs border-2 border-atelier-brass/60 bg-[#120f0c] p-2 sm:p-3 shadow-[0_15px_50px_rgba(0,0,0,0.9)] max-w-5xl mx-auto overflow-hidden">
-
-    <!-- Image active avec conteneur à ratio d'aspect -->
-    <div id="plate-stage" class="relative w-full aspect-[16/9] sm:aspect-[16/9] bg-[#0a0907] rounded-xs overflow-hidden flex items-center justify-center cursor-zoom-in group" onclick="openLightbox()">
-
-      <img
-        id="plate-image"
-        src="Aldus001.png"
-        alt="Estampe d'atelier active"
-        class="w-full h-full object-contain transition-all duration-500 ease-out transform group-hover:scale-[1.02]"
-      />
-
-      <!-- Badge de survol « Agrandir » -->
-      <div class="absolute bottom-3 right-3 px-3 py-1 bg-atelier-ebony/90 border border-atelier-brass/60 rounded-xs text-[10px] font-cinzel uppercase tracking-widest text-atelier-gold opacity-0 group-hover:opacity-100 transition-opacity">
-        ⤢ Examiner en grand format
+    <div class="plaque-content absolute inset-0 p-12 flex flex-col justify-center overflow-y-auto">
+      <h2 class="font-display text-4xl text-gold mb-6 italic">L'Atelier Technique</h2>
+      <div class="space-y-6 text-lg leading-relaxed opacity-90">
+        <p>L'espace où la technique se fait invisible pour laisser place à la création pure.</p>
+        <p>Une architecture forgée dans la rigueur du <strong class="text-gold">Rust</strong> et la modernité de <strong class="text-gold">Tauri v2</strong>.</p>
+        <p>Le cœur du système orchestre des outils de précision via des <em class="text-gold">sidecars</em> : l'un pour le traitement audio (<code class="bg-[#1a1a1a] px-1 rounded text-sm">aldus-audio-server</code>) et l'autre pour la manipulation des flux (<code class="bg-[#1a1a1a] px-1 rounded text-sm">ffmpeg</code>), tous deux intégrés via <code class="bg-[#1a1a1a] px-1 rounded text-sm">externalBin</code>.</p>
+        <p class="italic opacity-70">Une symbiose entre performance système et interface élégante.</p>
       </div>
     </div>
+  </div>
 
-    <!-- Plaque Descriptive Dynamique -->
-    <div class="mt-4 p-5 sm:p-6 bg-[#161310] border border-atelier-border/80 rounded-xs text-left transition-all duration-300">
-      <div class="flex flex-col sm:flex-row justify-between sm:items-center gap-2 mb-3">
-        <h3 id="plate-title" class="font-cinzel text-xl sm:text-2xl text-atelier-ivory tracking-wide">
-          Ébène &amp; Cuir — L'Immersion dans l'Atelier Renaissance
-        </h3>
-        <span id="plate-subtitle" class="font-cinzel text-xs uppercase tracking-widest text-atelier-gold/90 border border-atelier-brass/40 px-3 py-1 rounded-xs inline-block self-start sm:self-auto">
-          Planche I · Sas &amp; Creuset
-        </span>
-      </div>
-
-      <p id="plate-desc" class="text-atelier-bistre font-serif text-base sm:text-lg leading-relaxed mb-4">
-        Une interface feutrée conçue pour éliminer la fatigue visuelle des longues veilles d'écriture. Le creuset de fonderie accueille l'écrivain dans un univers chaleureux d'or et de matières nobles, loin de la froideur des traitements de texte modernes.
-      </p>
-
-      <div id="plate-features" class="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-3 border-t border-atelier-border/50 text-xs text-atelier-muted font-serif">
-        <div class="flex items-center gap-2"><span class="text-atelier-brass">✦</span> Creuset d'or et sas immersif</div>
-        <div class="flex items-center gap-2"><span class="text-atelier-brass">✦</span> Suppression de l'éblouissement</div>
-        <div class="flex items-center gap-2"><span class="text-atelier-brass">✦</span> Pupitre à reliure centrale</div>
-      </div>
+  <!-- Plaque 2 : L'Œuvre -->
+  <div id="plaque-livre"
+       onclick="openPlaque('plaque-livre')"
+       class="plaque w-72 h-48 rounded-sm flex items-center justify-center text-center p-4"
+       style="top: 50%; right: 8%; transform: translateY(-50%);">
+    <div class="plaque-summary flex flex-col items-center gap-1">
+      <span class="font-display italic text-xl text-gold">L'Œuvre</span>
+      <span class="text-xs italic opacity-60 font-serif">Cycle de Création</span>
     </div>
+    <div class="plaque-content absolute inset-0 p-12 flex flex-col justify-center overflow-y-auto">
+      <h2 class="font-display text-4xl text-gold mb-6 italic">L'Œuvre — L'Art de l'Édition Moderne</h2>
 
-  </div>
+      <div class="space-y-8 text-lg leading-relaxed opacity-90">
+        <section>
+          <p>Aldus est un environnement d'artisanat littéraire et d'ingénierie éditoriale aux normes Amazon KDP, inspiré par les maîtres imprimeurs de la Renaissance vénitienne. L'alliance de la typographie humaniste et d'une précision technique millimétrique permet de transformer un manuscrit brut en un objet livre d'exception.</p>
+        </section>
 
-</section>
+        <section class="space-y-6">
+          <h3 class="font-display text-2xl text-gold italic">Le Cycle de Création (Les Huit Bancs)</h3>
 
-<!-- Modal Lightbox (Zoom Plein Écran) -->
-<dialog id="lightbox" aria-labelledby="lightbox-caption">
-  <button type="button" id="lightbox-close" onclick="closeLightbox()" autofocus>Fermer ×</button>
-  <img id="lightbox-img" alt="">
-  <p id="lightbox-caption"></p>
-</dialog>
-
-<!-- Sommaire Flottant des 7 Bancs (Navigation Rapide) -->
-<nav id="bancs-floating-nav" class="bancs-floating-nav" aria-label="Sommaire des bancs de l'atelier">
-  <div class="bancs-nav-header">
-    <span class="bancs-nav-fleuron">❦</span>
-    <span class="bancs-nav-title">Bancs</span>
-  </div>
-  <ul class="bancs-nav-list">
-    <li>
-      <a href="#banc-1" class="bancs-nav-item" data-banc-target="banc-1" aria-label="Banc I — Calibrage &amp; Gabarits">
-        <span class="bancs-nav-numeral">[ I ]</span>
-        <span class="bancs-nav-tooltip">Banc I — Calibrage &amp; Gabarits</span>
-      </a>
-    </li>
-    <li>
-      <a href="#banc-2" class="bancs-nav-item" data-banc-target="banc-2" aria-label="Banc II — Identité &amp; Colophon">
-        <span class="bancs-nav-numeral">[ II ]</span>
-        <span class="bancs-nav-tooltip">Banc II — Identité &amp; Colophon</span>
-      </a>
-    </li>
-    <li>
-      <a href="#banc-ecritoire" class="bancs-nav-item" data-banc-target="banc-ecritoire" aria-label="Banc III — L'Écritoire">
-        <span class="bancs-nav-numeral">[ III ]</span>
-        <span class="bancs-nav-tooltip">Banc III — L'Écritoire</span>
-      </a>
-    </li>
-    <li>
-      <a href="#banc-3" class="bancs-nav-item" data-banc-target="banc-3" aria-label="Banc IV — Imposition &amp; Architecture">
-        <span class="bancs-nav-numeral">[ IV ]</span>
-        <span class="bancs-nav-tooltip">Banc IV — Imposition &amp; Architecture</span>
-      </a>
-    </li>
-    <li>
-      <a href="#banc-4" class="bancs-nav-item" data-banc-target="banc-4" aria-label="Banc V — Qualité Typographique &amp; Épreuve">
-        <span class="bancs-nav-numeral">[ V ]</span>
-        <span class="bancs-nav-tooltip">Banc V — Qualité Typographique &amp; Épreuve</span>
-      </a>
-    </li>
-    <li>
-      <a href="#banc-5" class="bancs-nav-item" data-banc-target="banc-5" aria-label="Banc VI — Mise en couverture">
-        <span class="bancs-nav-numeral">[ VI ]</span>
-        <span class="bancs-nav-tooltip">Banc VI — Mise en couverture</span>
-      </a>
-    </li>
-    <li>
-      <a href="#banc-6" class="bancs-nav-item" data-banc-target="banc-6" aria-label="Banc VII — Inspection Pré-Presse">
-        <span class="bancs-nav-numeral">[ VII ]</span>
-        <span class="bancs-nav-tooltip">Banc VII — Inspection Pré-Presse</span>
-      </a>
-    </li>
-    <li>
-      <a href="#banc-7" class="bancs-nav-item" data-banc-target="banc-7" aria-label="Banc VIII — Tirage sous Presse">
-        <span class="bancs-nav-numeral">[ VIII ]</span>
-        <span class="bancs-nav-tooltip">Banc VIII — Tirage sous Presse</span>
-      </a>
-    </li>
-  </ul>
-</nav>
-
-    <!-- Section Les Bancs de l'Atelier -->
-    <section id="bancs" class="pt-32 text-left">
-      <div class="text-center mb-16">
-        <span class="text-atelier-gold text-xl">❦</span>
-        <h2 class="font-cinzel text-2xl sm:text-3xl tracking-[0.2em] uppercase text-atelier-ivory mt-2">Les Bancs de l'Atelier</h2>
-        <p class="text-atelier-muted text-sm mt-1 uppercase tracking-widest">Les huit bancs d'ingénierie éditoriale, du calibrage au tirage</p>
-      </div>
-
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-
-        <!-- Banc I -->
-        <article id="banc-1" class="banc-card banc-featured md:col-span-2 lg:col-span-3 p-6 sm:p-8 rounded-xs bg-atelier-card brass-border flex flex-col">
-          <div class="banc-showcase">
-            <div class="flex flex-col">
-              <span class="font-cinzel text-xs uppercase tracking-widest text-atelier-gold">Banc I</span>
-              <h3 class="font-cinzel text-xl sm:text-2xl text-atelier-ivory mt-1">Le Banc de Calibrage &amp; Gabarits</h3>
-              <p class="banc-menu">Menu Réglages</p>
-              <p class="banc-subtitle">Les fondations géométriques &amp; l'harmonie typographique du volume</p>
-              <ul class="banc-points">
-                <li><span class="banc-point-key">Proportions &amp; formats de coupe :</span> Choix immédiat du gabarit parmi les formats canoniques de l'édition (du format poche 5×8 po au grand in-octavo 7×10 po pour un confort de lecture supérieur).</li>
-                <li><span class="banc-point-key">Corps d'atelier &amp; hiérarchie :</span> Sélection du caractère d'imprimerie (Garamond), étalonnage du corps (11 pt), de l'interlignage (1,15) et des hauteurs optiques de titrage.</li>
-                <li><span class="banc-point-key">Attache des sources :</span> Déclaration fluide des répertoires du manuscrit (chapitres Markdown) et du dossier des ornements et illustrations.</li>
-                <li><span class="banc-point-key">Rigueur du correcteur :</span> Paramétrage des seuils de vigilance et de l'analyse orthotypographique.</li>
+          <div class="space-y-6">
+            <div>
+              <h4 class="font-display font-bold text-gold">Banc I : Le Banc de Calibrage &amp; Gabarits</h4>
+              <ul class="list-disc list-inside space-y-2 ml-4 opacity-80">
+                <li><strong class="text-gold">Proportions &amp; formats de coupe :</strong> Choix immédiat du gabarit parmi les formats canoniques de l'édition (du format poche 5×8 po au grand in-octavo 7×10 po pour un confort de lecture supérieur).</li>
+                <li><strong class="text-gold">Corps d'atelier &amp; hiérarchie :</strong> Sélection du caractère d'imprimerie (Garamond), étalonnage du corps (11 pt), de l'interlignage (1,15) et des hauteurs optiques de titrage.</li>
+                <li><strong class="text-gold">Attache des sources :</strong> Déclaration fluide des répertoires du manuscrit (chapitres Markdown) et du dossier des ornements et illustrations.</li>
+                <li><strong class="text-gold">Rigueur du correcteur :</strong> Paramétrage des seuils de vigilance et de l'analyse orthotypographique.</li>
               </ul>
             </div>
 
-            <!-- Pupitre d'exposition à onglets -->
-            <div class="flex flex-col" data-banc-viewer="banc-1">
-              <div class="banc-tabs" role="tablist" aria-label="Vues de l'épreuve du Banc I">
-                <button type="button" role="tab" class="banc-tab active" data-banc-tab="parametres" aria-selected="true" onclick="selectBancView('banc-1','parametres')">Paramètres du volume</button>
-                <button type="button" role="tab" class="banc-tab" data-banc-tab="formats" aria-selected="false" onclick="selectBancView('banc-1','formats')">Formats de coupe</button>
-              </div>
-
-              <div class="banc-viewer" id="banc-1-viewer">
-                <img class="banc-viewer-img is-active" data-banc-img="parametres" src="assets/screenshots/banc-1-parametres.png" alt="Paramètres du volume — format 7×10 po, corps Garamond 11 pt, interligne 1,15 et titrages" loading="lazy" onerror="this.dataset.broken='1'; bancShotLoaded(this)">
-                <img class="banc-viewer-img" data-banc-img="formats" src="assets/screenshots/banc-1-formats.png" alt="Nuancier des formats de coupe — du format poche au grand format et A4" loading="lazy" onerror="this.dataset.broken='1'; bancShotLoaded(this)">
-              </div>
-
-              <p class="banc-viewer-caption" id="banc-1-caption" data-banc-caption>Paramètres du livre &amp; mise en page — format 7×10 po · Garamond 11 pt · interligne 1,15</p>
-
-              <button type="button" class="banc-zoom" id="banc-1-zoom" onclick="zoomBancView('banc-1')" title="Ouvrir l'épreuve active en haute définition">⤢ Examiner en grand format</button>
-            </div>
-          </div>
-        </article>
-
-        <!-- Banc II -->
-        <article id="banc-2" class="banc-card banc-featured md:col-span-2 lg:col-span-3 p-6 sm:p-8 rounded-xs bg-atelier-card brass-border flex flex-col">
-          <div class="banc-showcase">
-            <div class="flex flex-col">
-              <span class="font-cinzel text-xs uppercase tracking-widest text-atelier-gold">Banc II</span>
-              <h3 class="font-cinzel text-xl sm:text-2xl text-atelier-ivory mt-1">Le Banc de l'Identité &amp; du Colophon</h3>
-              <p class="banc-menu">Menu Informations</p>
-              <p class="banc-subtitle">L'état-civil du volume &amp; l'achevé d'imprimer</p>
-              <p class="banc-role"><span class="banc-role-key">Rôle :</span> État-civil du livre, mentions légales KDP et colophon historique.</p>
-              <p class="banc-legende">Renseignement des métadonnées éditoriales, du titre, de la signature d'auteur et de l'achevé d'imprimer.</p>
+            <div>
+              <h4 class="font-display font-bold text-gold">Banc II : Le Banc de l'Identité &amp; du Colophon</h4>
+              <p class="opacity-80 ml-4">L'état-civil du livre, mentions légales KDP et colophon historique. Renseignement des métadonnées éditoriales, du titre, de la signature d'auteur et de l'achevé d'imprimer.</p>
             </div>
 
-            <!-- Pupitre d'exposition à onglets -->
-            <div class="flex flex-col" data-banc-viewer="banc-2">
-              <div class="banc-tabs" role="tablist" aria-label="Vues de l'épreuve du Banc II">
-                <button type="button" role="tab" class="banc-tab active" data-banc-tab="identite" aria-selected="true" onclick="selectBancView('banc-2','identite')">Identité de l'œuvre</button>
-                <button type="button" role="tab" class="banc-tab" data-banc-tab="colophon" aria-selected="false" onclick="selectBancView('banc-2','colophon')">Colophon &amp; Administration</button>
-              </div>
-
-              <div class="banc-viewer" id="banc-2-viewer">
-                <img class="banc-viewer-img is-active" data-banc-img="identite" src="assets/screenshots/banc-2-identite.png" alt="Identité de l'œuvre — titre, tomaison, auteur, illustrateur et signature" loading="lazy" onerror="this.dataset.broken='1'; bancShotLoaded(this)">
-                <img class="banc-viewer-img" data-banc-img="colophon" src="assets/screenshots/banc-2-colophon.png" alt="Colophon et administration — mentions légales, ISBN et achevé d'imprimer" loading="lazy" onerror="this.dataset.broken='1'; bancShotLoaded(this)">
-              </div>
-
-              <p class="banc-viewer-caption" id="banc-2-caption" data-banc-caption>Identité de l'œuvre — titre, tomaison, auteur, illustrateur et signature</p>
-
-              <button type="button" class="banc-zoom" id="banc-2-zoom" onclick="zoomBancView('banc-2')" title="Ouvrir l'épreuve active en haute définition">⤢ Examiner en grand format</button>
-            </div>
-          </div>
-        </article>
-
-        <!-- Banc III — L'Écritoire -->
-        <article id="banc-ecritoire" class="banc-card banc-featured md:col-span-2 lg:col-span-3 p-6 sm:p-8 rounded-xs bg-atelier-card brass-border flex flex-col">
-          <div class="banc-showcase">
-            <div class="flex flex-col">
-              <span class="font-cinzel text-xs uppercase tracking-widest text-atelier-gold">Banc IV</span>
-              <h3 class="font-cinzel text-xl sm:text-2xl text-atelier-ivory mt-1">L'Écritoire</h3>
-              <p class="banc-menu">Menu Écritoire · Feuillets III &amp; IV</p>
-              <p class="banc-subtitle">Le manuscrit vivant, de la première ligne à l'épreuve composée</p>
-              <ul class="banc-points">
-                <li><span class="banc-point-key">Gestion des chapitres :</span> sélectionnez un fichier Markdown existant ou créez un nouveau chapitre `.md` dans le dossier source du projet ; les modifications sont sauvegardées automatiquement.</li>
-                <li><span class="banc-point-key">Diptyque de rédaction :</span> éditez sur le feuillet gauche, dans une page ébène et or, et suivez la prévisualisation typographique en temps réel sur le feuillet droit.</li>
-                <li><span class="banc-point-key">Réglet &amp; Manuel du Scribe :</span> insérez guillemets français, espaces insécables, cadratins, apostrophes courbes et ligatures ; consultez les exemples Markdown de narration romanesque.</li>
-              </ul>
-            </div>
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3" aria-label="Aperçu du diptyque de l'Écritoire">
-              <div class="rounded-xs border border-atelier-border bg-[#13110f] p-4">
-                <span class="font-cinzel text-[10px] uppercase tracking-widest text-atelier-gold">L'Écritoire · Markdown</span>
-                <pre class="mt-4 whitespace-pre-wrap font-serif text-sm leading-relaxed text-[#e2dbce]"># Le passage
-
-— Vous voilà enfin.
-— Je vous l'avais promis.
-
-« La nuit tombe. »</pre>
-              </div>
-              <div class="rounded-xs border border-[#a68b5a]/60 bg-[#f5efe4] p-4 text-[#29251f]">
-                <span class="font-cinzel text-[10px] uppercase tracking-widest text-[#8f6e2b]">La Feuille Composée</span>
-                <div class="mt-4 font-serif text-sm leading-relaxed">
-                  <h4 class="mb-3 text-center text-lg">Le passage</h4>
-                  <p class="mb-2">— Vous voilà enfin.</p>
-                  <p class="mb-2">— Je vous l'avais promis.</p>
-                  <blockquote class="mt-4 border-l-2 border-[#a68b5a] pl-3 italic">« La nuit tombe. »</blockquote>
-                </div>
-              </div>
-            </div>
-          </div>
-        </article>
-
-        <!-- Banc IV — ancien Banc III -->
-        <article id="banc-3" class="banc-card banc-featured md:col-span-2 lg:col-span-3 p-6 sm:p-8 rounded-xs bg-atelier-card brass-border flex flex-col">
-          <div class="banc-showcase">
-            <div class="flex flex-col">
-              <span class="font-cinzel text-xs uppercase tracking-widest text-atelier-gold">Banc III</span>
-              <h3 class="font-cinzel text-xl sm:text-2xl text-atelier-ivory mt-1">Le Banc d'Imposition &amp; d'Architecture</h3>
-              <p class="banc-menu">Menu Organisation</p>
-              <p class="banc-subtitle">L'agencement des actes, des pièces liminaires et le calibrage de l'ouvrage.</p>
-              <ul class="banc-points">
-                <li><span class="banc-point-key">Organisation du livre en actes, chapitres, illustrations et pages spéciales :</span> Orchestration de la structure narrative (actes, chapitres), intégration rigoureuse des pièces liminaires (dédicaces, épigraphes, prologue) et placement des illustrations.</li>
-                <li><span class="banc-point-key">Calibrage du livre en fonction des critères KDP :</span> Respect des seuils de pagination et des contraintes techniques d'impression à la demande pour garantir une conformité irréprochable des épreuves.</li>
+            <div>
+              <h4 class="font-display font-bold text-gold">Banc III : L'Écritoire</h4>
+              <ul class="list-disc list-inside space-y-2 ml-4 opacity-80">
+                <li><strong class="text-gold">Gestion des chapitres :</strong> sélectionnez un fichier Markdown existant ou créez un nouveau chapitre .md dans le dossier source du projet ; les modifications sont sauvegardées automatiquement.</li>
+                <li><strong class="text-gold">Diptyque de rédaction :</strong> éditez sur le feuillet gauche, dans une page ébène et or, et suivez la prévisualisation typographique en temps réel sur le feuillet droit.</li>
+                <li><strong class="text-gold">Réglet &amp; Manuel du Scribe :</strong> insérez guillemets français, espaces insécables, cadratins, apostrophes courbes et ligatures ; consultez les exemples Markdown de narration romanesque.</li>
               </ul>
             </div>
 
-            <!-- Pupitre d'exposition à onglets -->
-            <div class="flex flex-col" data-banc-viewer="banc-3">
-              <div class="banc-tabs" role="tablist" aria-label="Vues de l'épreuve du Banc IV">
-                <button type="button" role="tab" class="banc-tab active" data-banc-tab="architecture" aria-selected="true" onclick="selectBancView('banc-3','architecture')">Architecture &amp; Pièces liminaires</button>
-                <button type="button" role="tab" class="banc-tab" data-banc-tab="calibrage" aria-selected="false" onclick="selectBancView('banc-3','calibrage')">Calibrage &amp; Critères KDP</button>
-              </div>
+            <div>
+              <h4 class="font-display font-bold text-gold">Banc IV : Le Banc d'Imposition &amp; d'Architecture</h4>
+              <ul class="list-disc list-inside space-y-2 ml-4 opacity-80">
+                <li><strong class="text-gold">Organisation du livre :</strong> Orchestration de la structure narrative (actes, chapitres), intégration rigoureuse des pièces liminaires (dédicaces, épigraphes, prologue) et placement des illustrations.</li>
+                <li><strong class="text-gold">Calibrage KDP :</strong> Respect des seuils de pagination et des contraintes techniques d'impression à la demande pour garantir une conformité irréprochable des épreuves.</li>
+              </ul>
+            </div>
 
-              <div class="banc-viewer" id="banc-3-viewer">
-                <span class="banc-viewer-placeholder" data-banc-placeholder>Organisation du workspace</span>
-                <img class="banc-viewer-img is-active" data-banc-img="architecture" src="assets/screenshots/organisation-workspace.png" alt="Architecture narrative — actes et chapitres classés en sous-dossiers" loading="lazy" onload="bancShotLoaded(this)" onerror="this.dataset.broken='1'; bancShotLoaded(this)">
-                <img class="banc-viewer-img" data-banc-img="calibrage" src="assets/screenshots/imposition-typst-spine.png" alt="Imposition — pagination Typst mesurée et calcul du dos" loading="lazy" onload="bancShotLoaded(this)" onerror="this.dataset.broken='1'; bancShotLoaded(this)">
-              </div>
+            <div>
+              <h4 class="font-display font-bold text-gold">Banc V : Le Banc de Qualité Typographique &amp; d'Épreuve</h4>
+              <ul class="list-disc list-inside space-y-2 ml-4 opacity-80">
+                <li><strong class="text-gold">Évaluation globale :</strong> Affiche la jauge de conformité aldine, le tableau de bord par chapitre, la classification pondérée des anomalies (critiques, style, mineures) et le regroupement par familles typographiques.</li>
+                <li><strong class="text-gold">Registre des Règles :</strong> Navigation feuillet par feuillet à travers l'ensemble des règles orthotypographiques : fiches explicatives détaillées, exemples avant/après, niveau de sévérité et décompte précis des occurrences détectées.</li>
+                <li><strong class="text-gold">Diptyque d'épreuve :</strong> Vue double synchrone associant le feuillet de lecture au pupitre des conseils de l'imprimeur. Les anomalies sont surlignées d'or sur la page vivante, avec repérage instantané et recommandations de correction.</li>
+                <li><strong class="text-gold">Retouche chirurgicale :</strong> Édition directe du texte vivant au format Markdown pour appliquer des corrections orthotypographiques immédiates sans jamais quitter l'établi.</li>
+              </ul>
+            </div>
 
-              <p class="banc-viewer-caption" id="banc-3-caption" data-banc-caption>Architecture &amp; pièces liminaires — actes, chapitres, dédicaces, épigraphes et illustrations</p>
+            <div>
+              <h4 class="font-display font-bold text-gold">Banc VI : Le Banc de mise en couverture</h4>
+              <p class="opacity-80 ml-4">Paramétrage mathématique de l'enveloppe extérieure. Déclaration de la pagination et choix rigoureux du papier d'imprimerie pour calculer automatiquement l'épaisseur du dos au centième de millimètre. Sélection du pelliculage, import des visuels des plats en haute définition (305 DPI) et composition du texte de la tranche.</p>
+            </div>
 
-              <button type="button" class="banc-zoom" id="banc-3-zoom" onclick="zoomBancView('banc-3')" title="Ouvrir l'épreuve active en haute définition">⤢ Examiner en grand format</button>
+            <div>
+              <h4 class="font-display font-bold text-gold">Banc VII : L'Inspection Pré-Presse</h4>
+              <p class="opacity-80 ml-4">Constitution du dossier de fabrication : PDF Imprimeur (Haute Définition), EPUB (Standard), jaquette 300 DPI et DOCX révisé.</p>
+            </div>
+
+            <div>
+              <h4 class="font-display font-bold text-gold">Banc VIII : Le Tirage sous Presse</h4>
+              <p class="opacity-80 ml-4">L'acte solennel de l'Officine d'Aldus. Affiche le justificatif de tirage traditionnel, permet d'actionner la presse pour figer le volume dans ses 60 feuillets, et offre un accès direct au dossier des épreuves et au feuilletage du livre composé.</p>
             </div>
           </div>
-        </article>
+        </section>
 
-        <!-- Banc IV -->
-        <article id="banc-4" class="banc-card banc-featured md:col-span-2 lg:col-span-3 p-6 sm:p-8 rounded-xs bg-atelier-card brass-border flex flex-col">
-          <div class="banc-showcase">
-            <div class="flex flex-col justify-start">
-              <span class="font-cinzel text-xs uppercase tracking-widest text-atelier-gold">Banc V</span>
-              <h3 class="font-cinzel text-xl sm:text-2xl text-atelier-ivory mt-1">Le Banc de Qualité Typographique &amp; d'Épreuve</h3>
-              <p class="banc-menu">Menu Correcteur — Vues I &amp; II</p>
-              <div id="banc-4-narrative" class="banc-narrative-box">
-                <p class="banc-subtitle" data-banc-subtitle>L'indice de qualité, l'inspection minutieuse des règles aldines et la retouche chirurgicale d'épreuve.</p>
-                <p class="text-atelier-bistre text-base leading-relaxed mt-5" data-banc-desc>
-                  Évaluation globale du chapitre. Affiche la jauge de conformité aldine, le tableau de bord par chapitre, la classification pondérée des anomalies (critiques, style, mineures) et le regroupement par familles typographiques.
-                </p>
-              </div>
-            </div>
-
-            <!-- Pupitre d'exposition à onglets -->
-            <div class="flex flex-col" data-banc-viewer="banc-4">
-              <div class="banc-tabs-single-line" role="tablist" aria-label="Vues de l'épreuve du Banc V">
-                <button type="button" role="tab" class="banc-tab active" data-banc-tab="synthese" aria-selected="true" onclick="selectBancView('banc-4','synthese')">1. Synthèse</button>
-                <button type="button" role="tab" class="banc-tab" data-banc-tab="regles" aria-selected="false" onclick="selectBancView('banc-4','regles')">2. Registre</button>
-                <button type="button" role="tab" class="banc-tab" data-banc-tab="epreuve" aria-selected="false" onclick="selectBancView('banc-4','epreuve')">3. Épreuve</button>
-                <button type="button" role="tab" class="banc-tab" data-banc-tab="retouche" aria-selected="false" onclick="selectBancView('banc-4','retouche')">4. Retouche</button>
-              </div>
-
-              <div class="banc-viewer" id="banc-4-viewer">
-                <span class="banc-viewer-placeholder" data-banc-placeholder>Épreuve à venir — Correcteur01.png</span>
-                <img class="banc-viewer-img is-active" data-banc-img="synthese" src="assets/screenshots/Correcteur01.png" alt="Synthèse &amp; Qualité — tableau de bord par chapitre, jauge de l'indice de qualité et anomalies pondérées" loading="lazy" onload="bancShotLoaded(this)" onerror="this.dataset.broken='1'; bancShotLoaded(this)">
-                <img class="banc-viewer-img" data-banc-img="regles" src="assets/screenshots/Correcteur02.png" alt="Registre des Règles — 18 contrôles actifs, fiches de règles et comptage des occurrences" loading="lazy" onload="bancShotLoaded(this)" onerror="this.dataset.broken='1'; bancShotLoaded(this)">
-                <img class="banc-viewer-img" data-banc-img="epreuve" src="assets/screenshots/Correcteur03.png" alt="Épreuve &amp; Surlignage — diptyque synchronisé et surbrillance dorée des anomalies" loading="lazy" onload="bancShotLoaded(this)" onerror="this.dataset.broken='1'; bancShotLoaded(this)">
-                <img class="banc-viewer-img" data-banc-img="retouche" src="assets/screenshots/Correcteur04.png" alt="Modification du Texte — réglet de retouche Markdown, espaces insécables et tirets cadratins" loading="lazy" onload="bancShotLoaded(this)" onerror="this.dataset.broken='1'; bancShotLoaded(this)">
-              </div>
-
-              <p class="banc-viewer-caption" id="banc-4-caption" data-banc-caption>Synthèse &amp; Qualité — tableau de bord par chapitre, jauge de l'indice de qualité et anomalies pondérées</p>
-
-              <button type="button" class="banc-zoom" id="banc-4-zoom" onclick="zoomBancView('banc-4')" title="Ouvrir l'épreuve active en haute définition">⤢ Examiner en grand format</button>
-            </div>
-          </div>
-        </article>
-
-        <!-- Banc V -->
-        <article id="banc-5" class="banc-card banc-featured md:col-span-2 lg:col-span-3 p-6 sm:p-8 rounded-xs bg-atelier-card brass-border flex flex-col">
-          <div class="banc-showcase">
-            <div class="flex flex-col justify-start">
-              <span class="font-cinzel text-xs uppercase tracking-widest text-atelier-gold">Banc VI</span>
-              <h3 class="font-cinzel text-xl sm:text-2xl text-atelier-ivory mt-1">Le Banc de mise en couverture</h3>
-              <p class="banc-menu">Menu Couverture</p>
-              <div id="banc-5-narrative" class="banc-narrative-box">
-                <p class="banc-subtitle" data-banc-subtitle>La géométrie 300 DPI, le calcul micrométrique du dos et le marbre de montage complet.</p>
-                <p class="text-atelier-bistre text-base leading-relaxed mt-5" data-banc-desc>
-                  Paramétrage mathématique de l'enveloppe extérieure. Déclaration de la pagination et choix rigoureux du papier d'imprimerie (crème, blanc ou couleur) pour calculer automatiquement l'épaisseur du dos au centième de millimètre. Sélection du pelliculage (mat velouté ou brillant éclatant), import des visuels des plats en haute définition (305 DPI) et composition du texte de la tranche.
-                </p>
-              </div>
-            </div>
-
-            <!-- Pupitre d'exposition à onglets -->
-            <div class="flex flex-col" data-banc-viewer="banc-5">
-              <div class="banc-tabs-single-line" role="tablist" aria-label="Vues de l'épreuve du Banc VI">
-                <button type="button" role="tab" class="banc-tab active" data-banc-tab="calibrage" aria-selected="true" onclick="selectBancView('banc-5','calibrage')">1. Calibrage &amp; Matières</button>
-                <button type="button" role="tab" class="banc-tab" data-banc-tab="marbre" aria-selected="false" onclick="selectBancView('banc-5','marbre')">2. Marbre 2D &amp; Gabarit</button>
-                <button type="button" role="tab" class="banc-tab" data-banc-tab="volume3d" aria-selected="false" onclick="selectBancView('banc-5','volume3d')">3. Volume Relié 3D</button>
-              </div>
-
-              <div class="banc-viewer" id="banc-5-viewer">
-                <span class="banc-viewer-placeholder" data-banc-placeholder>Épreuve à venir — Couverture02.png</span>
-                <img class="banc-viewer-img is-active" data-banc-img="calibrage" src="assets/screenshots/Couverture02.png" alt="Calibrage &amp; Matières — épaisseur du dos au centième de millimètre, papier et pelliculage" loading="lazy" onload="bancShotLoaded(this)" onerror="this.dataset.broken='1'; bancShotLoaded(this)">
-                <img class="banc-viewer-img" data-banc-img="marbre" src="assets/screenshots/Couverture01.jpg" alt="Marbre 2D &amp; Gabarit — imposition plane, repères de coupe, lignes de pliure et code-barres" loading="lazy" onload="bancShotLoaded(this)" onerror="this.dataset.broken='1'; bancShotLoaded(this)">
-                <img class="banc-viewer-img" data-banc-img="volume3d" src="assets/screenshots/Couverture03.png" alt="Volume Relié 3D — inspection orbitale de l'ouvrage sous tous les angles et export certifié" loading="lazy" onload="bancShotLoaded(this)" onerror="this.dataset.broken='1'; bancShotLoaded(this)">
-              </div>
-
-              <p class="banc-viewer-caption" id="banc-5-caption" data-banc-caption>Calibrage &amp; Matières — épaisseur du dos au centième de millimètre, papier et pelliculage</p>
-
-              <button type="button" class="banc-zoom" id="banc-5-zoom" onclick="zoomBancView('banc-5')" title="Ouvrir l'épreuve active en haute définition">⤢ Examiner en grand format</button>
-            </div>
-          </div>
-        </article>
-
-        <!-- Banc VI -->
-        <article id="banc-6" class="banc-card banc-featured md:col-span-2 lg:col-span-3 p-6 sm:p-8 rounded-xs bg-atelier-card brass-border flex flex-col">
-          <div class="banc-showcase">
-            <div class="flex flex-col justify-start">
-              <span class="font-cinzel text-xs uppercase tracking-widest text-atelier-gold">Banc VII</span>
-              <h3 class="font-cinzel text-xl sm:text-2xl text-atelier-ivory mt-1">L'Inspection Pré-Presse</h3>
-              <p class="banc-menu">Menu Export — Vue I</p>
-              <div id="banc-6-narrative" class="banc-narrative-box">
-                <p class="banc-subtitle" data-banc-subtitle>L'Inspection Pré-Presse &amp; la Génération des Formes</p>
-                <p class="text-atelier-bistre text-base leading-relaxed mt-5" data-banc-desc>
-                  Constitution du dossier de fabrication : PDF Imprimeur (Haute Définition), EPUB (Standard), jaquette 300 DPI et DOCX révisé. Aucun prévol PDF/X ni validateur EPUBCheck intégré ; l'acceptation par KDP / IngramSpark reste à vérifier.
-                </p>
-              </div>
-            </div>
-
-            <!-- Pupitre d'exposition -->
-            <div class="flex flex-col" data-banc-viewer="banc-6">
-              <div class="banc-viewer" id="banc-6-viewer">
-                <span class="banc-viewer-placeholder" data-banc-placeholder>Épreuve à venir — Export01.png</span>
-                <img class="banc-viewer-img is-active" data-banc-img="prepresse" src="assets/screenshots/Export01.png" alt="Inspection Pré-Presse — PDF Imprimeur, EPUB (Standard), jaquette et manuscrit DOCX" loading="lazy" onload="bancShotLoaded(this)" onerror="this.dataset.broken='1'; bancShotLoaded(this)">
-              </div>
-
-              <p class="banc-viewer-caption" id="banc-6-caption" data-banc-caption>Inspection Pré-Presse — PDF Imprimeur, EPUB (Standard), jaquette et manuscrit DOCX</p>
-
-              <button type="button" class="banc-zoom" id="banc-6-zoom" onclick="zoomBancView('banc-6')" title="Ouvrir l'épreuve active en haute définition">⤢ Examiner en grand format</button>
-            </div>
-          </div>
-        </article>
-
-        <!-- Banc VII -->
-        <article id="banc-7" class="banc-card banc-featured md:col-span-2 lg:col-span-3 p-6 sm:p-8 rounded-xs bg-atelier-card brass-border flex flex-col">
-          <div class="banc-showcase">
-            <div class="flex flex-col justify-start">
-              <span class="font-cinzel text-xs uppercase tracking-widest text-atelier-gold">Banc VIII</span>
-              <h3 class="font-cinzel text-xl sm:text-2xl text-atelier-ivory mt-1">Le Tirage sous Presse</h3>
-              <p class="banc-menu">Menu Export — Vue II</p>
-              <div id="banc-7-narrative" class="banc-narrative-box">
-                <p class="banc-subtitle" data-banc-subtitle>Le Tirage sous Presse &amp; le Scellage du Volume</p>
-                <p class="text-atelier-bistre text-base leading-relaxed mt-5" data-banc-desc>
-                  L'acte solennel de l'Officine d'Aldus. Affiche le justificatif de tirage traditionnel, permet d'actionner la presse pour figer le volume dans ses 60 feuillets, et offre un accès direct au dossier des épreuves et au feuilletage du livre composé.
-                </p>
-              </div>
-            </div>
-
-            <!-- Pupitre d'exposition -->
-            <div class="flex flex-col" data-banc-viewer="banc-7">
-              <div class="banc-viewer" id="banc-7-viewer">
-                <span class="banc-viewer-placeholder" data-banc-placeholder>Épreuve à venir — Export02.png</span>
-                <img class="banc-viewer-img is-active" data-banc-img="tirage" src="assets/screenshots/Export02.png" alt="Tirage sous Presse — justificatif de tirage, scellage officiel du volume et ouverture des épreuves" loading="lazy" onload="bancShotLoaded(this)" onerror="this.dataset.broken='1'; bancShotLoaded(this)">
-              </div>
-
-              <p class="banc-viewer-caption" id="banc-7-caption" data-banc-caption>Tirage sous Presse — justificatif de tirage, scellage officiel du volume et ouverture des épreuves</p>
-
-              <button type="button" class="banc-zoom" id="banc-7-zoom" onclick="zoomBancView('banc-7')" title="Ouvrir l'épreuve active en haute définition">⤢ Examiner en grand format</button>
-            </div>
-          </div>
-        </article>
-
-      </div>
-    </section>
-
-    <!-- Vitrine v1.4.12 -->
-    <section id="nouveautes" class="pt-32 text-left">
-      <span id="nouveautes-v1-4"></span>
-      <div class="text-center mb-16">
-        <span class="text-atelier-gold text-xl">❦</span>
-        <h2 class="font-cinzel text-2xl sm:text-3xl tracking-[0.2em] uppercase text-atelier-ivory mt-2">ALDUS — L'ATELIER DU LIVRE MODERNE</h2>
-        <p class="text-atelier-bistre text-sm mt-3 uppercase tracking-widest">Version 1.4.13 — Exportation audio & Résilience de la discothèque</p>
-      </div>
-
-      <div class="pillar-grid">
-        <article class="pillar-card">
-          <span class="pillar-mark" aria-hidden="true">I</span>
-          <h3 class="font-cinzel text-xl text-atelier-gold">Exportation Audio MP3</h3>
-          <p class="text-atelier-bistre">Possibilité d'exporter individuellement chaque piste gravée au format MP3 depuis la vue « Discothèque » via une boîte de dialogue native.</p>
-        </article>
-        <article class="pillar-card">
-          <span class="pillar-mark" aria-hidden="true">II</span>
-          <h3 class="font-cinzel text-xl text-atelier-gold">Suppression Résiliente</h3>
-          <p class="text-atelier-bistre">La suppression des pistes et des albums dans la Discothèque ne nécessite plus de configurer préalablement un dossier d'export externe.</p>
-          <p class="text-atelier-bistre">Fallback automatique sur le dossier de données local de l'application et tolérance accrue aux fichiers physiques absents.</p>
-        </article>
-        <article class="pillar-card">
-          <span class="pillar-mark" aria-hidden="true">III</span>
-          <h3 class="font-cinzel text-xl text-atelier-gold">Installeur MSI Complet</h3>
-          <p class="text-atelier-bistre">Intégration native et packagée des sidecars <code class="bg-atelier-ebony px-1">aldus-audio-server</code> et <code class="bg-atelier-ebony px-1">ffmpeg</code> (déclarés dans externalBin) pour un fonctionnement entièrement autonome (~583 Mo).</p>
-        </article>
-      </div>
-
-      <div class="mt-12 grid grid-cols-1 gap-5 sm:grid-cols-2">
-        <figure class="overflow-hidden rounded-sm border border-atelier-border bg-atelier-ebony">
-          <a href="assets/01-oratoire-studio-transcription.png" data-gallery><img class="w-full" src="assets/01-oratoire-studio-transcription.png" alt="Aldus v1.4.12 — Oratoire : transcription du manuscrit en script de podcast." loading="lazy" decoding="async" onerror="this.closest('figure').hidden = true"></a>
-          <figcaption>L'Oratoire : transcription du manuscrit en script de podcast.</figcaption>
-        </figure>
-        <figure class="overflow-hidden rounded-sm border border-atelier-border bg-atelier-ebony">
-          <a href="assets/02-oratoire-lecteur-vumètres.png" data-gallery><img class="w-full" src="assets/02-oratoire-lecteur-vumètres.png" alt="Aldus v1.4.12 — Oratoire : lecteur à bande magnétique et vu-mètres." loading="lazy" decoding="async" onerror="this.closest('figure').hidden = true"></a>
-          <figcaption>Le lecteur à bande et ses vu-mètres sur le signal réel.</figcaption>
-        </figure>
-        <figure class="overflow-hidden rounded-sm border border-atelier-border bg-atelier-ebony">
-          <a href="assets/03-salon-lecture-double-page-sombre.png" data-gallery><img class="w-full" src="assets/03-salon-lecture-double-page-sombre.png" alt="Aldus v1.4.12 — Salon de lecture : double page en Atelier Sombre." loading="lazy" decoding="async" onerror="this.closest('figure').hidden = true"></a>
-          <figcaption>Salon de lecture : double page en Atelier Sombre.</figcaption>
-        </figure>
-        <figure class="overflow-hidden rounded-sm border border-atelier-border bg-atelier-ebony">
-          <a href="assets/04-salon-lecture-velin-pageflip.png" data-gallery><img class="w-full" src="assets/04-salon-lecture-velin-pageflip.png" alt="Aldus v1.4.12 — Salon de lecture : papier Vélin Naturel et ombre de reliure." loading="lazy" decoding="async" onerror="this.closest('figure').hidden = true"></a>
-          <figcaption>Salon de lecture : Vélin Naturel, double page et ombre de reliure.</figcaption>
-        </figure>
-      </div>
-
-      <div class="flex flex-col sm:flex-row items-center justify-center gap-4 mt-16">
-        <a href="https://github.com/danoe78210/aldus/releases/download/v1.4.13/Aldus_1.4.13_x64_fr-FR.msi" class="w-full sm:w-auto text-center px-8 py-3.5 border border-atelier-brass text-atelier-ivory font-cinzel text-xs uppercase tracking-[0.2em] rounded-xs hover:border-atelier-gold hover:text-atelier-gold transition-all shadow-lg">Télécharger Aldus v1.4.13 pour Windows</a>
-      </div>
-      <p class="flex flex-wrap justify-center gap-x-6 gap-y-2 text-sm mt-6">
-        <a href="history.html" class="text-atelier-muted text-xs underline hover:text-atelier-gold">Consulter le Registre des versions antérieures</a>
-        <a href="https://github.com/danoe78210/aldus/blob/main/CHANGELOG.md" class="text-atelier-gold underline hover:text-atelier-goldhover">Journal des modifications complet</a>
-      </p>
-    </section>
-
-    <!-- Section Téléchargement -->
-    <section id="telechargement" class="pt-32 text-center">
-      <div class="mb-12">
-        <span class="text-atelier-gold text-xl">❦</span>
-        <h2 class="font-cinzel text-3xl sm:text-4xl tracking-[0.2em] uppercase text-atelier-ivory mt-2">Prendre Place dans l'Atelier</h2>
-        <p class="text-atelier-muted text-sm mt-1 uppercase tracking-widest">Version 1.4.13 (Stable) — Exportation audio &amp; Résilience</p>
-      </div>
-
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-6 text-left max-w-4xl mx-auto">
-
-        <!-- Windows -->
-        <div class="p-6 rounded-xs bg-atelier-card brass-border flex flex-col justify-between">
-          <div>
-            <h3 class="font-cinzel text-lg text-atelier-ivory">Windows</h3>
-            <p class="text-xs text-atelier-muted mt-1">Windows 10 / 11 (64-bit)</p>
-            <div class="my-4 text-xs text-atelier-bistre space-y-1">
-              <p>• MSI autonome 64 bits</p>
-              <p>• Moteur Python/XTTS et FFmpeg embarqués</p>
-              <p>• Poids XTTS téléchargés après accord CPML</p>
-            </div>
-          </div>
-          <div class="space-y-2 pt-4 border-t border-atelier-border/50">
-            <a href="https://github.com/danoe78210/aldus/releases/download/v1.4.13/Aldus_1.4.13_x64_fr-FR.msi" class="block w-full py-2 text-center bg-[#1f1913] border border-atelier-brass text-atelier-ivory font-cinzel text-xs uppercase tracking-wider rounded-xs hover:border-atelier-gold hover:text-atelier-gold transition-colors">
-              Télécharger l’installeur autonome .MSI
-            </a>
-          </div>
+        <div class="p-4 rounded-sm border border-gold/20 bg-gold/5">
+          <h3 class="font-display italic text-xl text-gold mb-3">Nouveautés de l'Édition (v1.4.13)</h3>
+          <ul class="list-disc list-inside space-y-3 ml-4 text-sm">
+            <li><strong class="text-gold">Exportation Native :</strong> Chaque piste peut désormais être exportée instantanément en format MP3.</li>
+            <li><strong class="text-gold">Suppression Résiliente :</strong> Le système tolère désormais les fichiers égarés ou absents lors du nettoyage des albums.</li>
+            <li><strong class="text-gold">Autonomie Totale :</strong> Plus besoin de configurer manuellement un dossier d'exportation.</li>
+          </ul>
         </div>
-
-        <!-- macOS -->
-        <div class="p-6 rounded-xs bg-atelier-card brass-border flex flex-col justify-between">
-          <div>
-            <h3 class="font-cinzel text-lg text-atelier-ivory">macOS</h3>
-            <p class="text-xs text-atelier-muted mt-1">Intel & Apple Silicon (M1/M2/M3/M4)</p>
-            <div class="my-4 text-xs text-atelier-bistre space-y-1">
-              <p>• Binaire universel optimisé</p>
-              <p>• Image disque DMG</p>
-            </div>
-          </div>
-          <div class="pt-4 border-t border-atelier-border/50">
-            <a href="https://github.com/danoe78210/aldus/releases/download/v1.4.13/Aldus_1.4.13_universal.dmg" class="block w-full py-2 text-center bg-[#1f1913] border border-atelier-brass text-atelier-ivory font-cinzel text-xs uppercase tracking-wider rounded-xs hover:border-atelier-gold hover:text-atelier-gold transition-colors">
-              Télécharger .DMG (39 Mo)
-            </a>
-          </div>
-        </div>
-
-        <!-- Linux -->
-        <div class="p-6 rounded-xs bg-atelier-card brass-border flex flex-col justify-between">
-          <div>
-            <h3 class="font-cinzel text-lg text-atelier-ivory">Linux</h3>
-            <p class="text-xs text-atelier-muted mt-1">Debian, Ubuntu, Fedora, Arch</p>
-            <div class="my-4 text-xs text-atelier-bistre space-y-1">
-              <p>• AppImage sans installation</p>
-              <p>• Paquets DEB et RPM</p>
-            </div>
-          </div>
-          <div class="space-y-2 pt-4 border-t border-atelier-border/50">
-            <a href="https://github.com/danoe78210/aldus/releases/download/v1.4.13/Aldus_1.4.13_amd64.AppImage" class="block w-full py-2 text-center bg-[#1f1913] border border-atelier-brass text-atelier-ivory font-cinzel text-xs uppercase tracking-wider rounded-xs hover:border-atelier-gold hover:text-atelier-gold transition-colors">
-              AppImage Portable (94 Mo)
-            </a>
-            <div class="grid grid-cols-2 gap-2">
-              <a href="https://github.com/danoe78210/aldus/releases/download/v1.4.13/Aldus_1.4.13_amd64.deb" class="py-1 text-center border border-atelier-border text-atelier-muted font-cinzel text-[10px] uppercase tracking-wider rounded-xs hover:border-atelier-brass hover:text-atelier-bistre transition-colors">
-                .DEB
-              </a>
-              <a href="https://github.com/danoe78210/aldus/releases/download/v1.4.13/Aldus-1.4.13-1.x86_64.rpm" class="py-1 text-center border border-atelier-border text-atelier-muted font-cinzel text-[10px] uppercase tracking-wider rounded-xs hover:border-atelier-brass hover:text-atelier-bistre transition-colors">
-                .RPM
-              </a>
-            </div>
-          </div>
-        </div>
-
-      </div>
-
-      <p class="text-xs text-atelier-muted mt-8">
-        Tous les installeurs sont compilés de manière reproductible via GitHub Actions. Consultez le
-        <a href="https://github.com/danoe78210/aldus/releases/tag/v1.4.13" class="text-atelier-gold underline hover:text-atelier-goldhover">journal de version complet</a>.
-      </p>
-    </section>
-
-  </main>
-
-  <!-- Pied de page Vénitien -->
-  <footer class="border-t border-atelier-border bg-atelier-ebony mt-32 py-12 text-center">
-    <div class="max-w-4xl mx-auto px-6">
-      <div class="text-atelier-gold text-2xl mb-3">❦</div>
-      <p class="font-cinzel text-sm uppercase tracking-[0.25em] text-atelier-ivory">Aldus — Officina Aldina</p>
-      <p class="text-xs text-atelier-muted mt-2 italic">
-        Conçu pour honorer les lettres et les livres. Distribué sous licence MIT.
-      </p>
-      <div class="flex flex-wrap justify-center gap-6 mt-6 text-xs uppercase tracking-widest text-atelier-bistre">
-        <a href="https://github.com/danoe78210/aldus" class="hover:text-atelier-gold">Dépôt GitHub</a>
-        <span>·</span>
-        <a href="https://github.com/danoe78210/aldus/blob/main/CHANGELOG.md" class="hover:text-atelier-gold">Journal des modifications</a>
-        <span>·</span>
-        <a href="https://github.com/danoe78210/aldus/blob/main/LICENSE" class="hover:text-atelier-gold">Licence</a>
       </div>
     </div>
-  </footer>
+  </div>
 
-<script>
-  // Donnée de la planche exposée sur le pupitre
-  const plates = [
-    {
-      title: "Ébène & Cuir — L'Immersion dans l'Atelier Renaissance",
-      subtitle: "Planche I · Sas & Creuset",
-      image: "Aldus001.png",
-      desc: "Une interface feutrée conçue pour éliminer la fatigue visuelle des longues veilles d'écriture. Le creuset de fonderie accueille l'écrivain dans un univers chaleureux d'or et de matières nobles, loin de la froideur des traitements de texte modernes.",
-      features: [
-        "Creuset d'or et sas immersif",
-        "Suppression de l'éblouissement",
-        "Pupitre à reliure centrale"
-      ]
-    }
-  ];
+  <!-- Plaque 3 : L'Édition -->
+  <div id="plaque-edition"
+       onclick="openPlaque('plaque-edition')"
+       class="plaque w-72 h-48 rounded-sm flex items-center justify-center text-center p-4"
+       style="bottom: 8%; left: 50%; transform: translateX(-50%);">
+    <div class="plaque-summary flex flex-col items-center gap-1">
+      <span class="font-display italic text-xl text-gold">L'Édition</span>
+      <span class="text-xs italic opacity-60 font-serif">Sceaux & Versions</span>
+    </div>
+    <div class="plaque-content absolute inset-0 p-12 flex flex-col items-center justify-center text-center overflow-y-auto">
+      <h2 class="font-display text-4xl text-gold mb-2 italic">Dernière Impression</h2>
+      <p class="text-xl mb-8 opacity-80">Version 1.4.13</p>
 
-  let currentIndex = 0;
+      <div class="flex flex-col items-center gap-6">
+        <a href="https://github.com/danoe78210/aldus/releases" target="_blank" class="wax-seal">
+          Télécharger
+        </a>
+        <div class="text-sm opacity-60 font-serif">
+          Installeur MSI autonome • ~583 Mo
+        </div>
+      </div>
+    </div>
+  </div>
 
-  function selectPlate(index) {
-    currentIndex = index;
-    const data = plates[index];
+  <script>
+    function openPlaque(id) {
+      const target = document.getElementById(id);
+      if (target.classList.contains('active')) return;
 
-    // 1. Mise à jour des boutons
-    for (let i = 0; i < plates.length; i++) {
-      const btn = document.getElementById(`tab-btn-${i}`);
-      if (i === index) {
-        btn.className = "tab-btn active px-5 py-3 rounded-xs border font-cinzel text-xs uppercase tracking-widest transition-all duration-300 flex items-center gap-2 cursor-pointer border-atelier-gold bg-[#221b14] text-atelier-goldhover shadow-[0_0_20px_rgba(212,175,55,0.18)]";
-        btn.querySelector("span").className = "text-atelier-gold";
-      } else {
-        btn.className = "tab-btn px-5 py-3 rounded-xs border font-cinzel text-xs uppercase tracking-widest transition-all duration-300 flex items-center gap-2 cursor-pointer border-atelier-border bg-atelier-card text-atelier-bistre hover:border-atelier-brass hover:text-atelier-ivory";
-        btn.querySelector("span").className = "text-atelier-muted";
-      }
-    }
+      // Désactivation et disparition de la présentation centrale
+      document.getElementById('emblem-container').classList.add('hidden-spatial');
 
-    // 2. Transition de l'image
-    const img = document.getElementById("plate-image");
-    img.style.opacity = "0";
-    img.style.transform = "scale(0.98)";
-
-    setTimeout(() => {
-      img.src = data.image;
-      img.onerror = () => {
-        // En cas d'image non encore présente
-        img.src = "Aldus001.png";
-      };
-      img.style.opacity = "1";
-      img.style.transform = "scale(1)";
-    }, 200);
-
-    // 3. Mise à jour des textes
-    document.getElementById("plate-title").innerText = data.title;
-    document.getElementById("plate-subtitle").innerText = data.subtitle;
-    document.getElementById("plate-desc").innerText = data.desc;
-
-    // 4. Puces techniques
-    const featContainer = document.getElementById("plate-features");
-    featContainer.innerHTML = data.features
-      .map(f => `<div class="flex items-center gap-2"><span class="text-atelier-brass">✦</span> ${f}</div>`)
-      .join("");
-  }
-
-  // Fonctions Lightbox Plein Écran
-  function openLightbox(source = document.getElementById("plate-image")) {
-    const box = document.getElementById("lightbox");
-    const img = document.getElementById("lightbox-img");
-    img.src = source.src;
-    img.alt = source.alt;
-    document.getElementById("lightbox-caption").textContent = source.alt;
-    box.showModal();
-  }
-
-  function closeLightbox() {
-    document.getElementById("lightbox").close();
-  }
-
-  document.querySelectorAll("[data-gallery]").forEach((link) => {
-    link.addEventListener("click", (event) => {
-      event.preventDefault();
-      openLightbox(link.querySelector("img"));
-    });
-  });
-  document.getElementById("lightbox").addEventListener("click", (event) => {
-    if (event.target === event.currentTarget) closeLightbox();
-  });
-
-  // Navigation pratique au clavier (flèches droite/gauche & Échap)
-  document.addEventListener("keydown", (e) => {
-    if (document.getElementById("lightbox").open) {
-      if (e.key === "Escape") {
-        e.preventDefault();
-        closeLightbox();
-      }
-      return;
-    }
-    if (e.key === "ArrowRight") {
-      selectPlate((currentIndex + 1) % plates.length);
-    } else if (e.key === "ArrowLeft") {
-      selectPlate((currentIndex - 1 + plates.length) % plates.length);
-    } else if (e.key === "Escape") {
-      closeLightbox();
-    }
-  });
-
-  // --- Pupitres d'exposition à onglets (Bancs I & II) : épreuve grand format commutable ---
-  const BANC_VIEWERS = {
-    "banc-1": {
-      default: "parametres",
-      views: {
-        parametres: {
-          src: "assets/screenshots/banc-1-parametres.png",
-          caption: "Paramètres du livre & mise en page — format 7×10 po · Garamond 11 pt · interligne 1,15",
-        },
-        formats: {
-          src: "assets/screenshots/banc-1-formats.png",
-          caption: "Nuancier des formats de coupe — du poche au grand format et A4",
-        },
-      },
-    },
-    "banc-2": {
-      default: "identite",
-      views: {
-        identite: {
-          src: "assets/screenshots/banc-2-identite.png",
-          caption: "Identité de l'œuvre — titre, tomaison, auteur, illustrateur et signature",
-        },
-        colophon: {
-          src: "assets/screenshots/banc-2-colophon.png",
-          caption: "Colophon & administration — mentions légales, ISBN et achevé d'imprimer",
-        },
-      },
-    },
-    "banc-3": {
-      default: "architecture",
-      views: {
-        architecture: {
-          src: "assets/screenshots/organisation-workspace.png",
-          caption: "Organisation — actes et chapitres issus des sous-dossiers du workspace",
-        },
-        calibrage: {
-          src: "assets/screenshots/imposition-typst-spine.png",
-          caption: "Imposition — pagination Typst mesurée et calcul du dos de couverture",
-        },
-      },
-    },
-    "banc-4": {
-      default: "synthese",
-      views: {
-        synthese: {
-          src: "assets/screenshots/Correcteur01.png",
-          caption: "Synthèse & Qualité — tableau de bord par chapitre, jauge de l'indice de qualité et anomalies pondérées",
-          subtitle: "Évaluation globale du chapitre & jauge de conformité",
-          description: "Évaluation globale du chapitre. Affiche la jauge de conformité aldine, le tableau de bord par chapitre, la classification pondérée des anomalies (critiques, style, mineures) et le regroupement par familles typographiques.",
-        },
-        regles: {
-          src: "assets/screenshots/Correcteur02.png",
-          caption: "Registre des Règles — 18 contrôles actifs, fiches de règles et comptage des occurrences",
-          subtitle: "Registre exhaustif des 18 règles aldines",
-          description: "Navigation feuillet par feuillet à travers l'ensemble des règles orthotypographiques : fiches explicatives détaillées, exemples avant/après, niveau de sévérité et décompte précis des occurrences détectées.",
-        },
-        epreuve: {
-          src: "assets/screenshots/Correcteur03.png",
-          caption: "Épreuve & Surlignage — diptyque synchronisé et surbrillance dorée des anomalies",
-          subtitle: "Diptyque d'épreuve & conseils de l'imprimeur",
-          description: "Vue double synchrone associant le feuillet de lecture au pupitre des conseils de l'imprimeur. Les anomalies sont surlignées d'or sur la page vivante, avec repérage instantané et recommandations de correction.",
-        },
-        retouche: {
-          src: "assets/screenshots/Correcteur04.png",
-          caption: "Modification du Texte — réglet de retouche Markdown, espaces insécables et tirets cadratins",
-          subtitle: "Retouche chirurgicale dans le manuscrit vivant",
-          description: "Édition directe du texte vivant au format Markdown. Permet d'appliquer des corrections orthotypographiques immédiates — insertion d'espaces insécables, tirets cadratins et ligatures — sans jamais quitter l'établi.",
-        },
-      },
-    },
-    "banc-5": {
-      default: "calibrage",
-      views: {
-        calibrage: {
-          src: "assets/screenshots/Couverture02.png",
-          caption: "Calibrage & Matières — épaisseur du dos au centième de millimètre, papier et pelliculage",
-          subtitle: "Paramétrage mathématique de l'enveloppe extérieure",
-          description: "Paramétrage mathématique de l'enveloppe extérieure. Déclaration de la pagination et choix rigoureux du papier d'imprimerie (crème, blanc ou couleur) pour calculer automatiquement l'épaisseur du dos au centième de millimètre. Sélection du pelliculage (mat velouté ou brillant éclatant), import des visuels des plats en haute définition (305 DPI) et composition du texte de la tranche.",
-        },
-        marbre: {
-          src: "assets/screenshots/Couverture01.jpg",
-          caption: "Marbre 2D & Gabarit — imposition plane, repères de coupe, lignes de pliure et code-barres",
-          subtitle: "Atelier d'imposition plane de la couverture complète",
-          description: "Atelier d'imposition plane de la couverture complète (Plat I, dos et Plat IV). Gestion intelligente des alertes de dérive de pagination, affichage des repères professionnels indispensables (fonds perdus à 3,2 mm, lignes de pliure, zones de sécurité) et placement de la réserve de code-barres.",
-        },
-        volume3d: {
-          src: "assets/screenshots/Couverture03.png",
-          caption: "Volume Relié 3D — inspection orbitale de l'ouvrage sous tous les angles et export certifié",
-          subtitle: "Restitution visuelle tridimensionnelle et interactive",
-          description: "Restitution visuelle tridimensionnelle et interactive du livre relié. Permet d'inspecter l'harmonie globale de l'objet fini sous tous les angles, de surveiller l'intégrité de la tranche et d'accéder au module d'exportation du fichier PDF certifié KDP.",
-        },
-      },
-    },
-    "banc-6": {
-      default: "prepresse",
-      views: {
-        prepresse: {
-          src: "assets/screenshots/Export01.png",
-          caption: "Inspection Pré-Presse — PDF Imprimeur, EPUB (Standard), jaquette et manuscrit DOCX",
-          subtitle: "L'Inspection Pré-Presse & la Génération des Formes",
-          description: "Constitution du dossier de fabrication : PDF Imprimeur (Haute Définition), EPUB (Standard), jaquette 300 DPI et DOCX révisé. Aucun prévol PDF/X ni validateur EPUBCheck intégré ; l'acceptation par KDP / IngramSpark reste à vérifier.",
-        },
-      },
-    },
-    "banc-7": {
-      default: "tirage",
-      views: {
-        tirage: {
-          src: "assets/screenshots/Export02.png",
-          caption: "Tirage sous Presse — justificatif de tirage, scellage officiel du volume et ouverture des épreuves",
-          subtitle: "Le Tirage sous Presse & le Scellage du Volume",
-          description: "L'acte solennel de l'Officine d'Aldus. Affiche le justificatif de tirage traditionnel, permet d'actionner la presse pour figer le volume dans ses 60 feuillets, et offre un accès direct au dossier des épreuves et au feuilletage du livre composé.",
-        },
-      },
-    },
-  };
-  const bancViewState = {};
-
-  function selectBancView(bancId, viewId) {
-    const config = BANC_VIEWERS[bancId];
-    if (!config) return;
-    const view = config.views[viewId];
-    if (!view) return;
-    bancViewState[bancId] = viewId;
-
-    const root = document.querySelector('[data-banc-viewer="' + bancId + '"]');
-    if (!root) return;
-
-    // Onglets : état actif surligné d'or
-    root.querySelectorAll("[data-banc-tab]").forEach((btn) => {
-      const active = btn.dataset.bancTab === viewId;
-      btn.classList.toggle("active", active);
-      btn.setAttribute("aria-selected", active ? "true" : "false");
-    });
-
-    // Images : fondu croisé (fade in / fade out)
-    root.querySelectorAll("[data-banc-img]").forEach((img) => {
-      img.classList.toggle("is-active", img.dataset.bancImg === viewId);
-    });
-
-    // Légende synchronisée
-    const caption = root.querySelector("[data-banc-caption]");
-    if (caption) caption.textContent = view.caption;
-
-    // Mise à jour narrative synchronisée (colonne de gauche) avec fondu élégant
-    if (view.description || view.subtitle) {
-      const showcase = root.closest(".banc-showcase");
-      if (showcase) {
-        const narrBox = showcase.querySelector(".banc-narrative-box");
-        const subEl = showcase.querySelector("[data-banc-subtitle]");
-        const descEl = showcase.querySelector("[data-banc-desc]");
-        if (narrBox) {
-          narrBox.classList.add("is-fading");
-          setTimeout(() => {
-            if (subEl && view.subtitle) subEl.textContent = view.subtitle;
-            if (descEl && view.description) descEl.textContent = view.description;
-            narrBox.classList.remove("is-fading");
-          }, 120);
-        } else {
-          if (subEl && view.subtitle) subEl.textContent = view.subtitle;
-          if (descEl && view.description) descEl.textContent = view.description;
+      document.querySelectorAll('.plaque').forEach(p => {
+        if (p.id !== id) {
+          p.classList.add('hidden-spatial');
         }
-      }
+      });
+
+      // Activation de la plaque
+      target.classList.add('active');
+      target.classList.remove('hidden-spatial');
+
+      // Affichage du bouton fermer
+      document.getElementById('close-btn').classList.add('visible');
     }
 
-    // État du cadre d'exposition (capture déposée ou non).
-    refreshBancPlaceholder(root);
-  }
+    function closePlaques() {
+      document.getElementById('emblem-container').classList.remove('hidden-spatial');
+      document.getElementById('close-btn').classList.remove('visible');
 
-  /**
-   * Masque le libellé d'attente lorsque la capture de la vue active est
-   * disponible, et le réaffiche avec le nom du fichier manquant sinon.
-   */
-  function refreshBancPlaceholder(root) {
-    const frame = root.querySelector(".banc-viewer");
-    const placeholder = root.querySelector("[data-banc-placeholder]");
-    if (!frame || !placeholder) return;
-
-    const active = frame.querySelector(".banc-viewer-img.is-active");
-    const ready =
-      Boolean(active) &&
-      active.dataset.broken !== "1" &&
-      active.naturalWidth > 0;
-    placeholder.classList.toggle("is-hidden", ready);
-
-    if (!ready) {
-      const file = active
-        ? (active.getAttribute("src") || "").split("/").pop()
-        : "";
-      placeholder.textContent = file
-        ? "Épreuve à venir — " + file
-        : "Épreuve à venir";
+      document.querySelectorAll('.plaque').forEach(p => {
+        p.classList.remove('active');
+        p.classList.remove('hidden-spatial');
+      });
     }
-  }
-
-  /** Rappelé par chaque capture (`onload` / `onerror`) pour rafraîchir son pupitre. */
-  function bancShotLoaded(img) {
-    const root = img.closest("[data-banc-viewer]");
-    if (root) refreshBancPlaceholder(root);
-  }
-
-  // État initial des pupitres (captures déjà en cache ou non déposées).
-  document.querySelectorAll("[data-banc-viewer]").forEach(refreshBancPlaceholder);
-
-  // Ouvre l'épreuve active en haute définition dans la visionneuse
-  function zoomBancView(bancId) {
-    const config = BANC_VIEWERS[bancId];
-    if (!config) return;
-    const activeId = bancViewState[bancId] || config.default;
-    const view = config.views[activeId] || config.views[config.default];
-    if (!view) return;
-    openLightbox({ src: view.src, alt: view.caption });
-  }
-
-  // --- Sommaire flottant des 7 Bancs (Navigation rapide & Scroll Spy) ---
-  const bancNavLinks = document.querySelectorAll(".bancs-nav-item");
-  bancNavLinks.forEach((link) => {
-    link.addEventListener("click", (e) => {
-      e.preventDefault();
-      const targetId = link.getAttribute("data-banc-target");
-      const targetEl = document.getElementById(targetId);
-      if (targetEl) {
-        targetEl.scrollIntoView({ behavior: "smooth", block: "start" });
-        bancNavLinks.forEach((l) => {
-          const active = l === link;
-          l.classList.toggle("active", active);
-          if (active) l.setAttribute("aria-current", "true");
-          else l.removeAttribute("aria-current");
-        });
-      }
-    });
-  });
-
-  const bancArticles = Array.from(document.querySelectorAll("article[id^='banc-']"));
-  if (bancArticles.length > 0 && "IntersectionObserver" in window) {
-    const bancObserver = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            const id = entry.target.id;
-            bancNavLinks.forEach((link) => {
-              const active = link.getAttribute("data-banc-target") === id;
-              link.classList.toggle("active", active);
-              if (active) link.setAttribute("aria-current", "true");
-              else link.removeAttribute("aria-current");
-            });
-          }
-        });
-      },
-      {
-        root: null,
-        rootMargin: "-20% 0px -55% 0px",
-        threshold: 0,
-      }
-    );
-
-    bancArticles.forEach((article) => bancObserver.observe(article));
-  }
-</script>
-
+  </script>
 </body>
 </html>
