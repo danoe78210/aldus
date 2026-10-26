@@ -133,7 +133,18 @@
       z-index: 110;
       opacity: 0;
       pointer-events: none;
-      transition: opacity 0.3s ease;
+      transition: all 0.3s ease;
+      background: rgba(10, 10, 10, 0.9);
+      border: 1px solid rgba(212, 175, 55, 0.4);
+      border-radius: 50%;
+      padding: 12px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.8);
+      color: var(--color-gold);
+    }
+    #close-btn:hover {
+      background: rgba(212, 175, 55, 0.15);
+      border-color: rgba(212, 175, 55, 1);
+      transform: scale(1.1) rotate(90deg);
     }
 
     #close-btn.visible {
@@ -145,6 +156,18 @@
       opacity: 0;
       pointer-events: none;
       transform: scale(0.9);
+    }
+
+    .hide-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+    .hide-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .fade-mask {
+      mask-image: linear-gradient(to bottom, transparent 0%, black 10%, black 90%, transparent 100%);
+      -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 10%, black 90%, transparent 100%);
     }
 
     @keyframes spin-astrolabe {
@@ -229,7 +252,7 @@
 
   <!-- Bouton Fermer -->
   <button id="close-btn" onclick="closePlaques()" class="p-2 text-gold hover:text-white transition-colors">
-    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+    <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
   </button>
 
   <!-- Plaque : Le Grimoire (Documentation) -->
@@ -292,84 +315,65 @@
       <span class="font-display italic text-xl text-gold">L'Œuvre</span>
       <span class="text-xs italic opacity-60 font-serif">Cycle de Création</span>
     </div>
-    <div class="plaque-content absolute inset-0 p-12 flex flex-col justify-center overflow-y-auto">
-      <h2 class="font-display text-4xl text-gold mb-6 italic">L'Œuvre — L'Art de l'Édition Moderne</h2>
+    <div class="plaque-content absolute inset-0 p-12 flex flex-col items-start overflow-hidden">
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 w-full h-full items-start">
+        <div class="h-full overflow-y-auto hide-scrollbar fade-mask py-16 pr-6 text-left space-y-8">
+          <h2 class="font-display text-4xl text-gold mb-12 italic">L'Œuvre — Le Cycle de Création</h2>
 
-      <div class="space-y-8 text-lg leading-relaxed opacity-90">
-        <section>
-          <p>Aldus est un environnement d'artisanat littéraire et d'ingénierie éditoriale aux normes Amazon KDP, inspiré par les maîtres imprimeurs de la Renaissance vénitienne. L'alliance de la typographie humaniste et d'une précision technique millimétrique permet de transformer un manuscrit brut en un objet livre d'exception.</p>
-        </section>
-
-        <section class="space-y-6">
-          <h3 class="font-display text-2xl text-gold italic">Le Cycle de Création (Les Huit Bancs)</h3>
-
-          <div class="space-y-6">
-            <div>
-              <h4 class="font-display font-bold text-gold">Banc I : Le Banc de Calibrage &amp; Gabarits</h4>
-              <ul class="list-disc list-inside space-y-2 ml-4 opacity-80">
-                <li><strong class="text-gold">Proportions &amp; formats de coupe :</strong> Choix immédiat du gabarit parmi les formats canoniques de l'édition (du format poche 5×8 po au grand in-octavo 7×10 po pour un confort de lecture supérieur).</li>
-                <li><strong class="text-gold">Corps d'atelier &amp; hiérarchie :</strong> Sélection du caractère d'imprimerie (Garamond), étalonnage du corps (11 pt), de l'interlignage (1,15) et des hauteurs optiques de titrage.</li>
-                <li><strong class="text-gold">Attache des sources :</strong> Déclaration fluide des répertoires du manuscrit (chapitres Markdown) et du dossier des ornements et illustrations.</li>
-                <li><strong class="text-gold">Rigueur du correcteur :</strong> Paramétrage des seuils de vigilance et de l'analyse orthotypographique.</li>
-              </ul>
-            </div>
-
-            <div>
-              <h4 class="font-display font-bold text-gold">Banc II : Le Banc de l'Identité &amp; du Colophon</h4>
-              <p class="opacity-80 ml-4">L'état-civil du livre, mentions légales KDP et colophon historique. Renseignement des métadonnées éditoriales, du titre, de la signature d'auteur et de l'achevé d'imprimer.</p>
-            </div>
-
-            <div>
-              <h4 class="font-display font-bold text-gold">Banc III : L'Écritoire</h4>
-              <ul class="list-disc list-inside space-y-2 ml-4 opacity-80">
-                <li><strong class="text-gold">Gestion des chapitres :</strong> sélectionnez un fichier Markdown existant ou créez un nouveau chapitre .md dans le dossier source du projet ; les modifications sont sauvegardées automatiquement.</li>
-                <li><strong class="text-gold">Diptyque de rédaction :</strong> éditez sur le feuillet gauche, dans une page ébène et or, et suivez la prévisualisation typographique en temps réel sur le feuillet droit.</li>
-                <li><strong class="text-gold">Réglet &amp; Manuel du Scribe :</strong> insérez guillemets français, espaces insécables, cadratins, apostrophes courbes et ligatures ; consultez les exemples Markdown de narration romanesque.</li>
-              </ul>
-            </div>
-
-            <div>
-              <h4 class="font-display font-bold text-gold">Banc IV : Le Banc d'Imposition &amp; d'Architecture</h4>
-              <ul class="list-disc list-inside space-y-2 ml-4 opacity-80">
-                <li><strong class="text-gold">Organisation du livre :</strong> Orchestration de la structure narrative (actes, chapitres), intégration rigoureuse des pièces liminaires (dédicaces, épigraphes, prologue) et placement des illustrations.</li>
-                <li><strong class="text-gold">Calibrage KDP :</strong> Respect des seuils de pagination et des contraintes techniques d'impression à la demande pour garantir une conformité irréprochable des épreuves.</li>
-              </ul>
-            </div>
-
-            <div>
-              <h4 class="font-display font-bold text-gold">Banc V : Le Banc de Qualité Typographique &amp; d'Épreuve</h4>
-              <ul class="list-disc list-inside space-y-2 ml-4 opacity-80">
-                <li><strong class="text-gold">Évaluation globale :</strong> Affiche la jauge de conformité aldine, le tableau de bord par chapitre, la classification pondérée des anomalies (critiques, style, mineures) et le regroupement par familles typographiques.</li>
-                <li><strong class="text-gold">Registre des Règles :</strong> Navigation feuillet par feuillet à travers l'ensemble des règles orthotypographiques : fiches explicatives détaillées, exemples avant/après, niveau de sévérité et décompte précis des occurrences détectées.</li>
-                <li><strong class="text-gold">Diptyque d'épreuve :</strong> Vue double synchrone associant le feuillet de lecture au pupitre des conseils de l'imprimeur. Les anomalies sont surlignées d'or sur la page vivante, avec repérage instantané et recommandations de correction.</li>
-                <li><strong class="text-gold">Retouche chirurgicale :</strong> Édition directe du texte vivant au format Markdown pour appliquer des corrections orthotypographiques immédiates sans jamais quitter l'établi.</li>
-              </ul>
-            </div>
-
-            <div>
-              <h4 class="font-display font-bold text-gold">Banc VI : Le Banc de mise en couverture</h4>
-              <p class="opacity-80 ml-4">Paramétrage mathématique de l'enveloppe extérieure. Déclaration de la pagination et choix rigoureux du papier d'imprimerie pour calculer automatiquement l'épaisseur du dos au centième de millimètre. Sélection du pelliculage, import des visuels des plats en haute définition (305 DPI) et composition du texte de la tranche.</p>
-            </div>
-
-            <div>
-              <h4 class="font-display font-bold text-gold">Banc VII : L'Inspection Pré-Presse</h4>
-              <p class="opacity-80 ml-4">Constitution du dossier de fabrication : PDF Imprimeur (Haute Définition), EPUB (Standard), jaquette 300 DPI et DOCX révisé.</p>
-            </div>
-
-            <div>
-              <h4 class="font-display font-bold text-gold">Banc VIII : Le Tirage sous Presse</h4>
-              <p class="opacity-80 ml-4">L'acte solennel de l'Officine d'Aldus. Affiche le justificatif de tirage traditionnel, permet d'actionner la presse pour figer le volume dans ses 60 feuillets, et offre un accès direct au dossier des épreuves et au feuilletage du livre composé.</p>
-            </div>
+          <div class="banc-item cursor-pointer p-4 border-l-2 border-transparent hover:border-gold hover:bg-gold/5 transition-all duration-300 rounded-sm" data-image="assets/screenshots/banc-1-parametres.png">
+            <h4 class="font-display font-bold text-gold">Banc I : Calibrage & Gabarits</h4>
+            <p class="opacity-80 ml-4 mt-2">Choix immédiat du gabarit parmi les formats canoniques de l'édition (du format poche 5×8 po au grand in-octavo 7×10 po). Sélection du caractère d'imprimerie (Garamond), étalonnage du corps (11 pt), de l'interlignage (1,15) et des hauteurs optiques de titrage. Déclaration fluide des répertoires du manuscrit et du dossier des ornements. Paramétrage des seuils de vigilance et de l'analyse orthotypographique.</p>
           </div>
-        </section>
 
-        <div class="p-4 rounded-sm border border-gold/20 bg-gold/5">
-          <h3 class="font-display italic text-xl text-gold mb-3">Nouveautés de l'Édition (v1.4.13)</h3>
-          <ul class="list-disc list-inside space-y-3 ml-4 text-sm">
-            <li><strong class="text-gold">Exportation Native :</strong> Chaque piste peut désormais être exportée instantanément en format MP3.</li>
-            <li><strong class="text-gold">Suppression Résiliente :</strong> Le système tolère désormais les fichiers égarés ou absents lors du nettoyage des albums.</li>
-            <li><strong class="text-gold">Autonomie Totale :</strong> Plus besoin de configurer manuellement un dossier d'exportation.</li>
-          </ul>
+          <div class="banc-item cursor-pointer p-4 border-l-2 border-transparent hover:border-gold hover:bg-gold/5 transition-all duration-300 rounded-sm" data-image="assets/screenshots/banc-2-identite.png">
+            <h4 class="font-display font-bold text-gold">Banc II : Identité & Colophon</h4>
+            <p class="opacity-80 ml-4 mt-2">L'état-civil du livre, mentions légales KDP et colophon historique. Renseignement des métadonnées éditoriales, du titre, de la signature d'auteur et de l'achevé d'imprimer.</p>
+          </div>
+
+          <div class="banc-item cursor-pointer p-4 border-l-2 border-transparent hover:border-gold hover:bg-gold/5 transition-all duration-300 rounded-sm" data-image="assets/screenshots/banc-1-parametres.png">
+            <h4 class="font-display font-bold text-gold">Banc III : L'Écritoire</h4>
+            <p class="opacity-80 ml-4 mt-2">Sélectionnez un fichier Markdown existant ou créez un nouveau chapitre .md ; modifications sauvegardées automatiquement. Édition sur feuillet gauche (page ébène et or) avec prévisualisation typographique temps réel sur feuillet droit. Insertion guillemets français, espaces insécables, cadratins, apostrophes courbes, ligatures ; exemples Markdown de narration romanesque.</p>
+          </div>
+
+          <div class="banc-item cursor-pointer p-4 border-l-2 border-transparent hover:border-gold hover:bg-gold/5 transition-all duration-300 rounded-sm" data-image="assets/screenshots/banc-3-architecture.png">
+            <h4 class="font-display font-bold text-gold">Banc IV : Imposition & Architecture</h4>
+            <p class="opacity-80 ml-4 mt-2">Orchestration de la structure narrative (actes, chapitres), intégration rigoureuse des pièces liminaires (dédicaces, épigraphes, prologue) et placement des illustrations. Respect des seuils de pagination et contraintes techniques d'impression à la demande pour conformité irréprochable.</p>
+          </div>
+
+          <div class="banc-item cursor-pointer p-4 border-l-2 border-transparent hover:border-gold hover:bg-gold/5 transition-all duration-300 rounded-sm" data-image="assets/screenshots/Correcteur03.png">
+            <h4 class="font-display font-bold text-gold">Banc V : Qualité Typographique & d'Épreuve</h4>
+            <p class="opacity-80 ml-4 mt-2">Évaluation globale : jauge de conformité aldine, tableau de bord par chapitre, classification pondérée des anomalies (critiques, style, mineures), regroupement par familles. Navigation feuillet par feuillet : fiches explicatives, exemples avant/après, niveau sévérité, décompte occurrences. Vue double synchrone : feuillet de lecture + pupitre conseils. Anomalies surlignées d'or, retouche chirurgicale directe en Markdown sans quitter l'établi.</p>
+          </div>
+
+          <div class="banc-item cursor-pointer p-4 border-l-2 border-transparent hover:border-gold hover:bg-gold/5 transition-all duration-300 rounded-sm" data-image="assets/screenshots/Couverture03.png">
+            <h4 class="font-display font-bold text-gold">Banc VI : Mise en couverture</h4>
+            <p class="opacity-80 ml-4 mt-2">Paramétrage mathématique de l'enveloppe. Déclaration pagination et choix papier (crème, blanc, couleur) pour calcul automatique épaisseur dos au centième de mm. Sélection pelliculage (mat velouté / brillant éclatant), import visuels plats 305 DPI, composition texte de tranche.</p>
+          </div>
+
+          <div class="banc-item cursor-pointer p-4 border-l-2 border-transparent hover:border-gold hover:bg-gold/5 transition-all duration-300 rounded-sm" data-image="assets/screenshots/Export01.png">
+            <h4 class="font-display font-bold text-gold">Banc VII : Inspection Pré-Presse</h4>
+            <p class="opacity-80 ml-4 mt-2">Constitution du dossier de fabrication : PDF Imprimeur (Haute Définition), EPUB (Standard), jaquette 300 DPI, DOCX révisé.</p>
+          </div>
+
+          <div class="banc-item cursor-pointer p-4 border-l-2 border-transparent hover:border-gold hover:bg-gold/5 transition-all duration-300 rounded-sm" data-image="assets/screenshots/Export02.png">
+            <h4 class="font-display font-bold text-gold">Banc VIII : Tirage sous Presse</h4>
+            <p class="opacity-80 ml-4 mt-2">Acte solennel de l'Officine. Justificatif de tirage traditionnel, actionnement de la presse pour figer le volume (60 feuillets), accès direct au dossier des épreuves et au feuilletage du livre composé.</p>
+          </div>
+
+          <div class="mt-8 pt-8 border-t border-gold/20">
+            <h3 class="font-display italic text-xl text-gold mb-4">Nouveautés de l'Édition (v1.4.13)</h3>
+            <ul class="space-y-3 text-sm opacity-80">
+              <li><strong class="text-gold">Exportation Native :</strong> Chaque piste exportable instantanément en MP3.</li>
+              <li><strong class="text-gold">Suppression Résiliente :</strong> Tolérance aux fichiers égarés lors du nettoyage des albums.</li>
+              <li><strong class="text-gold">Autonomie Totale :</strong> Plus de configuration manuelle du dossier d'exportation.</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="hidden lg:block h-full flex flex-col justify-center sticky top-0 pb-16 pr-16">
+          <div class="relative w-full aspect-16/9 border border-gold/30 bg-black/50 p-2 shadow-[0_0_30px_rgba(0,0,0,0.8)] rounded-sm overflow-hidden flex items-center justify-center">
+            <img id="banc-preview-img" src="assets/screenshots/banc-1-parametres.png" class="w-full h-full object-cover transition-opacity duration-500 opacity-100" alt="Aperçu du Banc">
+          </div>
         </div>
       </div>
     </div>
@@ -430,13 +434,28 @@
         p.classList.remove('hidden-spatial');
       });
     }
-  // Fermeture avec Échap
+
+    // Fermeture avec Échap
     document.addEventListener('keydown', (e) => {
       if (e.key === 'Escape') closePlaques();
     });
     // Fermeture au clic dans le vide (sur la texture ou les orbites)
     document.querySelector('.texture-overlay').addEventListener('click', closePlaques);
     document.getElementById('orbite-1')?.addEventListener('click', closePlaques);
+
+    // Diptyque interactif pour la plaque L'Œuvre
+    document.querySelectorAll('.banc-item').forEach(item => {
+      item.addEventListener('mouseenter', function() {
+        const newSrc = this.getAttribute('data-image');
+        const img = document.getElementById('banc-preview-img');
+        if (!img || img.src.includes(newSrc)) return;
+        img.style.opacity = 0;
+        setTimeout(() => {
+          img.src = newSrc;
+          img.style.opacity = 1;
+        }, 200);
+      });
+    });
   </script>
 </body>
 </html>
