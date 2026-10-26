@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="view-transition" content="same-origin">
   <title>Spécifications — Aldus, Atelier du Livre Moderne</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -201,8 +202,19 @@
 </head>
 <body>
 
-  <!-- Bouton Retour -->
-  <a href="../index.html" class="absolute top-8 left-8 text-gold hover:text-white z-[110] font-display italic text-xl">⟵ Retour à l'Atelier</a>
+  <!-- Compas Orbital (Navigation) -->
+  <div class="fixed top-8 left-8 z-[120] group font-display">
+    <div class="flex items-center gap-3 cursor-pointer">
+      <div class="w-10 h-10 rounded-full border border-gold/40 flex items-center justify-center bg-black/80 text-gold shadow-[0_0_15px_rgba(212,175,55,0.2)] group-hover:rotate-90 transition-transform duration-700">
+        <span class="text-xl">✦</span>
+      </div>
+      <span class="text-gold/80 italic tracking-widest text-sm group-hover:opacity-0 transition-opacity duration-300">NAVIGATION</span>
+    </div>
+    <div class="absolute top-0 left-14 flex flex-col gap-3 opacity-0 translate-x-[-20px] pointer-events-none group-hover:opacity-100 group-hover:translate-x-0 group-hover:pointer-events-auto transition-all duration-500 bg-black/90 p-4 border border-gold/20 rounded-sm shadow-xl whitespace-nowrap">
+      <a href="../index.html" class="text-parchment hover:text-gold transition-colors text-lg italic flex items-center gap-2"><span class="text-xs">I.</span> L'Atelier (Accueil)</a>
+      <a href="index.html" class="text-parchment hover:text-gold transition-colors text-lg italic flex items-center gap-2"><span class="text-xs">II.</span> Les Spécifications</a>
+    </div>
+  </div>
 
   <!-- Fond texturé -->
   <svg class="texture-overlay">
@@ -443,6 +455,14 @@
         p.classList.remove('hidden-spatial');
       });
     }
+
+    // Fermeture avec Échap
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') closePlaques();
+    });
+    // Fermeture au clic dans le vide (sur la texture ou les orbites)
+    document.querySelector('.texture-overlay').addEventListener('click', closePlaques);
+    document.getElementById('orbite-1')?.addEventListener('click', closePlaques);
 
     // Logique du Diptyque de l'Imprimeur
     document.querySelectorAll('.banc-item').forEach(item => {
